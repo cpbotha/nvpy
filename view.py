@@ -146,6 +146,8 @@ class View:
 
         #self._current_text = None
         #self.user_text.focus_set()
+
+        self.search_entry.focus_set()
         
     def cmd_lb_notes_select(self, evt):
         s = self.lb_notes.curselection()
@@ -165,6 +167,8 @@ class View:
         self.root.bind_all("<Control-f>", lambda e: self.search_entry.focus())
         
         self.lb_notes.bind("<<ListboxSelect>>", self.cmd_lb_notes_select)        
+        self.search_entry.bind("<Escape>", lambda e:
+                self.search_entry.delete(0, tk.END))
 
     def _create_menu(self):
         """Utility function to setup main menu.
@@ -355,7 +359,8 @@ class View:
             self.set_note_names(notes_list_model.list)
             
     def observer_note_content(self, note_content_model, evt_type, evt):
-        if evt_type == 'content:change':
+        if evt_type == 'content:set':
+            # completely new content
             self.set_note_content(note_content_model.content)
 
     def main_loop(self):

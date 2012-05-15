@@ -4,6 +4,14 @@
 # left column with current results: name, mod date, summary, tags
 # right column with text of currently selected note
 
+# * typing in the search bar:
+# - press enter: focus jumps to note if ANYTHING is selected. if nothing is
+# selected, enter creates a new note with the current string as its name.
+# - esc clears the search entry, esc again jumps to list
+# - up and down changes currently selected list
+# * in note conten area
+# - esc goes back to notes list.
+
 # http://www.scribd.com/doc/91277952/Simple-Note-API-v2-1-3
 # this also has a sync algorithm!
 
@@ -42,8 +50,18 @@ class NoteContentModel(SubjectMixin):
         self.content = None
         
     def set_content(self, content):
+        """Call this when this is a new note.
+        """
         self.content = content
-        self.notify_observers('content:change', None)
+        self.notify_observers('content:set', None)
+
+    def update_content(self, content):
+        """Call this when changes are made to the current note.
+
+        Only differes from set_content in the event that is fired.
+        """
+        self.content = content
+        self.notify_observers('content:update', None)
         
 class Controller:
     """Main application class.
