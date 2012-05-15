@@ -93,7 +93,7 @@ class Controller:
         # create the interface
         self.view = view.View(self, self.notes_list_model, self.note_content_model)
         # we want to be notified when the user does stuff
-        self.view.observers.append(self.observer_view)
+        self.view.add_observer(self.observer_view)
         
         # nn is a list of (key, title, modifydate) objects
         nn = self.notes_db.get_note_names()
@@ -113,9 +113,13 @@ class Controller:
     def main_loop(self):
         self.view.main_loop()
         
-    def observer_view(self, evt_type, evt):
-        if evt_type == 'note_select':
+    def observer_view(self, view, evt_type, evt):
+        if evt_type == 'note:select':
             self.select_note(evt.sel)
+            
+        elif evt_type == 'entry:change':
+            # la la
+            print evt.value
             
     def select_note(self, idx):
         key = self.notes_list_model.list[idx].key

@@ -124,11 +124,13 @@ class StatusBar(ttk.Frame):
         self.label.config(text="")
         self.label.update_idletasks()
 
-class View:
+class View(utils.SubjectMixin):
     """Main user interface class.
     """
     
     def __init__(self, controller, notes_list_model, note_content_model):
+        utils.SubjectMixin.__init__(self)
+        
         # for getting version, and for requesting to quit
         self.controller = controller
         
@@ -151,12 +153,8 @@ class View:
         
     def cmd_lb_notes_select(self, evt):
         s = self.lb_notes.curselection()
-        self.notify_observers('note_select', utils.KeyValueObject(sel=int(s[0])))
+        self.notify_observers('note:select', utils.KeyValueObject(sel=int(s[0])))
         
-    def notify_observers(self, evt_type, evt):
-        for o in self.observers:
-            o(evt_type, evt)
-            
     def select_note(self, idx):
         # programmatically select the note by idx
         self.lb_notes.select_set(idx)
@@ -167,8 +165,11 @@ class View:
         self.root.bind_all("<Control-f>", lambda e: self.search_entry.focus())
         
         self.lb_notes.bind("<<ListboxSelect>>", self.cmd_lb_notes_select)        
+        
         self.search_entry.bind("<Escape>", lambda e:
                 self.search_entry.delete(0, tk.END))
+        
+        # <Key>
 
     def _create_menu(self):
         """Utility function to setup main menu.
@@ -247,11 +248,27 @@ class View:
         self.statusbar = StatusBar(self.root)
         self.statusbar.set_label('%s', 'Welcome to nvPY!')
         self.statusbar.pack(fill=tk.X, side=tk.BOTTOM)
+
+        # valid percent substitutions (from the Tk entry man page)
+        # %d = Type of action (1=insert, 0=delete, -1 for others)
+        # %i = index of char string to be inserted/deleted, or -1
+        # %P = value of the entry if the edit is allowed
+        # %s = value of entry prior to editing
+        # %S = the text string being inserted or deleted, if any
+        # %v = the type of validation that is currently set
+        # %V = the type of validation that triggered the callback
+        #      (key, focusin, focusout, forced)
+        # %W = the tk name of the widget
+        # from http://stackoverflow.com/questions/4140437/python-tkinter-interactively-validating-entry-widget-content
+        vcmd = (self.root.register(self.cmd_validate_search_entry), 
+                '%d', '%i', '%P', '%s', '%S', '%v', '%V', '%W')        
+
         
         search_frame = ttk.Frame(self.root)
-        self.search_entry = ttk.Entry(search_frame)
+        self.search_entry = ttk.Entry(search_frame, validate="key", validatecommand=vcmd)
         self.search_entry.pack(fill=tk.X)
         search_frame.pack(side=tk.TOP, fill=tk.X)
+        
         
         # the paned window ##############################################
         paned_window = ttk.PanedWindow(self.root, orient=tk.HORIZONTAL)
@@ -352,6 +369,22 @@ class View:
 
     def cmd_exit(self, event=None):
         self.controller.quit()
+        
+    def cmd_validate_search_entry(self, d, i, P, s, S, v, V, W):
+#        print "OnValidate:"
+#        print "d='%s'" % d
+#        print "i='%s'" % i
+#        print "P='%s'" % P
+#        print "s='%s'" % s
+#        print "S='%s'" % S
+#        print "v='%s'" % v
+#        print "V='%s'" % V
+#        print "W='%s'" % W
+
+        self.notify_observers('entry:change', utils.KeyValueObject(value=P))
+        
+        # allow this
+        return True
         
     def observer_notes_list(self, notes_list_model, evt_type, evt):
         if evt_type == 'list_change':
