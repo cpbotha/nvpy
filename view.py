@@ -136,8 +136,13 @@ class View:
         #self._current_text = None
         #self.user_text.focus_set()
         
+    def cmd_lb_notes_select(self, evt):
+        print self.lb_notes.curselection()
+        
     def _bind_events(self):
-        self.root.bind_all("<Control-f>", lambda e: self.search_entry.focus())        
+        self.root.bind_all("<Control-f>", lambda e: self.search_entry.focus())
+        
+        self.lb_notes.bind("<<ListboxSelect>>", self.cmd_lb_notes_select)        
 
     def _create_menu(self):
         """Utility function to setup main menu.
@@ -340,6 +345,13 @@ class View:
 
     def main_loop(self):
         self.root.mainloop()
+        
+    def set_note_names(self, note_names):
+        # clear the listbox
+        self.lb_notes.delete(0)
+        
+        for k, title, m in note_names:
+            self.lb_notes.insert(0, title)
 
     def show_error(self, title, msg):
         tkMessageBox.showerror(title, msg)

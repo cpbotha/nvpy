@@ -7,12 +7,9 @@
 # http://www.scribd.com/doc/91277952/Simple-Note-API-v2-1-3
 # this also has a sync algorithm!
 
-# json.dump can nicely dump file to disk
-
 import ConfigParser
 from notes_db import NotesDB
 import os
-from simplenote import Simplenote
 import sys
 import view
 
@@ -50,8 +47,11 @@ class Controller:
         # read our database of notes into memory
         # and sync with simplenote.
         self.notes_db = NotesDB(self.config.db_path, self.config.sn_username, self.config.sn_password)
+        #self.notes_db.sync_full()
         
-        #
+        # put notes in view
+        note_names = self.notes_db.get_note_names()
+        self.view.set_note_names(note_names)
         
     def get_version(self):
         return "0.2"

@@ -1,6 +1,7 @@
 import glob
 import os
 import json
+import re
 from simplenote import Simplenote
 
 class NotesDB:
@@ -26,10 +27,30 @@ class NotesDB:
         # initialise the simplenote instance we're going to use
         # this does not yet need network access
         self.simplenote = Simplenote(sn_username, sn_password)
-
-        self.do_full_sync()
-
         
+        self.fl_re = re.compile('^(.*)\n')
+        
+    def get_note_names(self):
+        """Return 
+        """
+        
+        note_names = []
+        for k in self.notes:
+            n = self.notes[k]
+            c = n.get('content')
+            tmo = self.fl_re.match(c)
+            if tmo:
+                title = tmo.groups()[0]
+                
+                # timestamp
+                # convert to datetime with datetime.datetime.fromtimestamp(modified)
+                modified = float(n.get('modifydate'))
+                
+                note_names.append((k, title, modified))
+            
+        # we could sort note_names here
+        return note_names 
+
     def helper_key_to_fname(self, k):
         return os.path.join(self.db_path, k) + '.json'
     
@@ -37,7 +58,7 @@ class NotesDB:
         fn = self.helper_key_to_fname(k)
         json.dump(note, open(fn, 'wb'), indent=2)
     
-    def do_full_sync(self):
+    def sync_full(self):
         local_updates = {}
         local_deletes = {}
 
