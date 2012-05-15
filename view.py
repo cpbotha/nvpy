@@ -6,7 +6,7 @@ from ScrolledText import ScrolledText
 import tkMessageBox
 import tkFileDialog
 import tkSimpleDialog
-
+import utils
 
 class WidgetRedirector:
 
@@ -60,7 +60,7 @@ class WidgetRedirector:
             if m:
                 return m(*args)
             else:
-                return self.ttk.call((self.orig, cmd) + args)
+                return self.tk.call((self.orig, cmd) + args)
         except tk.TclError:
             return ""
 
@@ -136,11 +136,24 @@ class View:
         self._create_ui()
         self._bind_events()
 
+        self.observers = []
+
         #self._current_text = None
         #self.user_text.focus_set()
         
     def cmd_lb_notes_select(self, evt):
-        print self.lb_notes.curselection()
+        s = self.lb_notes.curselection()
+        self.notify_observers('note_select', utils.KeyValueObject(sel=int(s[0])))
+        
+    def notify_observers(self, evt_type, evt):
+        for o in self.observers:
+            o(evt_type, evt)
+            
+    def select_note(self, idx):
+        # programmatically select the note by idx
+        self.lb_notes.select_set(idx)
+        # we have to generate event explicitly, it doesn't fire by itself in this case
+        self.lb_notes.event_generate('<<ListboxSelect>>')
         
     def _bind_events(self):
         self.root.bind_all("<Control-f>", lambda e: self.search_entry.focus())

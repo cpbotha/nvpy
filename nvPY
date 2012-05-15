@@ -50,9 +50,13 @@ class Controller:
         #self.notes_db.sync_full()
         
         # put notes in view
-        note_names = self.notes_db.get_note_names()
-        self.view.set_note_names(note_names)
-        self.view.set_note_content(self.notes_db.get_note_content(note_names[0].key))
+        self.note_names = self.notes_db.get_note_names()
+        self.view.set_note_names(self.note_names)
+        self.view.observers.append(self.observer_view)
+
+        self.selected_note = None
+        # FIXME: no notes?
+        self.view.select_note(0)
         
     def get_version(self):
         return "0.2"
@@ -62,7 +66,17 @@ class Controller:
         
     def main_loop(self):
         self.view.main_loop()
-
+        
+    def observer_view(self, evt_type, evt):
+        if evt_type == 'note_select':
+            self.select_note(evt.sel)
+            
+    def select_note(self, idx):
+        key = self.note_names[idx].key
+        c = self.notes_db.get_note_content(key)
+        self.view.set_note_content(c)
+        
+        
 
 def main():
     controller = Controller()

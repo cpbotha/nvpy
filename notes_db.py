@@ -3,14 +3,7 @@ import os
 import json
 import re
 from simplenote import Simplenote
-
-"""Store key=value pairs in this object and retrieve with o.key.
-
-You should also be able to do MiscObject(**your_dict) for the same effect.
-"""
-class MiscObject:
-    def __init__(self, **kwargs):
-        self.__dict__.update(kwargs)
+import utils
 
 class NotesDB:
     """NotesDB will take care of the local notes database and syncing with SN.
@@ -54,7 +47,7 @@ class NotesDB:
                 # convert to datetime with datetime.datetime.fromtimestamp(modified)
                 modified = float(n.get('modifydate'))
 
-                o = MiscObject(key=k, title=title, modified=modified)
+                o = utils.KeyValueObject(key=k, title=title, modified=modified)
                 note_names.append(o)
             
         # we could sort note_names here
@@ -62,7 +55,7 @@ class NotesDB:
     
     def get_note_content(self, key):
         return self.notes[key].get('content')
-
+    
     def helper_key_to_fname(self, k):
         return os.path.join(self.db_path, k) + '.json'
     
@@ -159,7 +152,6 @@ class NotesDB:
         # u'tags': [],
         # u'version': 40}
         
-        # FIXME: this will only return 100 notes at a time if I can believe the documentation :(        
         note_list = self.simplenote.get_note_list()
         
         # simplenote.get_note(key) returns (doc, status)
