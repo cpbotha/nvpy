@@ -342,8 +342,8 @@ class View:
         # clear the listbox
         self.lb_notes.delete(0)
         
-        for k, title, m in note_names:
-            self.lb_notes.insert(tk.END, title)
+        for nn in note_names:
+            self.lb_notes.insert(tk.END, nn.title)
 
     def show_error(self, title, msg):
         tkMessageBox.showerror(title, msg)
