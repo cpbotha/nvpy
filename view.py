@@ -128,8 +128,15 @@ class View:
     """Main user interface class.
     """
     
-    def __init__(self, controller):
+    def __init__(self, controller, notes_list_model, note_content_model):
+        # for getting version, and for requesting to quit
         self.controller = controller
+        
+        self.notes_list_model = notes_list_model
+        self.notes_list_model.add_observer(self.observer_notes_list)
+        
+        self.note_content_model = note_content_model
+        
 
         self.root = None
 
@@ -342,6 +349,11 @@ class View:
 
     def cmd_exit(self, event=None):
         self.controller.quit()
+        
+    def observer_notes_list(self, evt_type, evt):
+        if evt_type == 'list_change':
+            # re-render!
+            self.set_note_names(self.notes_list_model.list)
 
     def main_loop(self):
         self.root.mainloop()

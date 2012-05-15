@@ -11,6 +11,7 @@ import ConfigParser
 from notes_db import NotesDB
 import os
 import sys
+from utils import SubjectMixin
 import view
 
 class Config:
@@ -21,6 +22,21 @@ class Config:
         self.sn_username = cp.get('default', 'sn_username')
         self.sn_password = cp.get('default', 'sn_password')
         self.db_path = cp.get('default', 'db_path')
+        
+class NotesListModel(SubjectMixin):
+    def __init__(self):
+        # call mixin ctor
+        SubjectMixin.__init__(self)
+        
+        self.list = []
+        
+    def set_list(self, alist):
+        self.list = alist
+        self.notify_observers('list_change', None)
+    
+class NoteContentModel:
+    def __init__(self):
+        pass
 
 class Controller:
     """Main application class.
@@ -37,9 +53,6 @@ class Controller:
             else:
                 self.appdir = os.getcwd()
         
-        # create the interface
-        self.view = view.View(self)
-        
         # should probably also look in $HOME
         cfg_defaults = {'appdir' : self.appdir}
         self.config = Config(os.path.join(self.appdir, 'nvPY.cfg'), cfg_defaults)
@@ -48,11 +61,21 @@ class Controller:
         # and sync with simplenote.
         self.notes_db = NotesDB(self.config.db_path, self.config.sn_username, self.config.sn_password)
         #self.notes_db.sync_full()
+
+        self.notes_list_model = NotesListModel()
+        self.note_content_model = NoteContentModel()
         
-        # put notes in view
-        self.note_names = self.notes_db.get_note_names()
-        self.view.set_note_names(self.note_names)
+        # create the interface
+        self.view = view.View(self, self.notes_list_model, self.note_content_model)
+        # we want to be notified when the user does stuff
         self.view.observers.append(self.observer_view)
+        
+        # nn is a list of (key, title, modifydate) objects
+        nn = self.notes_db.get_note_names()
+        # this will trigger the list_change event
+        self.notes_list_model.set_list(nn)
+        
+        
 
         self.selected_note = None
         # FIXME: no notes?
@@ -72,7 +95,7 @@ class Controller:
             self.select_note(evt.sel)
             
     def select_note(self, idx):
-        key = self.note_names[idx].key
+        key = self.notes_list_model.list[idx].key
         c = self.notes_db.get_note_content(key)
         self.view.set_note_content(c)
         
