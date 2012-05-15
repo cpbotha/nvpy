@@ -300,10 +300,12 @@ class View:
         
         # finish UI creation ###########################################
 
-        # call update so we know that sizes are up to date
-        self.root.update_idletasks()
         # now set the minsize so that things can not disappear
         self.root.minsize(self.root.winfo_width(), self.root.winfo_height())
+        
+        # call update so we know that sizes are up to date
+        self.root.update_idletasks()
+        
         
     def close(self):
         self.root.destroy()

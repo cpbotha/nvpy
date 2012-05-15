@@ -27,7 +27,7 @@ class NotesDB:
         # this does not yet need network access
         self.simplenote = Simplenote(sn_username, sn_password)
 
-        #self.do_full_sync()
+        self.do_full_sync()
 
         
     def helper_key_to_fname(self, k):

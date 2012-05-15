@@ -32,19 +32,20 @@ class Controller:
     def __init__(self):
         # setup appdir
         if hasattr(sys, 'frozen') and sys.frozen:
-            self._appdir, exe = os.path.split(sys.executable)
+            self.appdir, _ = os.path.split(sys.executable)
         else:
             dirname = os.path.dirname(sys.argv[0])
             if dirname and dirname != os.curdir:
-                self._appdir = dirname
+                self.appdir = dirname
             else:
-                self._appdir = os.getcwd()
+                self.appdir = os.getcwd()
         
         # create the interface
         self.view = view.View(self)
         
         # should probably also look in $HOME
-        self.config = Config(os.path.join(self.get_appdir(), 'nvPY.cfg'))
+        cfg_defaults = {'appdir' : self.appdir}
+        self.config = Config(os.path.join(self.appdir, 'nvPY.cfg'), cfg_defaults)
         
         # read our database of notes into memory
         # and sync with simplenote.
@@ -52,12 +53,6 @@ class Controller:
         
         #
         
-    def get_appdir(self):
-        return self._appdir
-
-    def get_resdir(self):
-        return os.path.join(self.get_appdir(), 'resources')
-    
     def get_version(self):
         return "0.2"
 
