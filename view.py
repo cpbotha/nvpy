@@ -1,4 +1,7 @@
+
+#import Tkinter as tk
 import Tkinter as tk
+import ttk
 from ScrolledText import ScrolledText
 import tkMessageBox
 import tkFileDialog
@@ -57,7 +60,7 @@ class WidgetRedirector:
             if m:
                 return m(*args)
             else:
-                return self.tk.call((self.orig, cmd) + args)
+                return self.ttk.call((self.orig, cmd) + args)
         except tk.TclError:
             return ""
 
@@ -104,13 +107,13 @@ class RedirectedText(tk.Text):
         self.event_generate('<<Change>>')
 
 #########################################################################
-class StatusBar(tk.Frame):
+class StatusBar(ttk.Frame):
     """From the tkinterbook.
     """
 
     def __init__(self, master):
-        tk.Frame.__init__(self, master)
-        self.label = tk.Label(self, bd=1, relief=tk.SUNKEN, anchor=tk.W)
+        ttk.Frame.__init__(self, master)
+        self.label = ttk.Label(self, relief=tk.SUNKEN, anchor=tk.W)
         self.label.pack(fill=tk.X)
 
     def set_label(self, fmt, *args):
@@ -212,8 +215,8 @@ class View:
         self._create_menu()
 
         # separator after menu ##########################################
-        #separator = tk.Frame(self.root, height=2, bd=1, relief=tk.SUNKEN)
-        #separator.pack(fill=tk.X, padx=5, pady=2, side=tk.TOP)
+        #separator = ttk.Frame(self.root, height=2, bd=1, relief=ttk.SUNKEN)
+        #separator.pack(fill=ttk.X, padx=5, pady=2, side=ttk.TOP)
 
         # setup statusbar ###############################################
         # first pack this before panedwindow, else behaviour is unexpected
@@ -222,16 +225,16 @@ class View:
         self.statusbar.set_label('%s', 'Welcome to nvPY!')
         self.statusbar.pack(fill=tk.X, side=tk.BOTTOM)
         
-        search_frame = tk.Frame(self.root)
-        self.search_entry = tk.Entry(search_frame)
+        search_frame = ttk.Frame(self.root)
+        self.search_entry = ttk.Entry(search_frame)
         self.search_entry.pack(fill=tk.X)
         search_frame.pack(side=tk.TOP, fill=tk.X)
         
         # the paned window ##############################################
-        paned_window = tk.PanedWindow(self.root, orient=tk.HORIZONTAL)
+        paned_window = ttk.PanedWindow(self.root, orient=tk.HORIZONTAL)
         paned_window.pack(fill=tk.BOTH, expand=1)
         
-        left_frame = tk.Frame(paned_window, width=100)
+        left_frame = ttk.Frame(paned_window, width=100)
         paned_window.add(left_frame)
         
         self.lb_notes = tk.Listbox(left_frame)
@@ -239,12 +242,12 @@ class View:
         # need both fill and expand to make it fill all avail area
         self.lb_notes.pack(fill=tk.BOTH, expand=1)
 
-        right_frame = tk.Frame(paned_window, width=400)
+        right_frame = ttk.Frame(paned_window, width=400)
         paned_window.add(right_frame)
 
         # we'll use this method to create the different edit boxes
         def create_scrolled_text(master):
-            yscrollbar = tk.Scrollbar(master)
+            yscrollbar = ttk.Scrollbar(master)
             yscrollbar.pack(side=tk.RIGHT, fill=tk.Y)
 
             # this determines the width of the complete interface (yes)
@@ -261,7 +264,7 @@ class View:
 
 
         # setup user_text ###############################################
-        self.cur_text = create_scrolled_text(right_frame)
+        self.text_note = create_scrolled_text(right_frame)
 
 #        def cb_ut_fi(event):
 #            self.set_current_text(CURTEXT_USER)
@@ -287,22 +290,6 @@ class View:
 #            
 #        self.sys_text.bind('<<Change>>', cb_st_c)
 
-        # bind event to paned_window ####################################
-        def event_configure(self, event=None):
-            """At every configure event of the paned_window, check that the
-            user hasn't shrunken the window so that one of the panes has
-            completely disappeared.  If this is the case, reset the sash
-            position to half-way.
-            """
-            
-            sash_pos = paned_window.sash_coord(0)
-            pw_height = paned_window.winfo_height()
-            if sash_pos[1] + 20 > pw_height:
-                paned_window.sash_place(0, sash_pos[0], pw_height / 2)
-            
-        paned_window.bind('<Configure>', event_configure)
-
-        
         # finish UI creation ###########################################
 
         # now set the minsize so that things can not disappear
@@ -346,12 +333,17 @@ class View:
     def main_loop(self):
         self.root.mainloop()
         
+    def set_note_content(self, note_content):
+        self.text_note.delete(1.0, tk.END) # clear all
+        self.text_note.insert(tk.END, note_content)
+        
+        
     def set_note_names(self, note_names):
         # clear the listbox
         self.lb_notes.delete(0)
         
         for k, title, m in note_names:
-            self.lb_notes.insert(0, title)
+            self.lb_notes.insert(tk.END, title)
 
     def show_error(self, title, msg):
         tkMessageBox.showerror(title, msg)

@@ -52,6 +52,7 @@ class Controller:
         # put notes in view
         note_names = self.notes_db.get_note_names()
         self.view.set_note_names(note_names)
+        self.view.set_note_content(self.notes_db.get_note_content(note_names[0][0]))
         
     def get_version(self):
         return "0.2"

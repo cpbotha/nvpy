@@ -49,7 +49,10 @@ class NotesDB:
                 note_names.append((k, title, modified))
             
         # we could sort note_names here
-        return note_names 
+        return note_names
+    
+    def get_note_content(self, key):
+        return self.notes[key].get('content')
 
     def helper_key_to_fname(self, k):
         return os.path.join(self.db_path, k) + '.json'
