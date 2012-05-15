@@ -132,10 +132,9 @@ class View:
         # for getting version, and for requesting to quit
         self.controller = controller
         
-        self.notes_list_model = notes_list_model
-        self.notes_list_model.add_observer(self.observer_notes_list)
+        notes_list_model.add_observer(self.observer_notes_list)
         
-        self.note_content_model = note_content_model
+        note_content_model.add_observer(self.observer_note_content)
         
 
         self.root = None
@@ -350,10 +349,14 @@ class View:
     def cmd_exit(self, event=None):
         self.controller.quit()
         
-    def observer_notes_list(self, evt_type, evt):
+    def observer_notes_list(self, notes_list_model, evt_type, evt):
         if evt_type == 'list_change':
             # re-render!
-            self.set_note_names(self.notes_list_model.list)
+            self.set_note_names(notes_list_model.list)
+            
+    def observer_note_content(self, note_content_model, evt_type, evt):
+        if evt_type == 'content:change':
+            self.set_note_content(note_content_model.content)
 
     def main_loop(self):
         self.root.mainloop()

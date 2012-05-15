@@ -34,10 +34,17 @@ class NotesListModel(SubjectMixin):
         self.list = alist
         self.notify_observers('list_change', None)
     
-class NoteContentModel:
+class NoteContentModel(SubjectMixin):
     def __init__(self):
-        pass
-
+        # call mixin ctor
+        SubjectMixin.__init__(self)
+        
+        self.content = None
+        
+    def set_content(self, content):
+        self.content = content
+        self.notify_observers('content:change', None)
+        
 class Controller:
     """Main application class.
     """
@@ -74,8 +81,6 @@ class Controller:
         nn = self.notes_db.get_note_names()
         # this will trigger the list_change event
         self.notes_list_model.set_list(nn)
-        
-        
 
         self.selected_note = None
         # FIXME: no notes?
@@ -97,9 +102,7 @@ class Controller:
     def select_note(self, idx):
         key = self.notes_list_model.list[idx].key
         c = self.notes_db.get_note_content(key)
-        self.view.set_note_content(c)
-        
-        
+        self.note_content_model.set_content(c)
 
 def main():
     controller = Controller()
