@@ -136,6 +136,7 @@ class View(utils.SubjectMixin):
         
         notes_list_model.add_observer('set:list', self.observer_notes_list)
         
+        self.note_content_model = note_content_model
         note_content_model.add_observer('set:content', self.observer_note_content)
         
 
@@ -186,13 +187,16 @@ class View(utils.SubjectMixin):
         
         self.search_entry.bind("<Escape>", lambda e:
                 self.search_entry.delete(0, tk.END))
+        # this will either focus current content, or
+        # if there's no selection, create a new note.
+        self.search_entry.bind("<Return>", self.handler_search_enter)
         
         self.search_entry.bind("<Up>", lambda e:
                                self.select_note_prev())
         self.search_entry.bind("<Down>", lambda e:
                                self.select_note_next())
         
-        
+        self.text_note.bind("<<Change>>", self.handler_text_change)
         # <Key>
 
     def _create_menu(self):
@@ -302,7 +306,7 @@ class View(utils.SubjectMixin):
             yscrollbar.pack(side=tk.RIGHT, fill=tk.Y)
 
             # this determines the width of the complete interface (yes)
-            text = RedirectedText(master, height=15, width=TEXT_WIDTH,
+            text = RedirectedText(master, height=25, width=TEXT_WIDTH,
                                   wrap=tk.CHAR,
                                   yscrollcommand=yscrollbar.set)
 
@@ -381,9 +385,25 @@ class View(utils.SubjectMixin):
     def cmd_exit(self, event=None):
         self.controller.quit()
         
+    def handler_search_enter(self, evt):
+        # user has pressed enter whilst searching
+        # 1. if a note is selected, focus that
+        # 2. if nothing is selected, create a new note with this title
+
+        if self.get_selected_idx() >= 0:
+            self.text_note.focus()
+        
     def handler_search_entry(self, *args):
         self.notify_observers('change:entry', 
                               utils.KeyValueObject(value=self.search_entry_var.get()))
+        
+    def handler_text_change(self, evt):
+        # when the user makes changes
+        # we copy the whole contents back to the note_content_model
+        # so that the controller can remain GUI agnostic
+        # it'll simply receive a notification that updates have been performed
+        self.note_content_model.update_content(self.text_note.get(0))
+        
                 
     def observer_notes_list(self, notes_list_model, evt_type, evt):
         if evt_type == 'set:list':

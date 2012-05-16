@@ -16,6 +16,7 @@
 # this also has a sync algorithm!
 
 # 1. finish implementing search
+# 1.5. think about other storage formats. What if we want to store more? (cursor position and so on. sqlite?)
 # 2. note editing
 #   a) saving to disc: remember lmodified or whatever.
 #   b) syncing with simplenote
@@ -96,6 +97,7 @@ class Controller:
 
         self.notes_list_model = NotesListModel()
         self.note_content_model = NoteContentModel()
+        self.note_content_model.add_observer('update:content', self.handler_update_note_content)
         
         # create the interface
         self.view = view.View(self, self.notes_list_model, self.note_content_model)
@@ -113,12 +115,17 @@ class Controller:
         self.view.select_note(0)
         
     def get_version(self):
-        return "0.2"
+        return "0.1"
+    
+    def handler_update_note_content(self, o, evt_type, evt):
+        print "changed"
 
     def quit(self):
         self.view.close()
         
     def main_loop(self):
+        # FIXME: before you start the view main loop, give it some
+        # time-based handlers to run.
         self.view.main_loop()
         
     def observer_view_select_note(self, view, evt_type, evt):
