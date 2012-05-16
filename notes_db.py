@@ -29,7 +29,8 @@ class NotesDB:
         # this does not yet need network access
         self.simplenote = Simplenote(sn_username, sn_password)
         
-        self.fl_re = re.compile('^(.*)\n')
+        # first line with non-whitespace should be the title
+        self.title_re = re.compile('\s*(.*)\n')
         
     def get_note_names(self, search_string=None):
         """Return 
@@ -39,7 +40,7 @@ class NotesDB:
         for k in self.notes:
             n = self.notes[k]
             c = n.get('content')
-            tmo = self.fl_re.match(c)
+            tmo = self.title_re.match(c)
             if tmo and (not search_string or re.search(search_string, c)):
                 title = tmo.groups()[0]
                 
