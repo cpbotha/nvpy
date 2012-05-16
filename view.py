@@ -150,18 +150,34 @@ class View(utils.SubjectMixin):
         self.search_entry.focus_set()
         
     def cmd_lb_notes_select(self, evt):
+        sidx = self.get_selected_idx()
+        self.notify_observers('select:note', utils.KeyValueObject(sel=sidx))
+        
+    def get_selected_idx(self):
         # no selection: s = ()
         # something: s = ('idx',)
         s = self.lb_notes.curselection()
-        s = int(s[0]) if s else -1
-        
-        self.notify_observers('select:note', utils.KeyValueObject(sel=s))
+        sidx = int(s[0]) if s else -1
+        return sidx
         
     def select_note(self, idx):
         # programmatically select the note by idx
+        self.lb_notes.select_clear(0, tk.END)
         self.lb_notes.select_set(idx)
         # we have to generate event explicitly, it doesn't fire by itself in this case
         self.lb_notes.event_generate('<<ListboxSelect>>')
+        
+    def select_note_prev(self):
+        idx = self.get_selected_idx()
+        if idx > 0:
+            self.select_note(idx - 1)
+    
+    def select_note_next(self):
+        idx = self.get_selected_idx()
+        # self.lb_notes.index(tk.END) returns the number of items
+        if idx < self.lb_notes.index(tk.END) - 1:
+            print idx+1
+            self.select_note(idx + 1)
         
     def _bind_events(self):
         self.root.bind_all("<Control-f>", lambda e: self.search_entry.focus())
@@ -170,6 +186,12 @@ class View(utils.SubjectMixin):
         
         self.search_entry.bind("<Escape>", lambda e:
                 self.search_entry.delete(0, tk.END))
+        
+        self.search_entry.bind("<Up>", lambda e:
+                               self.select_note_prev())
+        self.search_entry.bind("<Down>", lambda e:
+                               self.select_note_next())
+        
         
         # <Key>
 
