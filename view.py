@@ -134,17 +134,15 @@ class View(utils.SubjectMixin):
         # for getting version, and for requesting to quit
         self.controller = controller
         
-        notes_list_model.add_observer(self.observer_notes_list)
+        notes_list_model.add_observer('set:list', self.observer_notes_list)
         
-        note_content_model.add_observer(self.observer_note_content)
+        note_content_model.add_observer('set:content', self.observer_note_content)
         
 
         self.root = None
 
         self._create_ui()
         self._bind_events()
-
-        self.observers = []
 
         #self._current_text = None
         #self.user_text.focus_set()
@@ -153,7 +151,7 @@ class View(utils.SubjectMixin):
         
     def cmd_lb_notes_select(self, evt):
         s = self.lb_notes.curselection()
-        self.notify_observers('note:select', utils.KeyValueObject(sel=int(s[0])))
+        self.notify_observers('select:note', utils.KeyValueObject(sel=int(s[0])))
         
     def select_note(self, idx):
         # programmatically select the note by idx
@@ -362,12 +360,12 @@ class View(utils.SubjectMixin):
                               utils.KeyValueObject(value=self.search_entry_var.get()))
                 
     def observer_notes_list(self, notes_list_model, evt_type, evt):
-        if evt_type == 'list_change':
+        if evt_type == 'set:list':
             # re-render!
             self.set_note_names(notes_list_model.list)
             
     def observer_note_content(self, note_content_model, evt_type, evt):
-        if evt_type == 'content:set':
+        if evt_type == 'set:content':
             # completely new content
             self.set_note_content(note_content_model.content)
 

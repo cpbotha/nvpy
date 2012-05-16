@@ -46,7 +46,7 @@ class NotesListModel(SubjectMixin):
         
     def set_list(self, alist):
         self.list = alist
-        self.notify_observers('list_change', None)
+        self.notify_observers('set:list', None)
     
 class NoteContentModel(SubjectMixin):
     def __init__(self):
@@ -59,7 +59,7 @@ class NoteContentModel(SubjectMixin):
         """Call this when this is a new note.
         """
         self.content = content
-        self.notify_observers('content:set', None)
+        self.notify_observers('set:content', None)
 
     def update_content(self, content):
         """Call this when changes are made to the current note.
@@ -67,7 +67,7 @@ class NoteContentModel(SubjectMixin):
         Only differes from set_content in the event that is fired.
         """
         self.content = content
-        self.notify_observers('content:update', None)
+        self.notify_observers('update:content', None)
         
 class Controller:
     """Main application class.
@@ -77,6 +77,7 @@ class Controller:
         # setup appdir
         if hasattr(sys, 'frozen') and sys.frozen:
             self.appdir, _ = os.path.split(sys.executable)
+            
         else:
             dirname = os.path.dirname(sys.argv[0])
             if dirname and dirname != os.curdir:
@@ -99,7 +100,8 @@ class Controller:
         # create the interface
         self.view = view.View(self, self.notes_list_model, self.note_content_model)
         # we want to be notified when the user does stuff
-        self.view.add_observer(self.observer_view)
+        self.view.add_observer('select:note', self.observer_view_select_note)
+        self.view.add_observer('change:entry', self.observer_view_change_entry)
         
         # nn is a list of (key, title, modifydate) objects
         nn = self.notes_db.get_note_names()
@@ -119,13 +121,11 @@ class Controller:
     def main_loop(self):
         self.view.main_loop()
         
-    def observer_view(self, view, evt_type, evt):
-        if evt_type == 'note:select':
-            self.select_note(evt.sel)
+    def observer_view_select_note(self, view, evt_type, evt):
+        self.select_note(evt.sel)
             
-        elif evt_type == 'change:entry':
-            # la la
-            print evt.value
+    def observer_view_change_entry(self, view, evt_type, evt):
+        print evt.value
             
     def select_note(self, idx):
         key = self.notes_list_model.list[idx].key
