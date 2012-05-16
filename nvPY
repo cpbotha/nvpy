@@ -140,8 +140,6 @@ class Controller:
         # get new text and update our database
         self.notes_db.set_note_content(self.selected_note.key,
                                        self.view.get_text())
-        # now write this into the currently selected note record
-        
     
     def select_note(self, idx):
         if idx >= 0:

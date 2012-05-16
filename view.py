@@ -165,6 +165,9 @@ class View(utils.SubjectMixin):
         # programmatically select the note by idx
         self.lb_notes.select_clear(0, tk.END)
         self.lb_notes.select_set(idx)
+        # we move the active (underlined) selection along, else we lose
+        # synchronization during arrow movements with the search entry selected
+        self.lb_notes.activate(idx)
         # we have to generate event explicitly, it doesn't fire by itself in this case
         self.lb_notes.event_generate('<<ListboxSelect>>')
         
@@ -182,7 +185,12 @@ class View(utils.SubjectMixin):
     def _bind_events(self):
         self.root.bind_all("<Control-f>", lambda e: self.search_entry.focus())
         
-        self.lb_notes.bind("<<ListboxSelect>>", self.cmd_lb_notes_select)        
+        self.lb_notes.bind("<<ListboxSelect>>", self.cmd_lb_notes_select)
+        # same behaviour as when the user presses enter on search entry:
+        # if something is selected, focus the text area
+        # if nothing is selected, try to create new note with
+        # search entry value as name
+        self.lb_notes.bind("<Return>", self.handler_search_enter)        
         
         self.search_entry.bind("<Escape>", lambda e:
                 self.search_entry.delete(0, tk.END))
@@ -196,6 +204,9 @@ class View(utils.SubjectMixin):
                                self.select_note_next())
         
         self.text_note.bind("<<Change>>", self.handler_text_change)
+        
+        # user presses escape in text area, they go back to notes list
+        self.text_note.bind("<Escape>", lambda e: self.lb_notes.focus())
         # <Key>
 
     def _create_menu(self):
