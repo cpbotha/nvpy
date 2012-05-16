@@ -1,5 +1,7 @@
+# nvPY: cross-platform note-taking app with simplenote syncing
+# copyright 2012 by Charl P. Botha <cpbotha@vxlabs.com>
+# new BSD license
 
-#import Tkinter as tk
 import Tkinter as tk
 import ttk
 from ScrolledText import ScrolledText
@@ -160,6 +162,9 @@ class View(utils.SubjectMixin):
     def get_text(self):
         # err, you have to specify 1.0 to END, and NOT 0 to END like I thought.
         return self.text_note.get(1.0, tk.END)
+    
+    def get_search_entry_text(self):
+        return self.search_entry_var.get()
 
     def select_note(self, idx):
         # programmatically select the note by idx
@@ -181,6 +186,9 @@ class View(utils.SubjectMixin):
         # self.lb_notes.index(tk.END) returns the number of items
         if idx < self.lb_notes.index(tk.END) - 1:
             self.select_note(idx + 1)
+            
+    def set_search_entry_text(self, text):
+        self.search_entry_var.set(text)
         
     def _bind_events(self):
         self.root.bind_all("<Control-f>", lambda e: self.search_entry.focus())
@@ -401,6 +409,12 @@ class View(utils.SubjectMixin):
         # 2. if nothing is selected, create a new note with this title
 
         if self.get_selected_idx() >= 0:
+            self.text_note.focus()
+            
+        else:
+            # nothing selected
+            self.notify_observers('create:note', utils.KeyValueObject(title=self.get_search_entry_text()))
+            # the note will be created synchronously, so we can focus the text area already
             self.text_note.focus()
         
     def handler_search_entry(self, *args):

@@ -1,5 +1,12 @@
 #!/usr/bin/env python
 
+# nvPY: cross-platform note-taking app with simplenote syncing
+# copyright 2012 by Charl P. Botha <cpbotha@vxlabs.com>
+# new BSD license
+
+# inspired by notational velocity and nvALT, neither of which I've used,
+# and ResophNotes, which I have used.
+
 # full width horizontal bar at top to search
 # left column with current results: name, mod date, summary, tags
 # right column with text of currently selected note
@@ -28,6 +35,7 @@ import os
 import sys
 from utils import KeyValueObject, SubjectMixin
 import view
+import types
 
 class Config:
     def __init__(self, cfg_fname, defaults):
@@ -48,8 +56,16 @@ class NotesListModel(SubjectMixin):
     def set_list(self, alist):
         self.list = alist
         self.notify_observers('set:list', None)
+        
+    def get_idx(self, key):
+        found = [i for i,e in enumerate(self.list) if e.key == key]
+        if found:
+            return found[0]
+        
+        else:
+            return -1
     
-class NoteContentModel(SubjectMixin):
+class NoteContentModel_DEPRECATED(SubjectMixin):
     def __init__(self):
         # call mixin ctor
         SubjectMixin.__init__(self)
@@ -103,6 +119,7 @@ class Controller:
         self.view.add_observer('select:note', self.observer_view_select_note)
         self.view.add_observer('change:entry', self.observer_view_change_entry)
         self.view.add_observer('change:text', self.observer_view_change_text)
+        self.view.add_observer('create:note', self.observer_view_create_note)
         
         # nn is a list of (key, title, modifydate) objects
         nn = self.notes_db.get_note_names()
@@ -140,17 +157,28 @@ class Controller:
         # get new text and update our database
         self.notes_db.set_note_content(self.selected_note.key,
                                        self.view.get_text())
+        
+    def observer_view_create_note(self, view, evt_type, evt):
+        # create the note
+        new_key = self.notes_db.create_note(evt.title)
+        # clear the search entry, this should trigger a new list being returned
+        self.view.set_search_entry_text('')
+        # we should focus on our thingy
+        idx = self.notes_list_model.get_idx(new_key)
+        self.view.select_note(idx)
     
     def select_note(self, idx):
         if idx >= 0:
             key = self.notes_list_model.list[idx].key
             c = self.notes_db.get_note_content(key)
-            self.selected_note.idx = idx
-            self.selected_note.key = key
+
         else:
-            # no selection
+            key = -1
             c = ''
-            self.selected_note.idx = self.selected_note.key = -1
+            idx = -1
+        
+        self.selected_note.idx = idx
+        self.selected_note.key = key
 
         # when we do this, we don't want the change:text event thanks
         self.view.mute('change:text')            

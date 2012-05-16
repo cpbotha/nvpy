@@ -1,8 +1,13 @@
+# nvPY: cross-platform note-taking app with simplenote syncing
+# copyright 2012 by Charl P. Botha <cpbotha@vxlabs.com>
+# new BSD license
+
 import glob
 import os
 import json
 import re
 from simplenote import Simplenote
+import time
 import utils
 
 class NotesDB:
@@ -30,7 +35,29 @@ class NotesDB:
         self.simplenote = Simplenote(sn_username, sn_password)
         
         # first line with non-whitespace should be the title
-        self.title_re = re.compile('\s*(.*)\n')
+        self.title_re = re.compile('\s*(.*)\n?')
+        
+    def create_note(self, title):
+        # need to get a key unique to this database. not really important
+        # what it is, as long as it's unique.
+        new_key = utils.generate_random_key()
+        while new_key in self.notes:
+            new_key = utils.generate_random_key()
+            
+        timestamp = time.time()
+            
+        new_note = {'key' : new_key,
+                    'content' : title,
+                    'modifydate' : timestamp,
+                    'createdate' : timestamp,
+                    'lmodifydate' : timestamp
+                    }
+        
+        self.notes[new_key] = new_note
+        
+        # FIXME: add this to the update_to_disc queue!
+            
+        return new_key
         
     def get_note_names(self, search_string=None):
         """Return 
@@ -174,3 +201,5 @@ class NotesDB:
         # FIXME: set timestamps and whatnot (if content is new)
         #cur_content = self.notes[key].get('content')
         self.notes[key]['content'] = content
+        
+        # FIXME: maintain update queue, for save and sync.
