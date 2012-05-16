@@ -249,23 +249,10 @@ class View(utils.SubjectMixin):
         self.statusbar.set_label('%s', 'Welcome to nvPY!')
         self.statusbar.pack(fill=tk.X, side=tk.BOTTOM)
 
-        # valid percent substitutions (from the Tk entry man page)
-        # %d = Type of action (1=insert, 0=delete, -1 for others)
-        # %i = index of char string to be inserted/deleted, or -1
-        # %P = value of the entry if the edit is allowed
-        # %s = value of entry prior to editing
-        # %S = the text string being inserted or deleted, if any
-        # %v = the type of validation that is currently set
-        # %V = the type of validation that triggered the callback
-        #      (key, focusin, focusout, forced)
-        # %W = the tk name of the widget
-        # from http://stackoverflow.com/questions/4140437/python-tkinter-interactively-validating-entry-widget-content
-        vcmd = (self.root.register(self.cmd_validate_search_entry), 
-                '%d', '%i', '%P', '%s', '%S', '%v', '%V', '%W')        
-
-        
         search_frame = ttk.Frame(self.root)
-        self.search_entry = ttk.Entry(search_frame, validate="key", validatecommand=vcmd)
+        self.search_entry_var = tk.StringVar()
+        self.search_entry = ttk.Entry(search_frame, textvariable=self.search_entry_var)
+        self.search_entry_var.trace('w', self.handler_search_entry)
         self.search_entry.pack(fill=tk.X)
         search_frame.pack(side=tk.TOP, fill=tk.X)
         
@@ -370,22 +357,10 @@ class View(utils.SubjectMixin):
     def cmd_exit(self, event=None):
         self.controller.quit()
         
-    def cmd_validate_search_entry(self, d, i, P, s, S, v, V, W):
-#        print "OnValidate:"
-#        print "d='%s'" % d
-#        print "i='%s'" % i
-#        print "P='%s'" % P
-#        print "s='%s'" % s
-#        print "S='%s'" % S
-#        print "v='%s'" % v
-#        print "V='%s'" % V
-#        print "W='%s'" % W
-
-        self.notify_observers('entry:change', utils.KeyValueObject(value=P))
-        
-        # allow this
-        return True
-        
+    def handler_search_entry(self, *args):
+        self.notify_observers('change:entry', 
+                              utils.KeyValueObject(value=self.search_entry_var.get()))
+                
     def observer_notes_list(self, notes_list_model, evt_type, evt):
         if evt_type == 'list_change':
             # re-render!

@@ -15,6 +15,12 @@
 # http://www.scribd.com/doc/91277952/Simple-Note-API-v2-1-3
 # this also has a sync algorithm!
 
+# 1. finish implementing search
+# 2. note editing
+#   a) saving to disc: remember lmodified or whatever.
+#   b) syncing with simplenote
+
+
 import ConfigParser
 from notes_db import NotesDB
 import os
@@ -117,7 +123,7 @@ class Controller:
         if evt_type == 'note:select':
             self.select_note(evt.sel)
             
-        elif evt_type == 'entry:change':
+        elif evt_type == 'change:entry':
             # la la
             print evt.value
             

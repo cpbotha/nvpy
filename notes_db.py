@@ -31,7 +31,7 @@ class NotesDB:
         
         self.fl_re = re.compile('^(.*)\n')
         
-    def get_note_names(self):
+    def get_note_names(self, search_string=None):
         """Return 
         """
         
