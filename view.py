@@ -128,7 +128,7 @@ class View(utils.SubjectMixin):
     """Main user interface class.
     """
     
-    def __init__(self, controller, notes_list_model, note_content_model):
+    def __init__(self, controller, notes_list_model):
         utils.SubjectMixin.__init__(self)
         
         # for getting version, and for requesting to quit
@@ -136,10 +136,6 @@ class View(utils.SubjectMixin):
         
         notes_list_model.add_observer('set:list', self.observer_notes_list)
         
-        self.note_content_model = note_content_model
-        note_content_model.add_observer('set:content', self.observer_note_content)
-        
-
         self.root = None
 
         self._create_ui()
@@ -160,7 +156,11 @@ class View(utils.SubjectMixin):
         s = self.lb_notes.curselection()
         sidx = int(s[0]) if s else -1
         return sidx
-        
+    
+    def get_text(self):
+        # err, you have to specify 1.0 to END, and NOT 0 to END like I thought.
+        return self.text_note.get(1.0, tk.END)
+
     def select_note(self, idx):
         # programmatically select the note by idx
         self.lb_notes.select_clear(0, tk.END)
@@ -177,7 +177,6 @@ class View(utils.SubjectMixin):
         idx = self.get_selected_idx()
         # self.lb_notes.index(tk.END) returns the number of items
         if idx < self.lb_notes.index(tk.END) - 1:
-            print idx+1
             self.select_note(idx + 1)
         
     def _bind_events(self):
@@ -398,27 +397,17 @@ class View(utils.SubjectMixin):
                               utils.KeyValueObject(value=self.search_entry_var.get()))
         
     def handler_text_change(self, evt):
-        # when the user makes changes
-        # we copy the whole contents back to the note_content_model
-        # so that the controller can remain GUI agnostic
-        # it'll simply receive a notification that updates have been performed
-        self.note_content_model.update_content(self.text_note.get(0))
-        
+        self.notify_observers('change:text', None)
                 
     def observer_notes_list(self, notes_list_model, evt_type, evt):
         if evt_type == 'set:list':
             # re-render!
             self.set_note_names(notes_list_model.list)
             
-    def observer_note_content(self, note_content_model, evt_type, evt):
-        if evt_type == 'set:content':
-            # completely new content
-            self.set_note_content(note_content_model.content)
-
     def main_loop(self):
         self.root.mainloop()
         
-    def set_note_content(self, note_content):
+    def set_text(self, note_content):
         self.text_note.delete(1.0, tk.END) # clear all
         self.text_note.insert(tk.END, note_content)
         

@@ -169,3 +169,7 @@ class NotesDB:
             f = open(os.path.join(self.db_path, n.get('key')) + '.json', 'wb')
             json.dump(n, f, indent=2)
 
+    def set_note_content(self, key, content):
+        # FIXME: set timestamps and whatnot (if content is new)
+        #cur_content = self.notes[key].get('content')
+        self.notes[key]['content'] = content

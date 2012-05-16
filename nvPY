@@ -26,7 +26,7 @@ import ConfigParser
 from notes_db import NotesDB
 import os
 import sys
-from utils import SubjectMixin
+from utils import KeyValueObject, SubjectMixin
 import view
 
 class Config:
@@ -96,30 +96,26 @@ class Controller:
         #self.notes_db.sync_full()
 
         self.notes_list_model = NotesListModel()
-        self.note_content_model = NoteContentModel()
-        self.note_content_model.add_observer('update:content', self.handler_update_note_content)
         
         # create the interface
-        self.view = view.View(self, self.notes_list_model, self.note_content_model)
+        self.view = view.View(self, self.notes_list_model)
         # we want to be notified when the user does stuff
         self.view.add_observer('select:note', self.observer_view_select_note)
         self.view.add_observer('change:entry', self.observer_view_change_entry)
+        self.view.add_observer('change:text', self.observer_view_change_text)
         
         # nn is a list of (key, title, modifydate) objects
         nn = self.notes_db.get_note_names()
         # this will trigger the list_change event
         self.notes_list_model.set_list(nn)
 
-        self.selected_note = None
-        # FIXME: no notes?
+        # we'll use this to keep track of the currently selected note
+        self.selected_note = KeyValueObject(idx=-1, key=-1)
         self.view.select_note(0)
         
     def get_version(self):
         return "0.1"
     
-    def handler_update_note_content(self, o, evt_type, evt):
-        print "changed"
-
     def quit(self):
         self.view.close()
         
@@ -139,16 +135,29 @@ class Controller:
         # we select note in the view, this will eventually come back to us
         # in observer_view_select_note
         self.view.select_note(0)
-            
+
+    def observer_view_change_text(self, view, evt_type, evt):
+        # get new text and update our database
+        self.notes_db.set_note_content(self.selected_note.key,
+                                       self.view.get_text())
+        # now write this into the currently selected note record
+        
+    
     def select_note(self, idx):
         if idx >= 0:
             key = self.notes_list_model.list[idx].key
             c = self.notes_db.get_note_content(key)
+            self.selected_note.idx = idx
+            self.selected_note.key = key
         else:
             # no selection
             c = ''
-            
-        self.note_content_model.set_content(c)
+            self.selected_note.idx = self.selected_note.key = -1
+
+        # when we do this, we don't want the change:text event thanks
+        self.view.mute('change:text')            
+        self.view.set_text(c)
+        self.view.unmute('change:text')
 
 def main():
     controller = Controller()
