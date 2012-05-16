@@ -125,11 +125,22 @@ class Controller:
         self.select_note(evt.sel)
             
     def observer_view_change_entry(self, view, evt_type, evt):
-        print evt.value
+        # for each new evt.value coming in, get a new list from the notes_db
+        # and set it in the notes_list_model
+        nn = self.notes_db.get_note_names(evt.value)
+        self.notes_list_model.set_list(nn)
+        # we select note in the view, this will eventually come back to us
+        # in observer_view_select_note
+        self.view.select_note(0)
             
     def select_note(self, idx):
-        key = self.notes_list_model.list[idx].key
-        c = self.notes_db.get_note_content(key)
+        if idx >= 0:
+            key = self.notes_list_model.list[idx].key
+            c = self.notes_db.get_note_content(key)
+        else:
+            # no selection
+            c = ''
+            
         self.note_content_model.set_content(c)
 
 def main():

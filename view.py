@@ -150,8 +150,12 @@ class View(utils.SubjectMixin):
         self.search_entry.focus_set()
         
     def cmd_lb_notes_select(self, evt):
+        # no selection: s = ()
+        # something: s = ('idx',)
         s = self.lb_notes.curselection()
-        self.notify_observers('select:note', utils.KeyValueObject(sel=int(s[0])))
+        s = int(s[0]) if s else -1
+        
+        self.notify_observers('select:note', utils.KeyValueObject(sel=s))
         
     def select_note(self, idx):
         # programmatically select the note by idx
@@ -379,7 +383,7 @@ class View(utils.SubjectMixin):
         
     def set_note_names(self, note_names):
         # clear the listbox
-        self.lb_notes.delete(0)
+        self.lb_notes.delete(0, tk.END)
         
         for nn in note_names:
             self.lb_notes.insert(tk.END, nn.title)

@@ -40,7 +40,7 @@ class NotesDB:
             n = self.notes[k]
             c = n.get('content')
             tmo = self.fl_re.match(c)
-            if tmo:
+            if tmo and (not search_string or re.search(search_string, c)):
                 title = tmo.groups()[0]
                 
                 # timestamp
