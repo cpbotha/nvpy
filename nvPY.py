@@ -35,6 +35,7 @@ from notes_db import NotesDB
 import os
 import sys
 import time
+
 from utils import KeyValueObject, SubjectMixin
 import view
 
@@ -110,7 +111,7 @@ class Controller:
         # we'll use this to keep track of the currently selected note
         self.selected_note = KeyValueObject(idx=-1, key=-1)
         self.view.select_note(0)
-        
+                
     def get_version(self):
         return "0.1"
     
@@ -123,10 +124,12 @@ class Controller:
         self.view.main_loop()
         
     def observer_view_keep_house(self, view, evt_type, evt):
-        nsaved = self.notes_db.save()
-        sync_ret = self.notes_db.sync_partial()
-        if nsaved + sync_ret[0] + sync_ret[1] > 0:
-            self.view.set_status_text('%d notes saved, %d notes synced (%d err) on %s.' % (nsaved, sync_ret[0], sync_ret[1], time.asctime()))
+        # queue up all notes that need to be saved
+        nsaved = self.notes_db.save_threaded()
+        
+        #sync_ret = self.notes_db.sync_to_server()
+        if nsaved:
+            self.view.set_status_text('%d notes saved on %s.' % (nsaved, time.asctime()))
         
     def observer_view_select_note(self, view, evt_type, evt):
         self.select_note(evt.sel)
@@ -171,6 +174,7 @@ class Controller:
         self.view.mute('change:text')            
         self.view.set_text(c)
         self.view.unmute('change:text')
+        
 
 def main():
     controller = Controller()

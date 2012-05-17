@@ -2,13 +2,19 @@
 # copyright 2012 by Charl P. Botha <cpbotha@vxlabs.com>
 # new BSD license
 
+import copy
 import glob
 import os
 import json
+from Queue import Queue, Empty
 import re
 from simplenote import Simplenote
+from threading import Thread
 import time
 import utils
+
+ACTION_SAVE = 0
+ACTION_SYNC = 1
 
 class NotesDB:
     """NotesDB will take care of the local notes database and syncing with SN.
@@ -19,7 +25,8 @@ class NotesDB:
             os.mkdir(db_path)
             
         self.db_path = db_path
-            
+        
+        now = time.time()    
         # now read all .json files from disk
         fnlist = glob.glob(self.helper_key_to_fname('*'))
         self.notes = {}
@@ -28,7 +35,10 @@ class NotesDB:
             # filename is ALWAYS localkey; only simplenote key when available
             localkey = os.path.splitext(os.path.basename(fn))[0]
             self.notes[localkey] = n
-            
+            # we maintain in memory a timestamp of the last save
+            # these notes have just been read, so at this moment
+            # they're in sync with the disc.
+            n['savedate'] = now
         
         # initialise the simplenote instance we're going to use
         # this does not yet need network access
@@ -36,6 +46,18 @@ class NotesDB:
         
         # first line with non-whitespace should be the title
         self.title_re = re.compile('\s*(.*)\n?')
+        
+        # save and sync queue
+        # we only want ONE thread to do both saving and syncing
+        self.q_ss = Queue()
+        # but separate result queues for saving and syncing
+        self.q_save_res = Queue()
+        self.q_sync_res = Queue()
+        
+        thread_ss = Thread(target=self.worker_ss)
+        # we want all save + sync calls to finish when the process finishes.
+        thread_ss.setDaemon(False)
+        thread_ss.start()
         
     def create_note(self, title):
         # need to get a key unique to this database. not really important
@@ -50,8 +72,8 @@ class NotesDB:
                     'content' : title,
                     'modifydate' : timestamp,
                     'createdate' : timestamp,
-                    'saved' : False, # has this been written to disc?
-                    'synced' : False # has it been synced with server?
+                    'savedate' : 0, # never been written to disc
+                    'syncdate' : 0 # never been synced with server
                     }
         
         self.notes[new_key] = new_note
@@ -61,7 +83,7 @@ class NotesDB:
     def get_note_names(self, search_string=None):
         """Return 
         """
-        
+
         note_names = []
         for k in self.notes:
             n = self.notes[k]
@@ -77,7 +99,7 @@ class NotesDB:
                 o = utils.KeyValueObject(key=k, title=title, modified=modified)
                 note_names.append(o)
             
-        # we could sort note_names here
+        # sort alphabetically on title
         note_names.sort(key=lambda o: o.title)
         return note_names
     
@@ -88,10 +110,18 @@ class NotesDB:
         return os.path.join(self.db_path, k) + '.json'
     
     def helper_save_note(self, k, note):
+        """Save a single note to disc.
+        """
         fn = self.helper_key_to_fname(k)
         json.dump(note, open(fn, 'wb'), indent=2)
+        # record that we saved this to disc.
+        note['savedate'] = time.time()
         
     def helper_sync_note(self, k, note):
+        """Sync a single note with the server.
+        
+        This is a sychronous (blocking) call.
+        """
         uret = self.simplenote.update_note(note)
         if uret[1] == 0:
             # success!
@@ -111,6 +141,11 @@ class NotesDB:
                 os.unlink(self.helper_key_to_fname(k))
                 # set us up with new key
                 k = n.get('key')
+                
+            now = time.time()
+            # 1. store when we've synced
+            # 2. also store that note is modified (so it'll be written to disc) 
+            n['modifydate'] = n['syncdate'] = now
             
             # store the new n at k, possibly new
             self.notes[k] = n
@@ -128,29 +163,56 @@ class NotesDB:
         """
         nsaved = 0
         for k,n in self.notes.items():
-            if not n.get('saved', True):
-                n['saved'] = True
+            if float(n.get('modifydate')) > float(n.get('savedate')):
                 self.helper_save_note(k, n)
                 nsaved += 1
                 
         return nsaved
     
-    def sync_partial(self):
+    def save_threaded(self):
+        for k,n in self.notes.items():
+            if float(n.get('modifydate')) > float(n.get('savedate')):
+                cn = copy.deepcopy(n)
+                # put it on my queue as a save
+                o = utils.KeyValueObject(action=ACTION_SAVE, key=k, note=cn)
+                self.q_ss.put(o)
+                
+        # in this same call, we process stuff that might have been put on the result queue
+        nsaved = 0
+        something_in_queue = True
+        while something_in_queue:
+            try:
+                o = self.q_save_res.get_nowait()
+                
+            except Empty:
+                something_in_queue = False
+                
+            else:
+                # o (.action, .key, .note) is somethig that was written to disk
+                # we only record the savedate.
+                self.notes[o.key]['savedate'] = o.note['savedate']
+                nsaved += 1
+                
+        return nsaved
+        
+    
+    def sync_to_server(self):
         """Only sync notes that have been changed / created locally since previous sync.
         """
         
         nsynced = 0
         nerrored = 0
         for k,n in self.notes.items():
-            if not n.get('synced', True): # either note has Synced=False, or nothing, which means it's synced!
+            # if note has been modified sinc the sync, we need to sync. doh.
+            if float(n.get('modifydate')) > float(n.get('syncdate')):
+                # helper sets syncdate
                 k = self.helper_sync_note(k,n)
                 
                 if k:
                     n = self.notes[k]
-                    n['synced'] = True
                     nsynced += 1
+                    # this will set syncdate and modifydate = now
                     self.helper_save_note(k, n)
-                    
                     
                 else:
                     nerrored += 1
@@ -160,12 +222,13 @@ class NotesDB:
     def sync_full(self):
         local_updates = {}
         local_deletes = {}
+        now = time.time()
 
         print "step 1"
         # 1. go through local notes, if anything changed or new, update to server
         for lk in self.notes.keys():
             n = self.notes[lk]
-            if not n.get('key') or not n.get('synced', False):
+            if not n.get('key') or float(n.get('modifydate')) > float(n.get('syncdate')):
                 uret = self.simplenote.update_note(n)
                 if uret[1] == 0:
                     # replace n with uret[0]
@@ -174,6 +237,9 @@ class NotesDB:
                     # in either case (new or existing note), save note at assigned key
                     k = uret[0].get('key')
                     self.notes[k] = uret[0]
+                    
+                    # just synced, and of course note could be modified, so record.
+                    uret[0]['syncdate'] = uret[0]['modifydate'] = now
                     
                     # whatever the case may be, k is now updated
                     local_updates[k] = True
@@ -199,13 +265,15 @@ class NotesDB:
             server_keys[k] = True
             if k in self.notes:
                 # we already have this
-                if n.get('syncnum') > self.notes[k]:
+                # check if server n has a newer syncnum than mine
+                if int(n.get('syncnum')) > int(self.notes[k].get('syncnum', -1)):
                     # and the server is newer
                     print "  getting newer note", k
                     ret = self.simplenote.get_note(k)
                     if ret[1] == 0:
                         self.notes[k] = ret[0]
                         local_updates[k] = True
+                        ret[0]['syncdate'] = ret[0]['modifydate'] = now
                         
             else:
                 # new note
@@ -214,6 +282,7 @@ class NotesDB:
                 if ret[1] == 0:
                     self.notes[k] = ret[0]
                     local_updates[k] = True
+                    ret[0]['syncdate'] = ret[0]['modifydate'] = now
                      
         print "step 3"
         # 3. for each local note not in server index, remove.     
@@ -231,43 +300,23 @@ class NotesDB:
             
         print "done syncin'"
         
-        
-    def do_full_get(self):
-        # this returns a tuple ([], -1) if wrong password
-        # on success, ([docs], 0)
-        # each doc:
-        #{u'createdate': u'1335860754.841000',
-        # u'deleted': 0,
-        # u'key': u'455f66ee936711e19657591a71011082',
-        # u'minversion': 10,
-        # u'modifydate': u'1337007469.836000',
-        # u'syncnum': 54,
-        # u'systemtags': [],
-        # u'tags': [],
-        # u'version': 40}
-        
-        note_list = self.simplenote.get_note_list()
-        
-        # simplenote.get_note(key) returns (doc, status)
-        # where doc is all of the above with extra field content
-
-        server_notes = []        
-        if note_list[1] == 0:
-            for i in note_list[0]:
-                n = self.simplenote.get_note(i.get('key'))
-                if n[1] == 0:
-                    server_notes.append(n[0])
-                    
-        # write server_notes to disc
-        for n in server_notes:
-            f = open(os.path.join(self.db_path, n.get('key')) + '.json', 'wb')
-            json.dump(n, f, indent=2)
-
     def set_note_content(self, key, content):
         n = self.notes[key]
         old_content = n.get('content')
         if content != old_content:
             n['content'] = content
             n['modifydate'] = time.time()
-            # we've made changes, so this needs to be written to disc and synced
-            n['saved'] = n['synced'] = False
+
+    def worker_ss(self):
+        while True:
+            o = self.q_ss.get()
+            
+            if o.action == ACTION_SAVE:
+                # this will write the savedate into o.note
+                self.helper_save_note(o.key, o.note)
+                
+                # put the whole thing back into the result q
+                # now we don't have to copy, because this thread
+                # is never going to use o again.
+                # somebody has to read out the queue...
+                self.q_save_res.put(o)
