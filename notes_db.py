@@ -90,6 +90,36 @@ class NotesDB:
         fn = self.helper_key_to_fname(k)
         json.dump(note, open(fn, 'wb'), indent=2)
         
+    def helper_sync_note(self, k, note):
+        uret = self.simplenote.update_note(note)
+        if uret[1] == 0:
+            # success!
+            n = uret[0]
+            # if content was unchanged, there'll be no content sent back!
+            # so we have to copy our old content
+            if not n.get('content', None):
+                n['content'] = note['content']
+                # FIXME: record that content has not changed
+                # then we know GUI does not have to be updated either.
+                
+            if n.get('key') != k:
+                # new key assigned during sync
+                # 1. delete from our notes list
+                del self.notes[k]
+                # 2. remove from filesystem
+                os.unlink(self.helper_key_to_fname(k))
+                # set us up with new key
+                k = n.get('key')
+            
+            # store the new n at k, possibly new
+            self.notes[k] = n
+            # return the key
+            return k
+            
+        else:
+            return None
+        
+        
     def save(self):
         """Write all notes that have been changed since last save to disc.
         
@@ -103,6 +133,28 @@ class NotesDB:
                 nsaved += 1
                 
         return nsaved
+    
+    def sync_partial(self):
+        """Only sync notes that have been changed / created locally since previous sync.
+        """
+        
+        nsynced = 0
+        nerrored = 0
+        for k,n in self.notes.items():
+            if not n.get('synced', True): # either note has Synced=False, or nothing, which means it's synced!
+                k = self.helper_sync_note(k,n)
+                
+                if k:
+                    n = self.notes[k]
+                    n['synced'] = True
+                    nsynced += 1
+                    self.helper_save_note(k, n)
+                    
+                    
+                else:
+                    nerrored += 1
+                
+        return (nsynced, nerrored)
     
     def sync_full(self):
         local_updates = {}

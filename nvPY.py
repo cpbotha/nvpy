@@ -124,8 +124,9 @@ class Controller:
         
     def observer_view_keep_house(self, view, evt_type, evt):
         nsaved = self.notes_db.save()
-        if nsaved > 0:
-            self.view.set_status_text('%d notes saved to disc on %s.' % (nsaved, time.asctime()))
+        sync_ret = self.notes_db.sync_partial()
+        if nsaved + sync_ret[0] + sync_ret[1] > 0:
+            self.view.set_status_text('%d notes saved, %d notes synced (%d err) on %s.' % (nsaved, sync_ret[0], sync_ret[1], time.asctime()))
         
     def observer_view_select_note(self, view, evt_type, evt):
         self.select_note(evt.sel)
