@@ -66,27 +66,6 @@ class NotesListModel(SubjectMixin):
         else:
             return -1
     
-class NoteContentModel_DEPRECATED(SubjectMixin):
-    def __init__(self):
-        # call mixin ctor
-        SubjectMixin.__init__(self)
-        
-        self.content = None
-        
-    def set_content(self, content):
-        """Call this when this is a new note.
-        """
-        self.content = content
-        self.notify_observers('set:content', None)
-
-    def update_content(self, content):
-        """Call this when changes are made to the current note.
-
-        Only differes from set_content in the event that is fired.
-        """
-        self.content = content
-        self.notify_observers('update:content', None)
-        
 class Controller:
     """Main application class.
     """
