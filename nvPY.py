@@ -76,7 +76,7 @@ class Controller:
             self.appdir, _ = os.path.split(sys.executable)
             
         else:
-            dirname = os.path.dirname(sys.argv[0])
+            dirname = os.path.dirname(__file__)
             if dirname and dirname != os.curdir:
                 self.appdir = dirname
             else:
