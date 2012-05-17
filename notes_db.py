@@ -78,6 +78,7 @@ class NotesDB:
                 note_names.append(o)
             
         # we could sort note_names here
+        note_names.sort(key=lambda o: o.title)
         return note_names
     
     def get_note_content(self, key):
