@@ -136,6 +136,9 @@ class View(utils.SubjectMixin):
         # for getting version, and for requesting to quit
         self.controller = controller
         
+        # 
+        self.housekeeping_period = 3000
+        
         notes_list_model.add_observer('set:list', self.observer_notes_list)
         
         self.root = None
@@ -216,6 +219,8 @@ class View(utils.SubjectMixin):
         # user presses escape in text area, they go back to notes list
         self.text_note.bind("<Escape>", lambda e: self.lb_notes.focus())
         # <Key>
+        
+        self.root.after(self.housekeeping_period, self.handler_housekeeper)
 
     def _create_menu(self):
         """Utility function to setup main menu.
@@ -403,6 +408,11 @@ class View(utils.SubjectMixin):
     def cmd_exit(self, event=None):
         self.controller.quit()
         
+    def handler_housekeeper(self):
+        self.notify_observers('keep:house', None)
+        
+        self.root.after(self.housekeeping_period, self.handler_housekeeper)
+        
     def handler_search_enter(self, evt):
         # user has pressed enter whilst searching
         # 1. if a note is selected, focus that
@@ -431,6 +441,9 @@ class View(utils.SubjectMixin):
             
     def main_loop(self):
         self.root.mainloop()
+        
+    def set_status_text(self, txt):
+        self.statusbar.set_label(txt)
         
     def set_text(self, note_content):
         self.text_note.delete(1.0, tk.END) # clear all

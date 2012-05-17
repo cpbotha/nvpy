@@ -50,13 +50,12 @@ class NotesDB:
                     'content' : title,
                     'modifydate' : timestamp,
                     'createdate' : timestamp,
-                    'lmodifydate' : timestamp
+                    'saved' : False, # has this been written to disc?
+                    'synced' : False # has it been synced with server?
                     }
         
         self.notes[new_key] = new_note
         
-        # FIXME: add this to the update_to_disc queue!
-            
         return new_key
         
     def get_note_names(self, search_string=None):
@@ -90,6 +89,20 @@ class NotesDB:
     def helper_save_note(self, k, note):
         fn = self.helper_key_to_fname(k)
         json.dump(note, open(fn, 'wb'), indent=2)
+        
+    def save(self):
+        """Write all notes that have been changed since last save to disc.
+        
+        This is usually called every few seconds by nvPY, so it should be quick.
+        """
+        nsaved = 0
+        for k,n in self.notes.items():
+            if not n.get('saved', True):
+                n['saved'] = True
+                self.helper_save_note(k, n)
+                nsaved += 1
+                
+        return nsaved
     
     def sync_full(self):
         local_updates = {}
@@ -198,8 +211,10 @@ class NotesDB:
             json.dump(n, f, indent=2)
 
     def set_note_content(self, key, content):
-        # FIXME: set timestamps and whatnot (if content is new)
-        #cur_content = self.notes[key].get('content')
-        self.notes[key]['content'] = content
-        
-        # FIXME: maintain update queue, for save and sync.
+        n = self.notes[key]
+        old_content = n.get('content')
+        if content != old_content:
+            n['content'] = content
+            n['modifydate'] = time.time()
+            # we've made changes, so this needs to be written to disc and synced
+            n['saved'] = n['synced'] = False
