@@ -103,13 +103,14 @@ class Controller:
         self.view.add_observer('create:note', self.observer_view_create_note)
         self.view.add_observer('keep:house', self.observer_view_keep_house)
         
-        # nn is a list of (key, title, modifydate) objects
-        nn = self.notes_db.get_note_names()
+        # nn is a list of (key, note) objects
+        nn = self.notes_db.filter_notes()
         # this will trigger the list_change event
         self.notes_list_model.set_list(nn)
 
         # we'll use this to keep track of the currently selected note
-        self.selected_note = KeyValueObject(idx=-1, key=-1)
+        # we only use idx, because key could change from right under us.
+        self.selected_note_idx = -1
         self.view.select_note(0)
                 
     def get_version(self):
@@ -145,7 +146,9 @@ class Controller:
 
     def observer_view_change_text(self, view, evt_type, evt):
         # get new text and update our database
-        self.notes_db.set_note_content(self.selected_note.key,
+        # need local key of currently selected note for this
+        key = self.notes_list_model.list[self.selected_note_idx].key
+        self.notes_db.set_note_content(key,
                                        self.view.get_text())
         
     def observer_view_create_note(self, view, evt_type, evt):
@@ -167,8 +170,7 @@ class Controller:
             c = ''
             idx = -1
         
-        self.selected_note.idx = idx
-        self.selected_note.key = key
+        self.selected_note_idx = idx
 
         # when we do this, we don't want the change:text event thanks
         self.view.mute('change:text')            

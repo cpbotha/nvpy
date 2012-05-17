@@ -437,7 +437,7 @@ class View(utils.SubjectMixin):
     def observer_notes_list(self, notes_list_model, evt_type, evt):
         if evt_type == 'set:list':
             # re-render!
-            self.set_note_names(notes_list_model.list)
+            self.set_notes(notes_list_model.list)
             
     def main_loop(self):
         self.root.mainloop()
@@ -450,12 +450,12 @@ class View(utils.SubjectMixin):
         self.text_note.insert(tk.END, note_content)
         
         
-    def set_note_names(self, note_names):
+    def set_notes(self, notes):
         # clear the listbox
         self.lb_notes.delete(0, tk.END)
         
-        for nn in note_names:
-            self.lb_notes.insert(tk.END, nn.title)
+        for o in notes:
+            self.lb_notes.insert(tk.END, utils.get_note_title(o.note))
 
     def show_error(self, title, msg):
         tkMessageBox.showerror(title, msg)

@@ -44,9 +44,6 @@ class NotesDB:
         # this does not yet need network access
         self.simplenote = Simplenote(sn_username, sn_password)
         
-        # first line with non-whitespace should be the title
-        self.title_re = re.compile('\s*(.*)\n?')
-        
         # save and sync queue
         # we only want ONE thread to do both saving and syncing
         self.q_ss = Queue()
@@ -80,28 +77,21 @@ class NotesDB:
         
         return new_key
         
-    def get_note_names(self, search_string=None):
+    def filter_notes(self, search_string=None):
         """Return 
         """
 
-        note_names = []
+        filtered_notes = []
         for k in self.notes:
             n = self.notes[k]
             c = n.get('content')
-            tmo = self.title_re.match(c)
-            if tmo and (not search_string or re.search(search_string, c)):
-                title = tmo.groups()[0]
-                
-                # timestamp
-                # convert to datetime with datetime.datetime.fromtimestamp(modified)
-                modified = float(n.get('modifydate'))
-
-                o = utils.KeyValueObject(key=k, title=title, modified=modified)
-                note_names.append(o)
+            if not search_string or re.search(search_string, c):
+                # we have to store our local key also
+                filtered_notes.append(utils.KeyValueObject(key=k, note=n))
             
         # sort alphabetically on title
-        note_names.sort(key=lambda o: o.title)
-        return note_names
+        filtered_notes.sort(key=lambda o: utils.get_note_title(o.note))
+        return filtered_notes
     
     def get_note_content(self, key):
         return self.notes[key].get('content')
@@ -188,7 +178,7 @@ class NotesDB:
                 something_in_queue = False
                 
             else:
-                # o (.action, .key, .note) is somethig that was written to disk
+                # o (.action, .key, .note) is something that was written to disk
                 # we only record the savedate.
                 self.notes[o.key]['savedate'] = o.note['savedate']
                 nsaved += 1
@@ -198,6 +188,8 @@ class NotesDB:
     
     def sync_to_server(self):
         """Only sync notes that have been changed / created locally since previous sync.
+        
+        This is a fully blocking non-threaded call.
         """
         
         nsynced = 0
@@ -218,6 +210,62 @@ class NotesDB:
                     nerrored += 1
                 
         return (nsynced, nerrored)
+    
+    def sync_to_server_threaded(self):
+        """Only sync notes that have been changed / created locally since previous sync.
+        
+        """
+        
+        for k,n in self.notes.items():
+            # if note has been modified sinc the sync, we need to sync. doh.
+            if float(n.get('modifydate')) > float(n.get('syncdate')):
+                cn = copy.deepcopy(n)
+                # put it on my queue as a sync
+                o = utils.KeyValueObject(action=ACTION_SYNC, key=k, note=cn)
+                self.q_ss.put(o)
+                
+
+        # in this same call, we read out the result queue
+        nsynced = 0
+        nerrored = 0
+        something_in_queue = True
+        while something_in_queue:
+            try:
+                o = self.q_sync_res.get_nowait()
+                
+            except Empty:
+                something_in_queue = False
+                
+            else:
+                # o (.action, .key, .note) is something that was synced
+                # -- the key could have changed (first sync)
+                # -- we have to record the syncdate + modifydate
+                nkey = o.note['key']
+                okey = o.key
+                if nkey != okey:
+                    # FIXME:
+                    # * ARGH NASTY. What if this is the note CURRENTLY edited by the user?
+                    # * sync happened in the background, user went on typing like a demon. What now? NOTIFY!
+                    # * actually, next character user types will simply overwrite whatever came back from
+                    #   the server with the user's input. AWESOME.
+                    self.notes[nkey] = o.note
+                    del self.notes[nkey]
+                    os.unlink(self.helper_key_to_fname(k))
+                    
+                
+                self.notes[o.key]['savedate'] = o.note['savedate']
+        
+                if k:
+                    n = self.notes[k]
+                    nsynced += 1
+                    # this will set syncdate and modifydate = now
+                    self.helper_save_note(k, n)
+                    
+                else:
+                    nerrored += 1
+                
+        return (nsynced, nerrored)
+    
     
     def sync_full(self):
         local_updates = {}
@@ -320,3 +368,6 @@ class NotesDB:
                 # is never going to use o again.
                 # somebody has to read out the queue...
                 self.q_save_res.put(o)
+                
+            elif o.action == ACTION_SYNC:
+                pass
