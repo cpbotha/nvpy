@@ -32,7 +32,7 @@ class NotesDB:
         self.notes = {}
         for fn in fnlist:
             n = json.load(open(fn, 'rb'))
-            # filename is ALWAYS localkey; only simplenote key when available
+            # we always have a localkey, also when we don't have a note['key'] yet (no sync)
             localkey = os.path.splitext(os.path.basename(fn))[0]
             self.notes[localkey] = n
             # we maintain in memory a timestamp of the last save
@@ -65,7 +65,8 @@ class NotesDB:
             
         timestamp = time.time()
             
-        new_note = {'key' : new_key,
+        # note has no internal key yet.
+        new_note = {
                     'content' : title,
                     'modifydate' : timestamp,
                     'createdate' : timestamp,
@@ -101,7 +102,14 @@ class NotesDB:
     
     def helper_save_note(self, k, note):
         """Save a single note to disc.
+        
         """
+        
+        # simplenote key in note gets precedence when saving.
+        sk = note.get('key')
+        if sk:
+            k = sk
+            
         fn = self.helper_key_to_fname(k)
         json.dump(note, open(fn, 'wb'), indent=2)
         # record that we saved this to disc.
@@ -125,20 +133,17 @@ class NotesDB:
                 
             if n.get('key') != k:
                 # new key assigned during sync
-                # 1. delete from our notes list
-                del self.notes[k]
-                # 2. remove from filesystem
+                # for now we keep the old local key around ONLY AS IN-MEM INDEX
+                # 1. remove from filesystem
                 os.unlink(self.helper_key_to_fname(k))
-                # set us up with new key
-                k = n.get('key')
                 
             now = time.time()
             # 1. store when we've synced
             # 2. also store that note is modified (so it'll be written to disc) 
             n['modifydate'] = n['syncdate'] = now
             
-            # store the new n at k, possibly new
-            self.notes[k] = n
+            # update our existing note in-place!
+            self.notes[k].update(n)
             # return the key
             return k
             
@@ -154,6 +159,7 @@ class NotesDB:
         nsaved = 0
         for k,n in self.notes.items():
             if float(n.get('modifydate')) > float(n.get('savedate')):
+                # helper_save_note will pick simplenote key if available, else localkey
                 self.helper_save_note(k, n)
                 nsaved += 1
                 
@@ -198,6 +204,7 @@ class NotesDB:
             # if note has been modified sinc the sync, we need to sync. doh.
             if float(n.get('modifydate')) > float(n.get('syncdate')):
                 # helper sets syncdate
+                # also updates our note in-place if anything comes back
                 k = self.helper_sync_note(k,n)
                 
                 if k:
@@ -218,7 +225,8 @@ class NotesDB:
         
         for k,n in self.notes.items():
             # if note has been modified sinc the sync, we need to sync. doh.
-            if float(n.get('modifydate')) > float(n.get('syncdate')):
+            if float(n.get('modifydate', -1)) > float(n.get('syncdate', -1)):
+                print k, n.get('modifydate'), n.get('syncdate')
                 cn = copy.deepcopy(n)
                 # put it on my queue as a sync
                 o = utils.KeyValueObject(action=ACTION_SYNC, key=k, note=cn)
@@ -237,33 +245,30 @@ class NotesDB:
                 something_in_queue = False
                 
             else:
-                # o (.action, .key, .note) is something that was synced
-                # -- the key could have changed (first sync)
-                # -- we have to record the syncdate + modifydate
-                nkey = o.note['key']
-                okey = o.key
-                if nkey != okey:
-                    # FIXME:
-                    # * ARGH NASTY. What if this is the note CURRENTLY edited by the user?
-                    # * sync happened in the background, user went on typing like a demon. What now? NOTIFY!
-                    # * actually, next character user types will simply overwrite whatever came back from
-                    #   the server with the user's input. AWESOME.
-                    self.notes[nkey] = o.note
-                    del self.notes[nkey]
-                    os.unlink(self.helper_key_to_fname(k))
-                    
-                
-                self.notes[o.key]['savedate'] = o.note['savedate']
-        
-                if k:
-                    n = self.notes[k]
-                    nsynced += 1
-                    # this will set syncdate and modifydate = now
-                    self.helper_save_note(k, n)
+                if o.error:
+                    nerrored += 1
                     
                 else:
-                    nerrored += 1
-                
+                    # o (.action, .key, .note) is something that was synced
+                    # -- the key could have changed (first sync)
+                    # -- we have to record the syncdate + modifydate
+                    nkey = o.note['key']
+                    okey = o.key
+                    if nkey != okey:
+                        # FIXME:
+                        # * ARGH NASTY. What if this is the note CURRENTLY edited by the user?
+                        # * sync happened in the background, user went on typing like a demon. What now? NOTIFY!
+                        # * actually, next character user types will simply overwrite whatever came back from
+                        #   the server with the user's input. AWESOME.
+                        
+                        # then just delete the old key fname
+                        # at the next save, it will get written under new key
+                        os.unlink(self.helper_key_to_fname(okey))
+                        
+                    # do an in-place update of the existing note
+                    self.notes[okey].update(o.note)
+                    nsynced += 1
+                    
         return (nsynced, nerrored)
     
     
@@ -370,4 +375,35 @@ class NotesDB:
                 self.q_save_res.put(o)
                 
             elif o.action == ACTION_SYNC:
-                pass
+                uret = self.simplenote.update_note(o.note)
+                if uret[1] == 0:
+                    # success!
+                    n = uret[0]
+                    # if content was unchanged, there'll be no content sent back!
+                    # so we have to copy our old content
+                    if not n.get('content', None):
+                        n['content'] = o.note['content']
+                        # FIXME: record that content has not changed
+                        # then we know GUI does not have to be updated either.
+                        
+                    if n.get('key') != o.key:
+                        # new key assigned during sync
+                        # for now we keep the old local key around ONLY AS IN-MEM INDEX
+                        # but we do have to remove from filesystem
+                        os.unlink(self.helper_key_to_fname(o.key))
+                        
+                    now = time.time()
+                    # 1. store when we've synced
+                    # 2. also store that note is modified (so it'll be written to disc) 
+                    n['modifydate'] = n['syncdate'] = now
+                    
+                    # store the actual note back into o
+                    o.note = n
+                    o.error = 0
+                    
+                    # and put it on the result queue
+                    self.q_sync_res.put(o)
+                    
+                    
+                else:
+                    o.error = 1
