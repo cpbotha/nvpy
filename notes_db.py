@@ -112,7 +112,7 @@ class NotesDB:
         # 1. go through local notes, if anything changed or new, update to server
         for lk in self.notes.keys():
             n = self.notes[lk]
-            if not n.get('key') or n.get('localtouch'):
+            if not n.get('key') or not n.get('synced', False):
                 uret = self.simplenote.update_note(n)
                 if uret[1] == 0:
                     # replace n with uret[0]
