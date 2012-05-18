@@ -45,6 +45,11 @@ class NotesDB(utils.SubjectMixin):
         # this does not yet need network access
         self.simplenote = Simplenote(sn_username, sn_password)
         
+        # try to do a full sync before we start.
+        self.sync_full()
+        
+        self.threaded_syncing_keys = {}
+        
         # save and sync queue
         # we only want ONE thread to do both saving and syncing
         self.q_ss = Queue()
@@ -53,8 +58,7 @@ class NotesDB(utils.SubjectMixin):
         self.q_sync_res = Queue()
         
         thread_ss = Thread(target=self.worker_ss)
-        # we want all save + sync calls to finish when the process finishes.
-        thread_ss.setDaemon(False)
+        thread_ss.setDaemon(True)
         thread_ss.start()
         
     def create_note(self, title):
@@ -168,7 +172,9 @@ class NotesDB(utils.SubjectMixin):
     
     def save_threaded(self):
         for k,n in self.notes.items():
-            if float(n.get('modifydate')) > float(n.get('savedate')):
+            savedate = float(n.get('savedate'))
+            if float(n.get('modifydate')) > savedate or \
+               float(n.get('syncdate')) > savedate:
                 cn = copy.deepcopy(n)
                 # put it on my queue as a save
                 o = utils.KeyValueObject(action=ACTION_SAVE, key=k, note=cn)
@@ -224,11 +230,23 @@ class NotesDB(utils.SubjectMixin):
         
         """
         
+        now = time.time()
         for k,n in self.notes.items():
-            # if note has been modified sinc the sync, we need to sync. doh.
-            if float(n.get('modifydate', -1)) > float(n.get('syncdate', -1)):
-                print k, n.get('modifydate'), n.get('syncdate')
+            # if note has been modified sinc the sync, we need to sync.
+            # only do so if note hasn't been touched for 3 seconds
+            # and if this note isn't still in the queue to be processed by the
+            # worker (this last one very important)
+            modifydate = float(n.get('modifydate', -1))
+            if modifydate > float(n.get('syncdate', -1)) and \
+               now - modifydate > 3 and \
+               k not in self.threaded_syncing_keys:
+                self.threaded_syncing_keys[k] = True
+                print 'SST key', k, 'mod-date', n.get('modifydate'), 'syncdate', n.get('syncdate')
+                # FIXME: record that we've requested a sync on this note,
+                # so that we don't keep on putting stuff on the queue.
                 cn = copy.deepcopy(n)
+                # we store the timestamp when this copy was made as the syncdate
+                cn['syncdate'] = time.time()
                 # put it on my queue as a sync
                 o = utils.KeyValueObject(action=ACTION_SYNC, key=k, note=cn)
                 self.q_ss.put(o)
@@ -255,6 +273,9 @@ class NotesDB(utils.SubjectMixin):
                     # -- we have to record the syncdate + modifydate
                     nkey = o.note['key']
                     okey = o.key
+                    
+                    # this has come back.
+                    del self.threaded_syncing_keys[okey]
                       
                     if float(o.note['syncdate']) > float(self.notes[okey]['modifydate']):
                         # note was synced AFTER the last modification to our local version
@@ -263,8 +284,13 @@ class NotesDB(utils.SubjectMixin):
                         self.notes[okey].update(o.note)
                         # notify anyone (probably nvPY) that this note has been changed
                         self.notify_observers('synced:note', utils.KeyValueObject(lkey=okey))
-                        # if user has continued working on their note whilst sync came back
-                        # we DON'T apply server changes back on that note.
+                        
+                    else:
+                        # the user has changed stuff since the version that got synced
+                        # just record syncnum and version that we got from simplenote
+                        tkeys = ['syncnum', 'version']
+                        for tk in tkeys:
+                            self.notes[okey][tk] = o.note[tk]
                         
                     nsynced += 1
                     
@@ -291,7 +317,7 @@ class NotesDB(utils.SubjectMixin):
                     self.notes[k] = uret[0]
                     
                     # just synced, and of course note could be modified, so record.
-                    uret[0]['syncdate'] = uret[0]['modifydate'] = now
+                    uret[0]['syncdate'] = now
                     
                     # whatever the case may be, k is now updated
                     local_updates[k] = True
@@ -383,6 +409,7 @@ class NotesDB(utils.SubjectMixin):
                     # so we have to copy our old content
                     if not n.get('content', None):
                         # if note has not been changed, we don't get content back
+                        # delete our own copy too.
                         del o.note['content']
                         
                     if n.get('key') != o.key:
@@ -392,7 +419,6 @@ class NotesDB(utils.SubjectMixin):
                         os.unlink(self.helper_key_to_fname(o.key))
                         
                     # 1. store when we've synced
-                    # FIXME: modify save function to check for syncdate > savedate and save if necessary
                     n['syncdate'] = now
                     
                     # store the actual note back into o
@@ -404,7 +430,7 @@ class NotesDB(utils.SubjectMixin):
                     
                     # and put it on the result queue
                     self.q_sync_res.put(o)
-                    print 'WORKER SYNCED', o.note.get('syncdate')
+                    print 'WORKER SYNCED syncdate', o.note.get('syncdate')
                     
                 else:
                     o.error = 1

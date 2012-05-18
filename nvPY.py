@@ -60,6 +60,8 @@ class NotesListModel(SubjectMixin):
         self.notify_observers('set:list', None)
         
     def get_idx(self, key):
+        """Find idx for passed LOCAL key. 
+        """
         found = [i for i,e in enumerate(self.list) if e.key == key]
         if found:
             return found[0]
@@ -90,6 +92,7 @@ class Controller:
         # read our database of notes into memory
         # and sync with simplenote.
         self.notes_db = NotesDB(self.config.db_path, self.config.sn_username, self.config.sn_password)
+        self.notes_db.add_observer('synced:note', self.observer_notes_db_synced_note)
         #self.notes_db.sync_full()
 
         self.notes_list_model = NotesListModel()
@@ -121,6 +124,9 @@ class Controller:
         
     def main_loop(self):
         self.view.main_loop()
+        
+    def observer_notes_db_synced_note(self, notes_db, evt_type, evt):
+        print evt.lkey, 'synced back'
         
     def observer_view_keep_house(self, view, evt_type, evt):
         # queue up all notes that need to be saved
