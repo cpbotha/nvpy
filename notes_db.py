@@ -91,7 +91,7 @@ class NotesDB(utils.SubjectMixin):
         for k in self.notes:
             n = self.notes[k]
             c = n.get('content')
-            if not search_string or re.search(search_string, c):
+            if not n.get('deleted') and (not search_string or re.search(search_string, c)):
                 # we have to store our local key also
                 filtered_notes.append(utils.KeyValueObject(key=k, note=n))
             
@@ -288,6 +288,7 @@ class NotesDB(utils.SubjectMixin):
                     else:
                         # the user has changed stuff since the version that got synced
                         # just record syncnum and version that we got from simplenote
+                        # if we don't do this, merging problems start happening.
                         tkeys = ['syncnum', 'version']
                         for tk in tkeys:
                             self.notes[okey][tk] = o.note[tk]
