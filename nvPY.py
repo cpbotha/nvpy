@@ -120,8 +120,6 @@ class Controller:
         self.view.close()
         
     def main_loop(self):
-        # FIXME: before you start the view main loop, give it some
-        # time-based handlers to run.
         self.view.main_loop()
         
     def observer_view_keep_house(self, view, evt_type, evt):

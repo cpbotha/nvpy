@@ -136,8 +136,8 @@ class View(utils.SubjectMixin):
         # for getting version, and for requesting to quit
         self.controller = controller
         
-        # 
-        self.housekeeping_period = 3000
+        # 3s results in many saves and syncs
+        self.housekeeping_period = 5000
         
         notes_list_model.add_observer('set:list', self.observer_notes_list)
         

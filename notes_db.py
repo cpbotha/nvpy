@@ -16,10 +16,11 @@ import utils
 ACTION_SAVE = 0
 ACTION_SYNC = 1
 
-class NotesDB:
+class NotesDB(utils.SubjectMixin):
     """NotesDB will take care of the local notes database and syncing with SN.
     """
     def __init__(self, db_path, sn_username, sn_password):
+        utils.SubjectMixin.__init__(self)
         # create db dir if it does not exist
         if not os.path.exists(db_path):
             os.mkdir(db_path)
@@ -151,7 +152,7 @@ class NotesDB:
             return None
         
         
-    def save(self):
+    def save_unthreaded(self):
         """Write all notes that have been changed since last save to disc.
         
         This is usually called every few seconds by nvPY, so it should be quick.
@@ -192,7 +193,7 @@ class NotesDB:
         return nsaved
         
     
-    def sync_to_server(self):
+    def sync_to_server_unthreaded(self):
         """Only sync notes that have been changed / created locally since previous sync.
         
         This is a fully blocking non-threaded call.
@@ -254,19 +255,17 @@ class NotesDB:
                     # -- we have to record the syncdate + modifydate
                     nkey = o.note['key']
                     okey = o.key
-                    if nkey != okey:
-                        # FIXME:
-                        # * ARGH NASTY. What if this is the note CURRENTLY edited by the user?
-                        # * sync happened in the background, user went on typing like a demon. What now? NOTIFY!
-                        # * actually, next character user types will simply overwrite whatever came back from
-                        #   the server with the user's input. AWESOME.
+                      
+                    if float(o.note['syncdate']) > float(self.notes[okey]['modifydate']):
+                        # note was synced AFTER the last modification to our local version
+                        # do an in-place update of the existing note
+                        # this could be with or without new content.
+                        self.notes[okey].update(o.note)
+                        # notify anyone (probably nvPY) that this note has been changed
+                        self.notify_observers('synced:note', utils.KeyValueObject(lkey=okey))
+                        # if user has continued working on their note whilst sync came back
+                        # we DON'T apply server changes back on that note.
                         
-                        # then just delete the old key fname
-                        # at the next save, it will get written under new key
-                        os.unlink(self.helper_key_to_fname(okey))
-                        
-                    # do an in-place update of the existing note
-                    self.notes[okey].update(o.note)
                     nsynced += 1
                     
         return (nsynced, nerrored)
@@ -379,12 +378,12 @@ class NotesDB:
                 if uret[1] == 0:
                     # success!
                     n = uret[0]
+                    now = time.time()
                     # if content was unchanged, there'll be no content sent back!
                     # so we have to copy our old content
                     if not n.get('content', None):
-                        n['content'] = o.note['content']
-                        # FIXME: record that content has not changed
-                        # then we know GUI does not have to be updated either.
+                        # if note has not been changed, we don't get content back
+                        del o.note['content']
                         
                     if n.get('key') != o.key:
                         # new key assigned during sync
@@ -392,18 +391,20 @@ class NotesDB:
                         # but we do have to remove from filesystem
                         os.unlink(self.helper_key_to_fname(o.key))
                         
-                    now = time.time()
                     # 1. store when we've synced
-                    # 2. also store that note is modified (so it'll be written to disc) 
-                    n['modifydate'] = n['syncdate'] = now
+                    # FIXME: modify save function to check for syncdate > savedate and save if necessary
+                    n['syncdate'] = now
                     
                     # store the actual note back into o
-                    o.note = n
+                    # in-place update of our existing note copy
+                    o.note.update(n)
+
+                    # success!
                     o.error = 0
                     
                     # and put it on the result queue
                     self.q_sync_res.put(o)
-                    
+                    print 'WORKER SYNCED', o.note.get('syncdate')
                     
                 else:
                     o.error = 1
