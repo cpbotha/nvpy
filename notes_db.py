@@ -84,7 +84,8 @@ class NotesDB(utils.SubjectMixin):
         return new_key
         
     def filter_notes(self, search_string=None):
-        """Return 
+        """Return list of notes filtered with search_string, 
+        a regular expression, each a tuple with (local_key, note). 
         """
 
         filtered_notes = []

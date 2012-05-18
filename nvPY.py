@@ -126,7 +126,18 @@ class Controller:
         self.view.main_loop()
         
     def observer_notes_db_synced_note(self, notes_db, evt_type, evt):
-        print evt.lkey, 'synced back'
+        """This observer gets called only when a note returns from
+        a sync that's more recent than our most recent mod to that note.
+        """
+        
+        selected_note_o = self.notes_list_model.list[self.selected_note_idx]
+        # if the note synced back matches our currently selected note,
+        # we overwrite.
+        if selected_note_o.key == evt.lkey:
+            self.view.mute('change:text')
+            self.view.set_text(selected_note_o.note['content'])
+            self.view.unmute('change:text')
+        
         
     def observer_view_keep_house(self, view, evt_type, evt):
         # queue up all notes that need to be saved
@@ -142,7 +153,7 @@ class Controller:
     def observer_view_change_entry(self, view, evt_type, evt):
         # for each new evt.value coming in, get a new list from the notes_db
         # and set it in the notes_list_model
-        nn = self.notes_db.get_note_names(evt.value)
+        nn = self.notes_db.filter_notes(evt.value)
         self.notes_list_model.set_list(nn)
         # we select note in the view, this will eventually come back to us
         # in observer_view_select_note
