@@ -173,6 +173,12 @@ class View(utils.SubjectMixin):
         sidx = self.get_selected_idx()
         self.notify_observers('delete:note', utils.KeyValueObject(sel=sidx))
         
+    def cmd_root_new(self, evt):
+        # this'll get caught by a controller event handler
+        self.notify_observers('create:note', utils.KeyValueObject(title=self.get_search_entry_text()))
+        # the note will be created synchronously, so we can focus the text area already
+        self.text_note.focus()
+        
     def get_selected_idx(self):
         # no selection: s = ()
         # something: s = ('idx',)
@@ -222,9 +228,9 @@ class View(utils.SubjectMixin):
         self.search_entry_var.set(text)
         
     def _bind_events(self):
-        self.root.bind_all("<Control-f>", lambda e: self.search_entry.focus())
-        
         self.root.bind_all("<Control-d>", self.cmd_root_delete)
+        self.root.bind_all("<Control-f>", lambda e: self.search_entry.focus())
+        self.root.bind_all("<Control-n>", self.cmd_root_new)
         
         self.lb_notes.bind("<<ListboxSelect>>", self.cmd_lb_notes_select)
         # same behaviour as when the user presses enter on search entry:

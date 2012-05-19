@@ -103,6 +103,7 @@ class Controller:
         self.view = view.View(self, self.notes_list_model)
         # we want to be notified when the user does stuff
         self.view.add_observer('delete:note', self.observer_view_delete_note)
+        self.view.add_observer('new:note', self.observer_view_new_note)
         self.view.add_observer('select:note', self.observer_view_select_note)
         self.view.add_observer('change:entry', self.observer_view_change_entry)
         self.view.add_observer('change:text', self.observer_view_change_text)
@@ -165,6 +166,9 @@ class Controller:
         
         # easiest now is just to regenerate the list by resetting search string
         self.view.set_search_entry_text(self.view.get_search_entry_text())
+        
+    def observer_view_new_note(self, view, evt_type, evt):
+        pass
         
     def observer_view_keep_house(self, view, evt_type, evt):
         # queue up all notes that need to be saved
