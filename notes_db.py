@@ -46,7 +46,10 @@ class NotesDB(utils.SubjectMixin):
         self.simplenote = Simplenote(sn_username, sn_password)
         
         # try to do a full sync before we start.
-        self.sync_full()
+        try:
+            self.sync_full()
+        except RuntimeError:
+            pass
         
         self.threaded_syncing_keys = {}
         
@@ -103,6 +106,23 @@ class NotesDB(utils.SubjectMixin):
     def get_note_content(self, key):
         return self.notes[key].get('content')
     
+    def get_note_status(self, key):
+        n = self.notes[key]
+        o = utils.KeyValueObject(saved=False, synced=False, modified=False)
+        modifydate = float(n['modifydate'])
+        savedate = float(n['savedate'])
+        
+        if savedate > modifydate:
+            o.saved = True
+        else:
+            o.modified = True
+            
+        if float(n['syncdate']) > modifydate:
+            o.synced = True
+            
+        return o
+            
+    
     def helper_key_to_fname(self, k):
         return os.path.join(self.db_path, k) + '.json'
     
@@ -145,8 +165,7 @@ class NotesDB(utils.SubjectMixin):
                 
             now = time.time()
             # 1. store when we've synced
-            # 2. also store that note is modified (so it'll be written to disc) 
-            n['modifydate'] = n['syncdate'] = now
+            n['syncdate'] = now
             
             # update our existing note in-place!
             self.notes[k].update(n)
@@ -195,6 +214,7 @@ class NotesDB(utils.SubjectMixin):
                 # o (.action, .key, .note) is something that was written to disk
                 # we only record the savedate.
                 self.notes[o.key]['savedate'] = o.note['savedate']
+                self.notify_observers('change:note-status', utils.KeyValueObject(what='savedate',key=o.key))
                 nsaved += 1
                 
         return nsaved
@@ -265,6 +285,10 @@ class NotesDB(utils.SubjectMixin):
                 something_in_queue = False
                 
             else:
+                okey = o.key
+                # this has come back.
+                del self.threaded_syncing_keys[okey]
+
                 if o.error:
                     nerrored += 1
                     
@@ -273,11 +297,7 @@ class NotesDB(utils.SubjectMixin):
                     # -- the key could have changed (first sync)
                     # -- we have to record the syncdate + modifydate
                     nkey = o.note['key']
-                    okey = o.key
                     
-                    # this has come back.
-                    del self.threaded_syncing_keys[okey]
-                      
                     if float(o.note['syncdate']) > float(self.notes[okey]['modifydate']):
                         # note was synced AFTER the last modification to our local version
                         # do an in-place update of the existing note
@@ -290,11 +310,12 @@ class NotesDB(utils.SubjectMixin):
                         # the user has changed stuff since the version that got synced
                         # just record syncnum and version that we got from simplenote
                         # if we don't do this, merging problems start happening.
-                        tkeys = ['syncnum', 'version']
+                        tkeys = ['syncnum', 'version', 'syncdate']
                         for tk in tkeys:
                             self.notes[okey][tk] = o.note[tk]
                         
                     nsynced += 1
+                    self.notify_observers('change:note-status', utils.KeyValueObject(what='syncdate',key=okey))
                     
         return (nsynced, nerrored)
     
@@ -386,6 +407,7 @@ class NotesDB(utils.SubjectMixin):
         if content != old_content:
             n['content'] = content
             n['modifydate'] = time.time()
+            self.notify_observers('change:note-status', utils.KeyValueObject(what='modifydate', key=key))
 
     def worker_ss(self):
         while True:

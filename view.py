@@ -110,21 +110,36 @@ class RedirectedText(tk.Text):
 
 #########################################################################
 class StatusBar(ttk.Frame):
-    """From the tkinterbook.
+    """Adapted from the tkinterbook.
     """
+    
+    # actions
+    # global status
+    # note status
 
     def __init__(self, master):
         ttk.Frame.__init__(self, master)
-        self.label = ttk.Label(self, relief=tk.SUNKEN, anchor=tk.W)
-        self.label.pack(fill=tk.X)
+        
+        self.status = ttk.Label(self, relief=tk.SUNKEN, anchor=tk.W)
+        #self.label.pack(fill=tk.X)
+        self.status.pack(side=tk.LEFT)
+        
+        self.note_status = ttk.Label(self, relief=tk.SUNKEN, anchor=tk.W)
+        self.note_status.pack(side=tk.LEFT)
+        
+    def set_note_status(self, fmt, *args):
+        """ *.. .s. .sS
+        """ 
+        self.note_status.config(text=fmt % args)
+        self.note_status.update_idletasks()
 
-    def set_label(self, fmt, *args):
-        self.label.config(text=fmt % args)
-        self.label.update_idletasks()
+    def set_status(self, fmt, *args):
+        self.status.config(text=fmt % args)
+        self.status.update_idletasks()
 
-    def clear_label(self):
-        self.label.config(text="")
-        self.label.update_idletasks()
+    def clear_status(self):
+        self.status.config(text="")
+        self.status.update_idletasks()
 
 class View(utils.SubjectMixin):
     """Main user interface class.
@@ -154,6 +169,10 @@ class View(utils.SubjectMixin):
     def cmd_lb_notes_select(self, evt):
         sidx = self.get_selected_idx()
         self.notify_observers('select:note', utils.KeyValueObject(sel=sidx))
+        
+    def cmd_root_delete(self, evt):
+        sidx = self.get_selected_idx()
+        self.notify_observers('delete:note', utils.KeyValueObject(sel=sidx))
         
     def get_selected_idx(self):
         # no selection: s = ()
@@ -190,11 +209,23 @@ class View(utils.SubjectMixin):
         if idx < self.lb_notes.index(tk.END) - 1:
             self.select_note(idx + 1)
             
+    def set_note_status(self, status):
+        """status is an object with ivars modified, saved and synced.
+        """
+        
+        ms = 'Modified.' if status.modified else ''
+        ss = 'Saved.' if status.saved else ''
+        ys = 'Synced.' if status.synced else ''
+        
+        self.statusbar.set_note_status('%s %s %s' % (ms,ss,ys))
+            
     def set_search_entry_text(self, text):
         self.search_entry_var.set(text)
         
     def _bind_events(self):
         self.root.bind_all("<Control-f>", lambda e: self.search_entry.focus())
+        
+        self.root.bind_all("<Control-d>", self.cmd_root_delete)
         
         self.lb_notes.bind("<<ListboxSelect>>", self.cmd_lb_notes_select)
         # same behaviour as when the user presses enter on search entry:
@@ -297,7 +328,7 @@ class View(utils.SubjectMixin):
         # first pack this before panedwindow, else behaviour is unexpected
         # during sash moving and resizing
         self.statusbar = StatusBar(self.root)
-        self.statusbar.set_label('%s', 'Welcome to nvPY!')
+        self.statusbar.set_status('%s', 'Welcome to nvPY!')
         self.statusbar.pack(fill=tk.X, side=tk.BOTTOM)
 
         search_frame = ttk.Frame(self.root)
@@ -402,7 +433,7 @@ class View(utils.SubjectMixin):
             'Help | About',
             'nvPY %s is copyright 2012 by Charl P. Botha '
             '<http://charlbotha.com/>\n\n'
-            'Because SimpleNote deserves better.' % (self.controller.get_version(),),
+            'A really fugly but cross-platform simplenote client.' % (self.controller.get_version(),),
             parent = self.root)
 
     def cmd_exit(self, event=None):
@@ -443,7 +474,7 @@ class View(utils.SubjectMixin):
         self.root.mainloop()
         
     def set_status_text(self, txt):
-        self.statusbar.set_label(txt)
+        self.statusbar.set_status(txt)
         
     def set_text(self, note_content):
         self.text_note.delete(1.0, tk.END) # clear all

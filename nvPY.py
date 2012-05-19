@@ -93,6 +93,7 @@ class Controller:
         # and sync with simplenote.
         self.notes_db = NotesDB(self.config.db_path, self.config.sn_username, self.config.sn_password)
         self.notes_db.add_observer('synced:note', self.observer_notes_db_synced_note)
+        self.notes_db.add_observer('change:note-status', self.observer_notes_db_change_note_status)
         #self.notes_db.sync_full()
 
         self.notes_list_model = NotesListModel()
@@ -116,6 +117,9 @@ class Controller:
         self.selected_note_idx = -1
         self.view.select_note(0)
                 
+    def get_selected_note_key(self):
+        return self.notes_list_model.list[self.selected_note_idx].key
+                
     def get_version(self):
         return "0.1"
     
@@ -124,6 +128,11 @@ class Controller:
         
     def main_loop(self):
         self.view.main_loop()
+        
+    def observer_notes_db_change_note_status(self, notes_db, evt_type, evt):
+        skey = self.get_selected_note_key()
+        if skey == evt.key:
+            self.view.set_note_status(self.notes_db.get_note_status(skey))
         
     def observer_notes_db_synced_note(self, notes_db, evt_type, evt):
         """This observer gets called only when a note returns from
@@ -143,9 +152,6 @@ class Controller:
         # queue up all notes that need to be saved
         nsaved = self.notes_db.save_threaded()
         nsynced, sync_errors = self.notes_db.sync_to_server_threaded()
-        #sync_ret = self.notes_db.sync_to_server()
-        if nsaved + nsynced + sync_errors > 0:
-            self.view.set_status_text('%d notes saved, %d notes synced (%d err) on %s.' % (nsaved, nsynced, sync_errors, time.asctime()))
         
     def observer_view_select_note(self, view, evt_type, evt):
         self.select_note(evt.sel)
@@ -190,6 +196,8 @@ class Controller:
         # when we do this, we don't want the change:text event thanks
         self.view.mute('change:text')            
         self.view.set_text(c)
+        if key:
+            self.view.set_note_status(self.notes_db.get_note_status(key))
         self.view.unmute('change:text')
         
 
