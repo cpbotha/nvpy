@@ -235,6 +235,9 @@ class View(utils.SubjectMixin):
         self.search_entry_var.set(text)
         
     def _bind_events(self):
+        # make sure window close also goes through our handler
+        self.root.protocol('WM_DELETE_WINDOW', self.close)
+        
         self.root.bind_all("<Control-d>", self.cmd_root_delete)
         self.root.bind_all("<Control-f>", lambda e: self.search_entry.focus())
         self.root.bind_all("<Control-n>", self.cmd_root_new)
@@ -421,6 +424,7 @@ class View(utils.SubjectMixin):
         
         
     def close(self):
+        print "close handler called"
         self.root.destroy()
 
 
@@ -449,7 +453,7 @@ class View(utils.SubjectMixin):
             parent = self.root)
 
     def cmd_exit(self, event=None):
-        self.controller.quit()
+        self.close()
         
     def handler_housekeeper(self):
         # nvPY will do saving and syncing!

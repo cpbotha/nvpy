@@ -117,6 +117,7 @@ class Controller:
         self.view.add_observer('change:text', self.observer_view_change_text)
         self.view.add_observer('create:note', self.observer_view_create_note)
         self.view.add_observer('keep:house', self.observer_view_keep_house)
+        #self.view.add_observer('quit')
         
         # nn is a list of (key, note) objects
         nn = self.notes_db.filter_notes()
@@ -137,9 +138,6 @@ class Controller:
     def get_version(self):
         return "0.1"
     
-    def quit(self):
-        self.view.close()
-        
     def main_loop(self):
         self.view.main_loop()
         
