@@ -175,6 +175,9 @@ class Controller:
         nsaved = self.notes_db.save_threaded()
         nsynced, sync_errors = self.notes_db.sync_to_server_threaded()
         
+        # get list of note titles, and pass to view to check and fix if necessary
+        
+        
     def observer_view_select_note(self, view, evt_type, evt):
         self.select_note(evt.sel)
             

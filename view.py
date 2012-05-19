@@ -154,6 +154,7 @@ class View(utils.SubjectMixin):
         self.housekeeping_interval_ms = controller.config.housekeeping_interval * 1000
         
         notes_list_model.add_observer('set:list', self.observer_notes_list)
+        self.notes_list_model = notes_list_model
         
         self.root = None
 
@@ -193,15 +194,16 @@ class View(utils.SubjectMixin):
     def get_search_entry_text(self):
         return self.search_entry_var.get()
 
-    def select_note(self, idx):
+    def select_note(self, idx, silent=False):
         # programmatically select the note by idx
         self.lb_notes.select_clear(0, tk.END)
         self.lb_notes.select_set(idx)
         # we move the active (underlined) selection along, else we lose
         # synchronization during arrow movements with the search entry selected
         self.lb_notes.activate(idx)
-        # we have to generate event explicitly, it doesn't fire by itself in this case
-        self.lb_notes.event_generate('<<ListboxSelect>>')
+        if not silent:
+            # we have to generate event explicitly, it doesn't fire by itself in this case
+            self.lb_notes.event_generate('<<ListboxSelect>>')
         
     def select_note_prev(self):
         idx = self.get_selected_idx()
@@ -445,7 +447,18 @@ class View(utils.SubjectMixin):
         self.controller.quit()
         
     def handler_housekeeper(self):
+        # nvPY will do saving and syncing!
         self.notify_observers('keep:house', None)
+        
+        # check if titles need refreshing
+        for i,o in enumerate(self.notes_list_model.list):
+            # order should be the same as our listbox
+            nt = utils.get_note_title(o.note)
+            ot = self.lb_notes.get(i)
+            if nt != ot:
+                self.set_search_entry_text(self.get_search_entry_text())
+                self.select_note(self.get_selected_idx(), silent=True)
+                continue
         
         self.root.after(self.housekeeping_interval_ms, self.handler_housekeeper)
         
