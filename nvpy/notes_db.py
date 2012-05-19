@@ -320,9 +320,10 @@ class NotesDB(utils.SubjectMixin):
                         # note was synced AFTER the last modification to our local version
                         # do an in-place update of the existing note
                         # this could be with or without new content.
+                        old_note = copy.deepcopy(self.notes[okey])
                         self.notes[okey].update(o.note)
                         # notify anyone (probably nvPY) that this note has been changed
-                        self.notify_observers('synced:note', utils.KeyValueObject(lkey=okey))
+                        self.notify_observers('synced:note', utils.KeyValueObject(lkey=okey, old_note=old_note))
                         
                     else:
                         # the user has changed stuff since the version that got synced
