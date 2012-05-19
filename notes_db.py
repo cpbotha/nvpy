@@ -337,7 +337,10 @@ class NotesDB(utils.SubjectMixin):
                     del self.notes[lk]
                     # in either case (new or existing note), save note at assigned key
                     k = uret[0].get('key')
-                    self.notes[k] = uret[0]
+                    # we merge the note we got back (content coud be empty!)
+                    n.update(uret[0])
+                    # and put it at the new key slot
+                    self.notes[k] = n
                     
                     # just synced, and of course note could be modified, so record.
                     uret[0]['syncdate'] = now
@@ -372,9 +375,8 @@ class NotesDB(utils.SubjectMixin):
                     print "  getting newer note", k
                     ret = self.simplenote.get_note(k)
                     if ret[1] == 0:
-                        self.notes[k] = ret[0]
+                        self.notes[k].update(ret[0])
                         local_updates[k] = True
-                        ret[0]['syncdate'] = ret[0]['modifydate'] = now
                         
             else:
                 # new note
@@ -383,7 +385,11 @@ class NotesDB(utils.SubjectMixin):
                 if ret[1] == 0:
                     self.notes[k] = ret[0]
                     local_updates[k] = True
-                    ret[0]['syncdate'] = ret[0]['modifydate'] = now
+                    
+            # in both cases, new or newer note, syncdate is now.
+            self.notes[k]['syncdate'] = now
+                    
+            
                      
         print "step 3"
         # 3. for each local note not in server index, remove.     
