@@ -47,6 +47,7 @@ class Config:
         self.sn_username = cp.get('default', 'sn_username')
         self.sn_password = cp.get('default', 'sn_password')
         self.db_path = cp.get('default', 'db_path')
+        self.housekeeping_interval = cp.getint('default', 'housekeeping_interval')
         
 class NotesListModel(SubjectMixin):
     def __init__(self):
@@ -101,6 +102,7 @@ class Controller:
         # create the interface
         self.view = view.View(self, self.notes_list_model)
         # we want to be notified when the user does stuff
+        self.view.add_observer('delete:note', self.observer_view_delete_note)
         self.view.add_observer('select:note', self.observer_view_select_note)
         self.view.add_observer('change:entry', self.observer_view_change_entry)
         self.view.add_observer('change:text', self.observer_view_change_text)
@@ -118,7 +120,10 @@ class Controller:
         self.view.select_note(0)
                 
     def get_selected_note_key(self):
-        return self.notes_list_model.list[self.selected_note_idx].key
+        if self.selected_note_idx >= 0:
+            return self.notes_list_model.list[self.selected_note_idx].key
+        else:
+            return None
                 
     def get_version(self):
         return "0.1"
@@ -147,6 +152,19 @@ class Controller:
             self.view.set_text(selected_note_o.note['content'])
             self.view.unmute('change:text')
         
+    def observer_view_delete_note(self, view, evt_type, evt):
+        # delete note from notes_db
+        # remove the note from the notes_list_model.list
+        
+        # if these two are not equal, something is not kosher.
+        assert(evt.sel == self.selected_note_idx)
+
+        # delete the note        
+        key = self.get_selected_note_key()
+        self.notes_db.delete_note(key)
+        
+        # easiest now is just to regenerate the list by resetting search string
+        self.view.set_search_entry_text(self.view.get_search_entry_text())
         
     def observer_view_keep_house(self, view, evt_type, evt):
         # queue up all notes that need to be saved
@@ -187,14 +205,14 @@ class Controller:
             c = self.notes_db.get_note_content(key)
 
         else:
-            key = -1
+            key = None
             c = ''
             idx = -1
         
         self.selected_note_idx = idx
 
         # when we do this, we don't want the change:text event thanks
-        self.view.mute('change:text')            
+        self.view.mute('change:text')
         self.view.set_text(c)
         if key:
             self.view.set_note_status(self.notes_db.get_note_status(key))

@@ -85,6 +85,11 @@ class NotesDB(utils.SubjectMixin):
         self.notes[new_key] = new_note
         
         return new_key
+    
+    def delete_note(self, key):
+        n = self.notes[key]
+        n['deleted'] = 1
+        n['modifydate'] = time.time()
         
     def filter_notes(self, search_string=None):
         """Return list of notes filtered with search_string, 
@@ -161,7 +166,9 @@ class NotesDB(utils.SubjectMixin):
                 # new key assigned during sync
                 # for now we keep the old local key around ONLY AS IN-MEM INDEX
                 # 1. remove from filesystem
-                os.unlink(self.helper_key_to_fname(k))
+                fn = self.helper_key_to_fname(k)
+                if os.path.exists(fn):
+                    os.unlink(fn)
                 
             now = time.time()
             # 1. store when we've synced
@@ -403,7 +410,9 @@ class NotesDB(utils.SubjectMixin):
             self.helper_save_note(uk, self.notes[uk])
             
         for dk in local_deletes.keys():
-            os.unlink(self.helper_key_to_fname(dk))
+            fn = self.helper_key_to_fname(dk)
+            if os.path.exists(fn):
+                os.unlink(fn)
             
         print "done syncin'"
         
@@ -446,7 +455,9 @@ class NotesDB(utils.SubjectMixin):
                         # new key assigned during sync
                         # for now we keep the old local key around ONLY AS IN-MEM INDEX
                         # but we do have to remove from filesystem
-                        os.unlink(self.helper_key_to_fname(o.key))
+                        fn = self.helper_key_to_fname(o.key)
+                        if os.path.exists(fn):
+                            os.unlink(fn)
                         
                     # 1. store when we've synced
                     n['syncdate'] = now
