@@ -156,10 +156,13 @@ class Controller:
         selected_note_o = self.notes_list_model.list[self.selected_note_idx]
         # if the note synced back matches our currently selected note,
         # we overwrite.
+        
         if selected_note_o.key == evt.lkey:
-            self.view.mute('change:text')
-            self.view.set_text(selected_note_o.note['content'])
-            self.view.unmute('change:text')
+            oldc = self.notes_db.get_note_content(evt.lkey)
+            if selected_note_o.note['content'] != oldc:
+                self.view.mute('change:text')
+                self.view.set_text(selected_note_o.note['content'])
+                self.view.unmute('change:text')
         
     def observer_view_delete_note(self, view, evt_type, evt):
         # delete note from notes_db
