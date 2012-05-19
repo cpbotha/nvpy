@@ -108,7 +108,9 @@ class Controller:
         self.notes_list_model = NotesListModel()
         
         # create the interface
-        self.view = view.View(self, self.notes_list_model)
+        view_config = KeyValueObject(housekeeping_interval_ms=self.config.housekeeping_interval * 1000,
+                                     app_version=self.get_version())
+        self.view = view.View(view_config, self.notes_list_model)
         # we want to be notified when the user does stuff
         self.view.add_observer('delete:note', self.observer_view_delete_note)
         self.view.add_observer('new:note', self.observer_view_new_note)

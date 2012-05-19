@@ -145,13 +145,10 @@ class View(utils.SubjectMixin):
     """Main user interface class.
     """
     
-    def __init__(self, controller, notes_list_model):
+    def __init__(self, config, notes_list_model):
         utils.SubjectMixin.__init__(self)
         
-        # FIXME: rather pass view-specific config object with just what it needs
-        # for getting version, for requesting to quit and for config
-        self.controller = controller
-        self.housekeeping_interval_ms = controller.config.housekeeping_interval * 1000
+        self.config = config
         
         notes_list_model.add_observer('set:list', self.observer_notes_list)
         self.notes_list_model = notes_list_model
@@ -266,7 +263,7 @@ class View(utils.SubjectMixin):
         self.text_note.bind("<Escape>", lambda e: self.lb_notes.focus())
         # <Key>
         
-        self.root.after(self.housekeeping_interval_ms, self.handler_housekeeper)
+        self.root.after(self.config.housekeeping_interval_ms, self.handler_housekeeper)
 
     def _create_menu(self):
         """Utility function to setup main menu.
@@ -449,7 +446,7 @@ class View(utils.SubjectMixin):
             'Help | About',
             'nvPY %s is copyright 2012 by Charl P. Botha '
             '<http://charlbotha.com/>\n\n'
-            'A really fugly but cross-platform simplenote client.' % (self.controller.get_version(),),
+            'A really fugly but cross-platform simplenote client.' % (self.config.app_version,),
             parent = self.root)
 
     def cmd_exit(self, event=None):
@@ -479,7 +476,7 @@ class View(utils.SubjectMixin):
             self.select_note(self.get_selected_idx(), silent=True)
             
         
-        self.root.after(self.housekeeping_interval_ms, self.handler_housekeeper)
+        self.root.after(self.config.housekeeping_interval_ms, self.handler_housekeeper)
         
     def handler_search_enter(self, evt):
         # user has pressed enter whilst searching
