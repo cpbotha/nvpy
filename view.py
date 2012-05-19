@@ -122,10 +122,10 @@ class StatusBar(ttk.Frame):
         
         self.status = ttk.Label(self, relief=tk.SUNKEN, anchor=tk.W)
         #self.label.pack(fill=tk.X)
-        self.status.pack(side=tk.LEFT)
+        self.status.pack(side=tk.LEFT, fill=tk.X, expand=1)
         
         self.note_status = ttk.Label(self, relief=tk.SUNKEN, anchor=tk.W)
-        self.note_status.pack(side=tk.LEFT)
+        self.note_status.pack(side=tk.LEFT, fill=tk.X)
         
     def set_note_status(self, fmt, *args):
         """ *.. .s. .sS
@@ -220,11 +220,16 @@ class View(utils.SubjectMixin):
         """status is an object with ivars modified, saved and synced.
         """
         
-        ms = 'Modified.' if status.modified else ''
-        ss = 'Saved.' if status.saved else ''
-        ys = 'Synced.' if status.synced else ''
+        if status.modified:
+            s = 'modified'
+        elif status.saved and status.synced:
+            s = 'saved and synced'
+        elif status.saved:
+            s = 'saved'
+        else:
+            s = 'synced'
         
-        self.statusbar.set_note_status('%s %s %s' % (ms,ss,ys))
+        self.statusbar.set_note_status('Note is %s' % (s,))
             
     def set_search_entry_text(self, text):
         self.search_entry_var.set(text)

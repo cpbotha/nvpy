@@ -127,7 +127,9 @@ class NotesDB(utils.SubjectMixin):
             
         return o
             
-    
+    def get_ss_queue_len(self):
+        return self.q_ss.qsize()
+        
     def helper_key_to_fname(self, k):
         return os.path.join(self.db_path, k) + '.json'
     

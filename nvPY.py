@@ -176,7 +176,10 @@ class Controller:
         nsynced, sync_errors = self.notes_db.sync_to_server_threaded()
         
         # get list of note titles, and pass to view to check and fix if necessary
-        
+        if self.notes_db.get_ss_queue_len() > 0:
+            self.view.set_status_text('Saving and syncing.')
+        else:
+            self.view.set_status_text('Idle.')
         
     def observer_view_select_note(self, view, evt_type, evt):
         self.select_note(evt.sel)
