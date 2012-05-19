@@ -158,8 +158,7 @@ class Controller:
         # we overwrite.
         
         if selected_note_o.key == evt.lkey:
-            oldc = self.notes_db.get_note_content(evt.lkey)
-            if selected_note_o.note['content'] != oldc:
+            if selected_note_o.note['content'] != evt.old_note['content']:
                 self.view.mute('change:text')
                 self.view.set_text(selected_note_o.note['content'])
                 self.view.unmute('change:text')
