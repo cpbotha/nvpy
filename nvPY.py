@@ -193,9 +193,10 @@ class Controller:
     def observer_view_change_text(self, view, evt_type, evt):
         # get new text and update our database
         # need local key of currently selected note for this
-        key = self.notes_list_model.list[self.selected_note_idx].key
-        self.notes_db.set_note_content(key,
-                                       self.view.get_text())
+        if self.selected_note_idx >= 0:
+            key = self.notes_list_model.list[self.selected_note_idx].key
+            self.notes_db.set_note_content(key,
+                                           self.view.get_text())
         
     def observer_view_create_note(self, view, evt_type, evt):
         # create the note
