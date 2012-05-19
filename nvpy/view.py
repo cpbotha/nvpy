@@ -456,14 +456,24 @@ class View(utils.SubjectMixin):
         self.notify_observers('keep:house', None)
         
         # check if titles need refreshing
+        refresh_notes_list = False
         for i,o in enumerate(self.notes_list_model.list):
             # order should be the same as our listbox
             nt = utils.get_note_title(o.note)
             ot = self.lb_notes.get(i)
+            # if we strike a note with an out-of-date title, redo.
             if nt != ot:
-                self.set_search_entry_text(self.get_search_entry_text())
-                self.select_note(self.get_selected_idx(), silent=True)
+                refresh_notes_list
                 continue
+            
+        if not refresh_notes_list:
+            # FIXME: check if stuff needs to be resorted, in alpha or last modified sort mode
+            pass
+            
+        if refresh_notes_list:
+            self.set_search_entry_text(self.get_search_entry_text())
+            self.select_note(self.get_selected_idx(), silent=True)
+            
         
         self.root.after(self.housekeeping_interval_ms, self.handler_housekeeper)
         

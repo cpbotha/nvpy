@@ -19,13 +19,16 @@ ACTION_SYNC = 1
 class NotesDB(utils.SubjectMixin):
     """NotesDB will take care of the local notes database and syncing with SN.
     """
-    def __init__(self, db_path, sn_username, sn_password):
+    def __init__(self, config):
         utils.SubjectMixin.__init__(self)
+        
+        self.config = config
+        
         # create db dir if it does not exist
-        if not os.path.exists(db_path):
-            os.mkdir(db_path)
+        if not os.path.exists(config.db_path):
+            os.mkdir(config.db_path)
             
-        self.db_path = db_path
+        self.db_path = config.db_path
         
         now = time.time()    
         # now read all .json files from disk
@@ -43,7 +46,7 @@ class NotesDB(utils.SubjectMixin):
         
         # initialise the simplenote instance we're going to use
         # this does not yet need network access
-        self.simplenote = Simplenote(sn_username, sn_password)
+        self.simplenote = Simplenote(config.sn_username, config.sn_password)
         
         # try to do a full sync before we start.
         try:
@@ -104,8 +107,14 @@ class NotesDB(utils.SubjectMixin):
                 # we have to store our local key also
                 filtered_notes.append(utils.KeyValueObject(key=k, note=n))
             
-        # sort alphabetically on title
-        filtered_notes.sort(key=lambda o: utils.get_note_title(o.note))
+        if self.config.sort_mode == 0:
+            # sort alphabetically on title
+            filtered_notes.sort(key=lambda o: utils.get_note_title(o.note))
+            
+        else:
+            # last modified on top
+            filtered_notes.sort(key=lambda o: -float(o.note.get('modifydate', 0)))
+            
         return filtered_notes
     
     def get_note_content(self, key):

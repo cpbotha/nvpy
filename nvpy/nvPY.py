@@ -41,12 +41,18 @@ import view
 
 class Config:
     def __init__(self, cfg_fname, defaults):
+        extra_defaults = {'sort_mode' : '1'
+                          }
+        defaults.update(extra_defaults)
         # allow_no_value=True means we'll just get None for undefined values
         cp = ConfigParser.SafeConfigParser(defaults, allow_no_value=True)
         cp.read(cfg_fname)
         self.sn_username = cp.get('default', 'sn_username')
         self.sn_password = cp.get('default', 'sn_password')
+        # make logic to find in $HOME if not set
         self.db_path = cp.get('default', 'db_path')
+        #  0 = alpha sort, 1 = last modified first
+        self.sort_mode = cp.getint('default', 'sort_mode')
         self.housekeeping_interval = cp.getint('default', 'housekeeping_interval')
         
 class NotesListModel(SubjectMixin):
@@ -92,7 +98,9 @@ class Controller:
         
         # read our database of notes into memory
         # and sync with simplenote.
-        self.notes_db = NotesDB(self.config.db_path, self.config.sn_username, self.config.sn_password)
+        c = self.config
+        notes_db_config = KeyValueObject(db_path=c.db_path, sn_username=c.sn_username, sn_password=c.sn_password, sort_mode=c.sort_mode)
+        self.notes_db = NotesDB(notes_db_config)
         self.notes_db.add_observer('synced:note', self.observer_notes_db_synced_note)
         self.notes_db.add_observer('change:note-status', self.observer_notes_db_change_note_status)
         #self.notes_db.sync_full()
