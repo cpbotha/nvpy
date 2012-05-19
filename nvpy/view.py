@@ -458,22 +458,42 @@ class View(utils.SubjectMixin):
         
         # check if titles need refreshing
         refresh_notes_list = False
+        prev_title = None
+        prev_modifydate = None
         for i,o in enumerate(self.notes_list_model.list):
             # order should be the same as our listbox
             nt = utils.get_note_title(o.note)
             ot = self.lb_notes.get(i)
             # if we strike a note with an out-of-date title, redo.
             if nt != ot:
-                refresh_notes_list
+                print "title out of date"
+                refresh_notes_list = True
                 continue
             
-        if not refresh_notes_list:
-            # FIXME: check if stuff needs to be resorted, in alpha or last modified sort mode
-            pass
+            if self.config.sort_mode == 0:
+                # alpha
+                if prev_title is not None and prev_title > nt:
+                    print "alpha resort"
+                    refresh_notes_list = True
+                    continue
+                
+                prev_title = nt
+                
+            else:
+                md = float(o.note.get('modifydate', 0))
+                if prev_modifydate is not None and prev_modifydate < md:
+                    print "modifydate resort"
+                    refresh_notes_list = True
+                    continue
+                
+                prev_modifydate = md 
             
         if refresh_notes_list:
+            # store cursor position first! returns e.g. 8.32
+            cursor_pos = self.text_note.index(tk.INSERT)
             self.set_search_entry_text(self.get_search_entry_text())
             self.select_note(self.get_selected_idx(), silent=True)
+            self.text_note.mark_set(tk.INSERT, cursor_pos)
             
         
         self.root.after(self.config.housekeeping_interval_ms, self.handler_housekeeper)
