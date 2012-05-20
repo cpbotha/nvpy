@@ -16,6 +16,9 @@ import utils
 ACTION_SAVE = 0
 ACTION_SYNC = 1
 
+class SyncError(RuntimeError):
+    pass
+
 class NotesDB(utils.SubjectMixin):
     """NotesDB will take care of the local notes database and syncing with SN.
     """
@@ -344,9 +347,10 @@ class NotesDB(utils.SubjectMixin):
         local_deletes = {}
         now = time.time()
 
-        print "step 1"
+        self.notify_observers('progress:sync', 'Starting full sync.')
         # 1. go through local notes, if anything changed or new, update to server
-        for lk in self.notes.keys():
+        numnotes = len(self.notes.keys())
+        for ni,lk in enumerate(self.notes.keys()):
             n = self.notes[lk]
             if not n.get('key') or float(n.get('modifydate')) > float(n.get('syncdate')):
                 uret = self.simplenote.update_note(n)
@@ -369,21 +373,25 @@ class NotesDB(utils.SubjectMixin):
                     if lk != k:
                         # if lk was a different (purely local) key, should be deleted
                         local_deletes[lk] = True
+                        
+                    self.notify_observers('progress:sync', 'Synced modified note %d to server.' % (ni, numnotes))
+                        
+                else:
+                    raise SyncError("Sync step 1 error: Could not update note to server.")
              
-        print "step 2"
         # 2. if remote syncnum > local syncnum, update our note; if key is new, add note to local.
         # this gets the FULL note list, even if multiple gets are required       
         nl = self.simplenote.get_note_list()
         if nl[1] == 0:
             nl = nl[0]
+            self.notify_observers('progress:sync', 'Retrieved full note list from server.')
             
         else:
-            raise RuntimeError('Could not get note list from server.')
+            raise SyncError('Could not get note list from server.')
         
-        print "  got note list."
-            
         server_keys = {}
-        for n in nl:
+        nlen = len(nl)
+        for ni,n in enumerate(nl):
             k = n.get('key')
             server_keys[k] = True
             if k in self.notes:
@@ -407,10 +415,9 @@ class NotesDB(utils.SubjectMixin):
                     
             # in both cases, new or newer note, syncdate is now.
             self.notes[k]['syncdate'] = now
-                    
             
-                     
-        print "step 3"
+            self.notify_observers('progress:sync', 'Synced newer note %d from server.')
+                    
         # 3. for each local note not in server index, remove.     
         for lk in self.notes.keys():
             if lk not in server_keys:
@@ -425,8 +432,8 @@ class NotesDB(utils.SubjectMixin):
             fn = self.helper_key_to_fname(dk)
             if os.path.exists(fn):
                 os.unlink(fn)
-            
-        print "done syncin'"
+
+        self.notify_observers('progress:sync', 'Full sync complete.')
         
     def set_note_content(self, key, content):
         n = self.notes[key]
