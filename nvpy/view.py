@@ -440,19 +440,13 @@ class View(utils.SubjectMixin):
 
 
     def cmd_cut(self):
-        t = self.get_text_with_focus()
-        if t:
-            t.event_generate('<<Cut>>')
+        self.text_note.event_generate('<<Cut>>')
 
     def cmd_copy(self):
-        t = self.get_text_with_focus()
-        if t:
-            t.event_generate('<<Copy>>')
+        self.text_note.event_generate('<<Copy>>')
         
     def cmd_paste(self):
-        t = self.get_text_with_focus()
-        if t:
-            t.event_generate('<<Paste>>')
+        self.text_note.event_generate('<<Paste>>')
 
 
     def cmd_help_about(self):
@@ -466,7 +460,7 @@ class View(utils.SubjectMixin):
     def cmd_exit(self, event=None):
         self.close()
         
-    def cmd_sync_full(self):
+    def cmd_sync_full(self, event=None):
         self.notify_observers('command:sync_full', None)
         
     def handler_housekeeper(self):
