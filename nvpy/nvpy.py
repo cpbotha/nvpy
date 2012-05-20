@@ -45,7 +45,7 @@ class Config:
         @param app_dir: the directory containing nvPY.py
         """
         
-        home = os.environ.get('home')
+        home = os.environ.get('HOME')
         defaults = {'app_dir' : app_dir,
                     'appdir' : app_dir,
                     'home' : home,
@@ -56,6 +56,7 @@ class Config:
         # allow_no_value=True means we'll just get None for undefined values
         cp = ConfigParser.SafeConfigParser(defaults, allow_no_value=True)
         # later config files overwrite earlier files
+        print [os.path.join(app_dir, 'nvpy.cfg'), os.path.join(home, 'nvpy.cfg'), os.path.join(home, '.nvpy.cfg')]
         cp.read([os.path.join(app_dir, 'nvpy.cfg'), os.path.join(home, 'nvpy.cfg'), os.path.join(home, '.nvpy.cfg')])
         
         self.sn_username = cp.get('default', 'sn_username')
@@ -103,9 +104,12 @@ class Controller:
                 self.appdir = dirname
             else:
                 self.appdir = os.getcwd()
+
+        # make sure it's the full path
+        self.appdir = os.path.abspath(self.appdir)
         
         # should probably also look in $HOME
-        self.config = Config(os.path.join(self.appdir))
+        self.config = Config(self.appdir)
         self.config.app_version = self.get_version()
         
         # read our database of notes into memory
