@@ -460,7 +460,7 @@ class View(utils.SubjectMixin):
             'Help | About',
             'nvPY %s is copyright 2012 by Charl P. Botha '
             '<http://charlbotha.com/>\n\n'
-            'A really fugly but cross-platform simplenote client.' % (self.config.app_version,),
+            'A rather ugly but cross-platform simplenote client.' % (self.config.app_version,),
             parent = self.root)
 
     def cmd_exit(self, event=None):
