@@ -31,7 +31,7 @@
 # to check if we're online
 
 import ConfigParser
-from notes_db import NotesDB
+from notes_db import NotesDB, SyncError
 import os
 import sys
 import time
@@ -105,7 +105,7 @@ class Controller:
         self.notes_db = NotesDB(notes_db_config)
         self.notes_db.add_observer('synced:note', self.observer_notes_db_synced_note)
         self.notes_db.add_observer('change:note-status', self.observer_notes_db_change_note_status)
-        #self.notes_db.sync_full()
+        self.notes_db.add_observer('progress:sync_full', self.observer_notes_db_sync_full)
 
         self.notes_list_model = NotesListModel()
         
@@ -119,6 +119,7 @@ class Controller:
         self.view.add_observer('change:text', self.observer_view_change_text)
         self.view.add_observer('create:note', self.observer_view_create_note)
         self.view.add_observer('keep:house', self.observer_view_keep_house)
+        
         #self.view.add_observer('quit')
         
         # nn is a list of (key, note) objects
@@ -130,6 +131,9 @@ class Controller:
         # we only use idx, because key could change from right under us.
         self.selected_note_idx = -1
         self.view.select_note(0)
+        
+        # perform full sync with server, and refresh notes list if successful
+        self.sync_full()
                 
     def get_selected_note_key(self):
         if self.selected_note_idx >= 0:
@@ -147,6 +151,10 @@ class Controller:
         skey = self.get_selected_note_key()
         if skey == evt.key:
             self.view.set_note_status(self.notes_db.get_note_status(skey))
+            
+    def observer_notes_db_sync_full(self, notes_db, evt_type, evt):
+        print evt.msg
+        self.view.set_status_text(evt.msg)
         
     def observer_notes_db_synced_note(self, notes_db, evt_type, evt):
         """This observer gets called only when a note returns from
@@ -238,6 +246,18 @@ class Controller:
         if key:
             self.view.set_note_status(self.notes_db.get_note_status(key))
         self.view.unmute('change:text')
+        
+    def sync_full(self):
+        try:
+            self.notes_db.sync_full()
+        except SyncError:
+            pass
+        
+        else:
+            # regenerate display list
+            # reselect old selection
+            # put cursor where it used to be.
+            self.view.refresh_notes_list()
         
 
 def main():

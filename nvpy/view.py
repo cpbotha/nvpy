@@ -187,6 +187,16 @@ class View(utils.SubjectMixin):
     
     def get_search_entry_text(self):
         return self.search_entry_var.get()
+    
+    def refresh_notes_list(self):
+        """Trigger a complete refresh notes list by resetting search entry,
+        selected note, and cursor position within that note.
+        """
+        # store cursor position first! returns e.g. 8.32
+        cursor_pos = self.text_note.index(tk.INSERT)
+        self.set_search_entry_text(self.get_search_entry_text())
+        self.select_note(self.get_selected_idx(), silent=True)
+        self.text_note.mark_set(tk.INSERT, cursor_pos)
 
     def select_note(self, idx, silent=False):
         # programmatically select the note by idx
@@ -489,12 +499,7 @@ class View(utils.SubjectMixin):
                 prev_modifydate = md 
             
         if refresh_notes_list:
-            # store cursor position first! returns e.g. 8.32
-            cursor_pos = self.text_note.index(tk.INSERT)
-            self.set_search_entry_text(self.get_search_entry_text())
-            self.select_note(self.get_selected_idx(), silent=True)
-            self.text_note.mark_set(tk.INSERT, cursor_pos)
-            
+            self.refresh_notes_list()
         
         self.root.after(self.config.housekeeping_interval_ms, self.handler_housekeeper)
         

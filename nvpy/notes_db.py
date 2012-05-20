@@ -51,12 +51,9 @@ class NotesDB(utils.SubjectMixin):
         # this does not yet need network access
         self.simplenote = Simplenote(config.sn_username, config.sn_password)
         
-        # try to do a full sync before we start.
-        try:
-            self.sync_full()
-        except RuntimeError:
-            pass
-        
+        # we'll use this to store which notes are currently being synced by
+        # the background thread, so we don't add them anew if they're still
+        # in progress
         self.threaded_syncing_keys = {}
         
         # save and sync queue
@@ -315,41 +312,50 @@ class NotesDB(utils.SubjectMixin):
                     
                 else:
                     # o (.action, .key, .note) is something that was synced
-                    # -- the key could have changed (first sync)
-                    # -- we have to record the syncdate + modifydate
-                    nkey = o.note['key']
-                    
-                    if float(o.note['syncdate']) > float(self.notes[okey]['modifydate']):
-                        # note was synced AFTER the last modification to our local version
-                        # do an in-place update of the existing note
-                        # this could be with or without new content.
-                        old_note = copy.deepcopy(self.notes[okey])
-                        self.notes[okey].update(o.note)
-                        # notify anyone (probably nvPY) that this note has been changed
-                        self.notify_observers('synced:note', utils.KeyValueObject(lkey=okey, old_note=old_note))
-                        
-                    else:
-                        # the user has changed stuff since the version that got synced
-                        # just record syncnum and version that we got from simplenote
-                        # if we don't do this, merging problems start happening.
-                        tkeys = ['syncnum', 'version', 'syncdate']
-                        for tk in tkeys:
-                            self.notes[okey][tk] = o.note[tk]
-                        
-                    nsynced += 1
-                    self.notify_observers('change:note-status', utils.KeyValueObject(what='syncdate',key=okey))
+
+                    # we only apply the changes if the syncdate is newer than
+                    # what we already have, since the main thread could be
+                    # running a full sync whilst the worker thread is putting
+                    # results in the queue.
+                    if float(o.note['syncdate']) > float(self.notes[okey]['syncdate']):
+                                        
+                        if float(o.note['syncdate']) > float(self.notes[okey]['modifydate']):
+                            # note was synced AFTER the last modification to our local version
+                            # do an in-place update of the existing note
+                            # this could be with or without new content.
+                            old_note = copy.deepcopy(self.notes[okey])
+                            self.notes[okey].update(o.note)
+                            # notify anyone (probably nvPY) that this note has been changed
+                            self.notify_observers('synced:note', utils.KeyValueObject(lkey=okey, old_note=old_note))
+                            
+                        else:
+                            # the user has changed stuff since the version that got synced
+                            # just record syncnum and version that we got from simplenote
+                            # if we don't do this, merging problems start happening.
+                            tkeys = ['syncnum', 'version', 'syncdate']
+                            for tk in tkeys:
+                                self.notes[okey][tk] = o.note[tk]
+                            
+                        nsynced += 1
+                        self.notify_observers('change:note-status', utils.KeyValueObject(what='syncdate',key=okey))
                     
         return (nsynced, nerrored)
     
     
     def sync_full(self):
+        """Perform a full bi-directional sync with server.
+        
+        This follows the recipe in the SimpleNote 2.0 API documentation.
+        After this, it could be that local keys have been changed, so
+        reset any views that you might have.
+        """
+        
         local_updates = {}
         local_deletes = {}
         now = time.time()
 
-        self.notify_observers('progress:sync', 'Starting full sync.')
+        self.notify_observers('progress:sync_full', utils.KeyValueObject(msg='Starting full sync.'))
         # 1. go through local notes, if anything changed or new, update to server
-        numnotes = len(self.notes.keys())
         for ni,lk in enumerate(self.notes.keys()):
             n = self.notes[lk]
             if not n.get('key') or float(n.get('modifydate')) > float(n.get('syncdate')):
@@ -365,7 +371,7 @@ class NotesDB(utils.SubjectMixin):
                     # and put it at the new key slot
                     self.notes[k] = n
                     
-                    # just synced, and of course note could be modified, so record.
+                    # record that we just synced
                     uret[0]['syncdate'] = now
                     
                     # whatever the case may be, k is now updated
@@ -374,7 +380,7 @@ class NotesDB(utils.SubjectMixin):
                         # if lk was a different (purely local) key, should be deleted
                         local_deletes[lk] = True
                         
-                    self.notify_observers('progress:sync', 'Synced modified note %d to server.' % (ni, numnotes))
+                    self.notify_observers('progress:sync_full', utils.KeyValueObject(msg='Synced modified note %d to server.' % (ni,)))
                         
                 else:
                     raise SyncError("Sync step 1 error: Could not update note to server.")
@@ -384,7 +390,7 @@ class NotesDB(utils.SubjectMixin):
         nl = self.simplenote.get_note_list()
         if nl[1] == 0:
             nl = nl[0]
-            self.notify_observers('progress:sync', 'Retrieved full note list from server.')
+            self.notify_observers('progress:sync_full', utils.KeyValueObject(msg='Retrieved full note list from server.'))
             
         else:
             raise SyncError('Could not get note list from server.')
@@ -399,24 +405,22 @@ class NotesDB(utils.SubjectMixin):
                 # check if server n has a newer syncnum than mine
                 if int(n.get('syncnum')) > int(self.notes[k].get('syncnum', -1)):
                     # and the server is newer
-                    print "  getting newer note", k
                     ret = self.simplenote.get_note(k)
                     if ret[1] == 0:
                         self.notes[k].update(ret[0])
                         local_updates[k] = True
+                        self.notify_observers('progress:sync_full', utils.KeyValueObject(msg='Synced newer note %d from server.' % (ni,)))
                         
             else:
                 # new note
-                print "  getting new note", k
                 ret = self.simplenote.get_note(k)
                 if ret[1] == 0:
                     self.notes[k] = ret[0]
                     local_updates[k] = True
+                    self.notify_observers('progress:sync_full', utils.KeyValueObject(msg='Synced new note %d from server.' % (ni,)))
                     
             # in both cases, new or newer note, syncdate is now.
             self.notes[k]['syncdate'] = now
-            
-            self.notify_observers('progress:sync', 'Synced newer note %d from server.')
                     
         # 3. for each local note not in server index, remove.     
         for lk in self.notes.keys():
@@ -433,7 +437,7 @@ class NotesDB(utils.SubjectMixin):
             if os.path.exists(fn):
                 os.unlink(fn)
 
-        self.notify_observers('progress:sync', 'Full sync complete.')
+        self.notify_observers('progress:sync_full', utils.KeyValueObject(msg='Full sync complete.'))
         
     def set_note_content(self, key, content):
         n = self.notes[key]
