@@ -386,7 +386,8 @@ class NotesDB(utils.SubjectMixin):
                     raise SyncError("Sync step 1 error: Could not update note to server.")
              
         # 2. if remote syncnum > local syncnum, update our note; if key is new, add note to local.
-        # this gets the FULL note list, even if multiple gets are required       
+        # this gets the FULL note list, even if multiple gets are required
+        self.notify_observers('progress:sync_full', utils.KeyValueObject(msg='Retrieving full note list from server, could take a while.'))       
         nl = self.simplenote.get_note_list()
         if nl[1] == 0:
             nl = nl[0]
@@ -396,6 +397,7 @@ class NotesDB(utils.SubjectMixin):
             raise SyncError('Could not get note list from server.')
         
         server_keys = {}
+        lennl = len(nl)
         for ni,n in enumerate(nl):
             k = n.get('key')
             server_keys[k] = True
@@ -408,7 +410,7 @@ class NotesDB(utils.SubjectMixin):
                     if ret[1] == 0:
                         self.notes[k].update(ret[0])
                         local_updates[k] = True
-                        self.notify_observers('progress:sync_full', utils.KeyValueObject(msg='Synced newer note %d from server.' % (ni,)))
+                        self.notify_observers('progress:sync_full', utils.KeyValueObject(msg='Synced newer note %d (%d) from server.' % (ni,lennl)))
                         
             else:
                 # new note
@@ -416,7 +418,7 @@ class NotesDB(utils.SubjectMixin):
                 if ret[1] == 0:
                     self.notes[k] = ret[0]
                     local_updates[k] = True
-                    self.notify_observers('progress:sync_full', utils.KeyValueObject(msg='Synced new note %d from server.' % (ni,)))
+                    self.notify_observers('progress:sync_full', utils.KeyValueObject(msg='Synced new note %d (%d) from server.' % (ni,lennl)))
                     
             # in both cases, new or newer note, syncdate is now.
             self.notes[k]['syncdate'] = now
