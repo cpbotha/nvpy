@@ -119,6 +119,7 @@ class Controller:
         self.view.add_observer('change:text', self.observer_view_change_text)
         self.view.add_observer('create:note', self.observer_view_create_note)
         self.view.add_observer('keep:house', self.observer_view_keep_house)
+        self.view.add_observer('command:sync_full', lambda v, et, e: self.sync_full())
         
         self.view.add_observer('close', self.observer_view_close)
         

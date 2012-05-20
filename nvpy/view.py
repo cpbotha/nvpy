@@ -287,6 +287,10 @@ class View(utils.SubjectMixin):
         
 
         # FILE ##########################################################
+        file_menu.add_command(label = "Sync full", underline=0,
+                              command=self.cmd_sync_full, accelerator="Ctrl-S")
+        self.root.bind_all("<Control-s>", self.cmd_sync_full)
+        
         file_menu.add_command(label = "Exit", underline=1,
                               command=self.cmd_exit, accelerator="Ctrl+Q")
         self.root.bind_all("<Control-q>", self.cmd_exit)
@@ -461,6 +465,9 @@ class View(utils.SubjectMixin):
 
     def cmd_exit(self, event=None):
         self.close()
+        
+    def cmd_sync_full(self):
+        self.notify_observers('command:sync_full', None)
         
     def handler_housekeeper(self):
         # nvPY will do saving and syncing!
