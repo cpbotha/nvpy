@@ -2,12 +2,8 @@
 # copyright 2012 by Charl P. Botha <cpbotha@vxlabs.com>
 # new BSD license
 
-import Tkinter as tk
-import ttk
-from ScrolledText import ScrolledText
+import tk
 import tkMessageBox
-import tkFileDialog
-import tkSimpleDialog
 import utils
 
 class WidgetRedirector:
@@ -109,7 +105,7 @@ class RedirectedText(tk.Text):
         self.event_generate('<<Change>>')
 
 #########################################################################
-class StatusBar(ttk.Frame):
+class StatusBar(tk.Frame):
     """Adapted from the tkinterbook.
     """
     
@@ -118,13 +114,13 @@ class StatusBar(ttk.Frame):
     # note status
 
     def __init__(self, master):
-        ttk.Frame.__init__(self, master)
+        tk.Frame.__init__(self, master)
         
-        self.status = ttk.Label(self, relief=tk.SUNKEN, anchor=tk.W)
+        self.status = tk.Label(self, relief=tk.SUNKEN, anchor=tk.W)
         #self.label.pack(fill=tk.X)
         self.status.pack(side=tk.LEFT, fill=tk.X, expand=1)
         
-        self.note_status = ttk.Label(self, relief=tk.SUNKEN, anchor=tk.W)
+        self.note_status = tk.Label(self, relief=tk.SUNKEN, anchor=tk.W)
         self.note_status.pack(side=tk.LEFT, fill=tk.X)
         
     def set_note_status(self, fmt, *args):
@@ -333,8 +329,8 @@ class View(utils.SubjectMixin):
         self._create_menu()
 
         # separator after menu ##########################################
-        #separator = ttk.Frame(self.root, height=2, bd=1, relief=ttk.SUNKEN)
-        #separator.pack(fill=ttk.X, padx=5, pady=2, side=ttk.TOP)
+        #separator = tk.Frame(self.root, height=2, bd=1, relief=tk.SUNKEN)
+        #separator.pack(fill=tk.X, padx=5, pady=2, side=tk.TOP)
 
         # setup statusbar ###############################################
         # first pack this before panedwindow, else behaviour is unexpected
@@ -343,19 +339,19 @@ class View(utils.SubjectMixin):
         self.statusbar.set_status('%s', 'Welcome to nvPY!')
         self.statusbar.pack(fill=tk.X, side=tk.BOTTOM)
 
-        search_frame = ttk.Frame(self.root)
+        search_frame = tk.Frame(self.root)
         self.search_entry_var = tk.StringVar()
-        self.search_entry = ttk.Entry(search_frame, textvariable=self.search_entry_var)
+        self.search_entry = tk.Entry(search_frame, textvariable=self.search_entry_var)
         self.search_entry_var.trace('w', self.handler_search_entry)
         self.search_entry.pack(fill=tk.X)
         search_frame.pack(side=tk.TOP, fill=tk.X)
         
         
         # the paned window ##############################################
-        paned_window = ttk.PanedWindow(self.root, orient=tk.HORIZONTAL)
+        paned_window = tk.PanedWindow(self.root, orient=tk.HORIZONTAL)
         paned_window.pack(fill=tk.BOTH, expand=1)
         
-        left_frame = ttk.Frame(paned_window, width=100)
+        left_frame = tk.Frame(paned_window, width=100)
         paned_window.add(left_frame)
         
         self.lb_notes = tk.Listbox(left_frame)
@@ -363,12 +359,12 @@ class View(utils.SubjectMixin):
         # need both fill and expand to make it fill all avail area
         self.lb_notes.pack(fill=tk.BOTH, expand=1)
 
-        right_frame = ttk.Frame(paned_window, width=400)
+        right_frame = tk.Frame(paned_window, width=400)
         paned_window.add(right_frame)
 
         # we'll use this method to create the different edit boxes
         def create_scrolled_text(master):
-            yscrollbar = ttk.Scrollbar(master)
+            yscrollbar = tk.Scrollbar(master)
             yscrollbar.pack(side=tk.RIGHT, fill=tk.Y)
 
             # this determines the width of the complete interface (yes)
