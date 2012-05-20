@@ -120,7 +120,7 @@ class Controller:
         self.view.add_observer('create:note', self.observer_view_create_note)
         self.view.add_observer('keep:house', self.observer_view_keep_house)
         
-        #self.view.add_observer('quit')
+        self.view.add_observer('close', self.observer_view_close)
         
         # nn is a list of (key, note) objects
         nn = self.notes_db.filter_notes()
@@ -218,6 +218,10 @@ class Controller:
             key = self.notes_list_model.list[self.selected_note_idx].key
             self.notes_db.set_note_content(key,
                                            self.view.get_text())
+            
+    def observer_view_close(self, view, evt_type, evt):
+        # do a last full sync before we go!
+        self.sync_full()
         
     def observer_view_create_note(self, view, evt_type, evt):
         # create the note

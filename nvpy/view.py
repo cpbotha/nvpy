@@ -431,7 +431,7 @@ class View(utils.SubjectMixin):
         
         
     def close(self):
-        print "close handler called"
+        self.notify_observers('close', None)
         self.root.destroy()
 
 

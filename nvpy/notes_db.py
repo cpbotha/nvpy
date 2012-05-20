@@ -396,7 +396,6 @@ class NotesDB(utils.SubjectMixin):
             raise SyncError('Could not get note list from server.')
         
         server_keys = {}
-        nlen = len(nl)
         for ni,n in enumerate(nl):
             k = n.get('key')
             server_keys[k] = True
