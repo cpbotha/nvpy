@@ -40,13 +40,24 @@ from utils import KeyValueObject, SubjectMixin
 import view
 
 class Config:
-    def __init__(self, cfg_fname, defaults):
-        extra_defaults = {'sort_mode' : '1'
-                          }
-        defaults.update(extra_defaults)
+    def __init__(self, app_dir):
+        """
+        @param app_dir: the directory containing nvPY.py
+        """
+        
+        home = os.environ.get('home')
+        defaults = {'app_dir' : app_dir,
+                    'appdir' : app_dir,
+                    'home' : home,
+                    'sort_mode' : '1',
+                    'db_path' : os.path.join(home, '.nvpy')
+                   }
+        
         # allow_no_value=True means we'll just get None for undefined values
         cp = ConfigParser.SafeConfigParser(defaults, allow_no_value=True)
-        cp.read(cfg_fname)
+        # later config files overwrite earlier files
+        cp.read([os.path.join(app_dir, 'nvpy.cfg'), os.path.join(home, 'nvpy.cfg'), os.path.join(home, '.nvpy.cfg')])
+        
         self.sn_username = cp.get('default', 'sn_username')
         self.sn_password = cp.get('default', 'sn_password')
         # make logic to find in $HOME if not set
@@ -94,8 +105,7 @@ class Controller:
                 self.appdir = os.getcwd()
         
         # should probably also look in $HOME
-        cfg_defaults = {'appdir' : self.appdir}
-        self.config = Config(os.path.join(self.appdir, 'nvPY.cfg'), cfg_defaults)
+        self.config = Config(os.path.join(self.appdir))
         self.config.app_version = self.get_version()
         
         # read our database of notes into memory
