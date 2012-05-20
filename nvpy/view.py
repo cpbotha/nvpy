@@ -2,6 +2,7 @@
 # copyright 2012 by Charl P. Botha <cpbotha@vxlabs.com>
 # new BSD license
 
+import search_entry
 import tk
 import tkMessageBox
 import utils
@@ -309,6 +310,7 @@ class View(utils.SubjectMixin):
         
         self.root = tk.Tk()
         self.root.title("nvPY")
+        #self.root.configure(background="#b2b2b2")
 
         # try finding icon in resdir and in appdir
 #        try:
@@ -340,10 +342,12 @@ class View(utils.SubjectMixin):
         self.statusbar.pack(fill=tk.X, side=tk.BOTTOM)
 
         search_frame = tk.Frame(self.root)
+        
+        search_entry.make_style()
         self.search_entry_var = tk.StringVar()
-        self.search_entry = tk.Entry(search_frame, textvariable=self.search_entry_var)
+        self.search_entry = tk.Entry(search_frame, textvariable=self.search_entry_var, style="Search.entry")
         self.search_entry_var.trace('w', self.handler_search_entry)
-        self.search_entry.pack(fill=tk.X)
+        self.search_entry.pack(fill=tk.X,padx=5, pady=5)
         search_frame.pack(side=tk.TOP, fill=tk.X)
         
         
