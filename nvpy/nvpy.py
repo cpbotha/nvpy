@@ -56,7 +56,6 @@ class Config:
         # allow_no_value=True means we'll just get None for undefined values
         cp = ConfigParser.SafeConfigParser(defaults, allow_no_value=True)
         # later config files overwrite earlier files
-        print [os.path.join(app_dir, 'nvpy.cfg'), os.path.join(home, 'nvpy.cfg'), os.path.join(home, '.nvpy.cfg')]
         cp.read([os.path.join(app_dir, 'nvpy.cfg'), os.path.join(home, 'nvpy.cfg'), os.path.join(home, '.nvpy.cfg')])
         
         self.sn_username = cp.get('default', 'sn_username')
