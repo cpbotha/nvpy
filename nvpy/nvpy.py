@@ -49,6 +49,7 @@ class Config:
         defaults = {'app_dir' : app_dir,
                     'appdir' : app_dir,
                     'home' : home,
+                    'housekeeping_interval' : '2',
                     'sort_mode' : '1',
                     'db_path' : os.path.join(home, '.nvpy')
                    }
