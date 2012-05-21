@@ -7,12 +7,22 @@ resophnotes. It is significantly uglier, but it is cross-platform.
 It was written by Charl Botha, who needed a simplenote client on
 Linux and doesn't mind ugliness.
 
-How to install
-==============
+DISCLAIMER
+----------
+If nvpy blows up your computer, loses your job or just deletes all
+your notes, I am NOT liable for anything.
+
+That being said, I use nvpy daily on my own precious notes database
+and it hasn't disappointed me (yet).
+
+Installation
+============
 
 To get the latest version from github, do:
 
     pip install git+https://github.com/cpbotha/nvpy.git#egg=nvpy
+
+I'll upload this to pypi soon.
 
 How to run for the first time
 =============================
@@ -25,7 +35,7 @@ the following:
     sn_password = your_simplenote_password
 
 If you installed this via pip install, you should now be able to start
-the application app by typing "nvpy".
+the application by typing "nvpy".
 
 Features
 ========
@@ -41,4 +51,6 @@ Planned features
 ================
 
 * Markdown rendering to browser.
+* Full syncs also in background thread. At the moment does a full sync
+  at startup and exit, can take a while.
 
