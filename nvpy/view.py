@@ -5,6 +5,7 @@
 import os
 import search_entry
 import tk
+import tkFont
 import tkMessageBox
 import utils
 
@@ -380,9 +381,12 @@ class View(utils.SubjectMixin):
             yscrollbar = tk.Scrollbar(master)
             yscrollbar.pack(side=tk.RIGHT, fill=tk.Y)
 
+            f = tkFont.Font(family='courier', size=-12)
+            # tkFont.families(root) returns list of available font family names
             # this determines the width of the complete interface (yes)
             text = RedirectedText(master, height=25, width=TEXT_WIDTH,
-                                  wrap=tk.CHAR,
+                                  wrap=tk.WORD,
+                                  font=f, tabs=(4 * f.measure(0), 'left'), tabstyle='wordprocessor',
                                   yscrollcommand=yscrollbar.set)
 
             text.pack(fill=tk.BOTH, expand=1)
