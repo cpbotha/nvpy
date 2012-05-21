@@ -237,7 +237,8 @@ class Controller:
             
     def observer_view_close(self, view, evt_type, evt):
         # do a last full sync before we go!
-        self.sync_full()
+        #self.sync_full()
+        pass
         
     def observer_view_create_note(self, view, evt_type, evt):
         # create the note
