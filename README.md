@@ -52,6 +52,7 @@ Planned features
 ================
 
 * Markdown rendering to browser.
+* Tag support.
 * Full syncs also in background thread. At the moment does a full sync
   at startup and exit, can take a while.
 
