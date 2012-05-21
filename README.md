@@ -59,8 +59,12 @@ Planned features
 Bugs and feedback
 =================
 
-Report bugs here: https://github.com/cpbotha/nvpy/issues
+Report bugs with [the github issue tracker](https://github.com/cpbotha/nvpy/issues).
 
 It's an even better idea to clone, fix and then send me a pull
 request.
+
+If you really like nvpy, you could make me and you even happier by
+[tipping me with
+paypal](https://www.paypal.com/cgi-bin/webscr?cmd=_s-xclick&hosted_button_id=BXXTJ9E97DG52)! 
 
