@@ -44,7 +44,8 @@ class Config:
         """
         @param app_dir: the directory containing nvPY.py
         """
-        
+       
+        self.app_dir = app_dir
         home = os.environ.get('HOME')
         defaults = {'app_dir' : app_dir,
                     'appdir' : app_dir,

@@ -23,6 +23,11 @@ setup(
     entry_points = {
         'gui_scripts' : ['nvpy = nvpy.nvpy:main']
     },
+    package_data = {
+        # http://peak.telecommunity.com/DevCenter/setuptools#including-data-files
+        # documentation implies path is relative to package key.
+        'nvpy' : ['icons/nvpy.ico']
+    },
     classifiers=[
         "Development Status :: 3 - Alpha",
         "Environment :: X11 Applications",

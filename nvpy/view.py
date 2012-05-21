@@ -2,6 +2,7 @@
 # copyright 2012 by Charl P. Botha <cpbotha@vxlabs.com>
 # new BSD license
 
+import os
 import search_entry
 import tk
 import tkMessageBox
@@ -327,19 +328,13 @@ class View(utils.SubjectMixin):
         #self.root.configure(background="#b2b2b2")
 
         # try finding icon in resdir and in appdir
-#        try:
-#            self.iconpath = os.path.join(
-#                self.controller.get_resdir(), 'envedit.ico')
-#            self.root.iconbitmap(self.iconpath)
+        try:
+            iconpath = os.path.join(
+                self.config.app_dir, 'icons', 'nvpy.ico')
+            self.root.iconbitmap(bitmap=iconpath, default=iconpath)
             
-#        except TclError:
-#            try:
-#                self.iconpath = os.path.join(
-#                    self.controller.get_appdir(), 'envedit.ico')
-#                self.root.iconbitmap(self.iconpath)
-                
-#            except TclError:
-#                self.show_error('Error', 'Error opening icon.  Continuing.')
+        except tk.TclError:
+            pass
 
         # create menu ###################################################
         self._create_menu()
