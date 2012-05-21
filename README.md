@@ -10,7 +10,8 @@ Linux and doesn't mind ugliness.
 DISCLAIMER
 ----------
 If nvpy blows up your computer, loses your job or just deletes all
-your notes, I am NOT liable for anything.
+your notes, I am NOT liable for anything. Also see the liability
+clause at the end of the new BSD licence text in the COPYRIGHT file.
 
 That being said, I use nvpy daily on my own precious notes database
 and it hasn't disappointed me (yet).
@@ -53,4 +54,12 @@ Planned features
 * Markdown rendering to browser.
 * Full syncs also in background thread. At the moment does a full sync
   at startup and exit, can take a while.
+
+Bugs and feedback
+=================
+
+Report bugs here: https://github.com/cpbotha/nvpy/issues
+
+It's an even better idea to clone, fix and then send me a pull
+request.
 
