@@ -19,6 +19,10 @@ setup(
     url = "http://vxlabs.com/software/nvpy",
     packages=['nvpy'],
     long_description=read('README.md'),
+    install_requires = ['tkinter'],
+    entry_points = {
+        'gui_scripts' : ['nvpy = nvpy.nvpy:main']
+    },
     classifiers=[
         "Development Status :: 3 - Alpha",
         "Environment :: X11 Applications",
