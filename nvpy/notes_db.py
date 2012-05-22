@@ -18,7 +18,7 @@ import utils
 
 ACTION_SAVE = 0
 ACTION_SYNC_PARTIAL_TO_SERVER = 1
-ACTION_SYNC_PARTIAL_FROM_SERVER = 2
+ACTION_SYNC_PARTIAL_FROM_SERVER = 2 # UNUSED.
 
 class SyncError(RuntimeError):
     pass
@@ -170,20 +170,10 @@ class NotesDB(utils.SubjectMixin):
         if uret[1] == 0:
             # success!
             n = uret[0]
+
             # if content was unchanged, there'll be no content sent back!
-            # so we have to copy our old content
             if not n.get('content', None):
-                n['content'] = note['content']
-                # FIXME: record that content has not changed
-                # then we know GUI does not have to be updated either.
-                
-            if n.get('key') != k:
-                # new key assigned during sync
-                # for now we keep the old local key around ONLY AS IN-MEM INDEX
-                # 1. remove from filesystem
-                fn = self.helper_key_to_fname(k)
-                if os.path.exists(fn):
-                    os.unlink(fn)
+                pass
                 
             now = time.time()
             # 1. store when we've synced
@@ -241,32 +231,6 @@ class NotesDB(utils.SubjectMixin):
                 
         return nsaved
         
-    
-    def sync_to_server_unthreaded(self):
-        """Only sync notes that have been changed / created locally since previous sync.
-        
-        This is a fully blocking non-threaded call.
-        """
-        
-        nsynced = 0
-        nerrored = 0
-        for k,n in self.notes.items():
-            # if note has been modified sinc the sync, we need to sync. doh.
-            if float(n.get('modifydate')) > float(n.get('syncdate')):
-                # helper sets syncdate
-                # also updates our note in-place if anything comes back
-                k = self.helper_sync_note(k,n)
-                
-                if k:
-                    n = self.notes[k]
-                    nsynced += 1
-                    # this will set syncdate and modifydate = now
-                    self.helper_save_note(k, n)
-                    
-                else:
-                    nerrored += 1
-                
-        return (nsynced, nerrored)
     
    def sync_to_server_threaded(self):
         """Only sync notes that have been changed / created locally since previous sync.
