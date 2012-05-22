@@ -387,7 +387,8 @@ class View(utils.SubjectMixin):
             yscrollbar = tk.Scrollbar(master)
             yscrollbar.pack(side=tk.RIGHT, fill=tk.Y)
 
-            f = tkFont.Font(family='courier', size=-12)
+            #f = tkFont.Font(family='courier', size=-12)
+            f = tkFont.nametofont('TkFixedFont')
             # tkFont.families(root) returns list of available font family names
             # this determines the width of the complete interface (yes)
             text = RedirectedText(master, height=25, width=TEXT_WIDTH,
