@@ -17,7 +17,8 @@ import time
 import utils
 
 ACTION_SAVE = 0
-ACTION_SYNC = 1
+ACTION_SYNC_PARTIAL_TO_SERVER = 1
+ACTION_SYNC_PARTIAL_FROM_SERVER = 2
 
 class SyncError(RuntimeError):
     pass
@@ -267,7 +268,7 @@ class NotesDB(utils.SubjectMixin):
                 
         return (nsynced, nerrored)
     
-    def sync_to_server_threaded(self):
+   def sync_to_server_threaded(self):
         """Only sync notes that have been changed / created locally since previous sync.
         
         """
@@ -279,21 +280,20 @@ class NotesDB(utils.SubjectMixin):
             # and if this note isn't still in the queue to be processed by the
             # worker (this last one very important)
             modifydate = float(n.get('modifydate', -1))
-            if modifydate > float(n.get('syncdate', -1)) and \
+            syncdate = float(n.get('syncdate', -1))
+            if modifydate > syncdate and \
                now - modifydate > 3 and \
                k not in self.threaded_syncing_keys:
-                self.threaded_syncing_keys[k] = True
-                print 'SST key', k, 'mod-date', n.get('modifydate'), 'syncdate', n.get('syncdate')
-                # FIXME: record that we've requested a sync on this note,
+                # record that we've requested a sync on this note,
                 # so that we don't keep on putting stuff on the queue.
+                self.threaded_syncing_keys[k] = True
                 cn = copy.deepcopy(n)
                 # we store the timestamp when this copy was made as the syncdate
                 cn['syncdate'] = time.time()
                 # put it on my queue as a sync
-                o = utils.KeyValueObject(action=ACTION_SYNC, key=k, note=cn)
+                o = utils.KeyValueObject(action=ACTION_SYNC_PARTIAL_TO_SERVER, key=k, note=cn)
                 self.q_ss.put(o)
                 
-
         # in this same call, we read out the result queue
         nsynced = 0
         nerrored = 0
@@ -457,6 +457,7 @@ class NotesDB(utils.SubjectMixin):
             
             if o.action == ACTION_SAVE:
                 # this will write the savedate into o.note
+                # with filename o.key.json
                 self.helper_save_note(o.key, o.note)
                 
                 # put the whole thing back into the result q
@@ -465,30 +466,21 @@ class NotesDB(utils.SubjectMixin):
                 # somebody has to read out the queue...
                 self.q_save_res.put(o)
                 
-            elif o.action == ACTION_SYNC:
+            elif o.action == ACTION_SYNC_PARTIAL_TO_SERVER:
                 uret = self.simplenote.update_note(o.note)
                 if uret[1] == 0:
                     # success!
                     n = uret[0]
-                    now = time.time()
-                    # if content was unchanged, there'll be no content sent back!
-                    # so we have to copy our old content
+
                     if not n.get('content', None):
                         # if note has not been changed, we don't get content back
                         # delete our own copy too.
                         del o.note['content']
                         
-                    if n.get('key') != o.key:
-                        # new key assigned during sync
-                        # for now we keep the old local key around ONLY AS IN-MEM INDEX
-                        # but we do have to remove from filesystem
-                        fn = self.helper_key_to_fname(o.key)
-                        if os.path.exists(fn):
-                            os.unlink(fn)
+                    # syncdate was set when the note was copied into our queue
+                    # we rely on that to determine when a returned note should
+                    # overwrite a note in the main list.
                         
-                    # 1. store when we've synced
-                    n['syncdate'] = now
-                    
                     # store the actual note back into o
                     # in-place update of our existing note copy
                     o.note.update(n)
@@ -498,7 +490,8 @@ class NotesDB(utils.SubjectMixin):
                     
                     # and put it on the result queue
                     self.q_sync_res.put(o)
-                    print 'WORKER SYNCED syncdate', o.note.get('syncdate')
                     
                 else:
                     o.error = 1
+                    
+                   
