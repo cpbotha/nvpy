@@ -31,6 +31,7 @@
 # to check if we're online
 
 import ConfigParser
+import markdown
 from notes_db import NotesDB, SyncError
 import os
 import sys
@@ -38,6 +39,7 @@ import time
 
 from utils import KeyValueObject, SubjectMixin
 import view
+import webbrowser
 
 class Config:
     def __init__(self, app_dir):
@@ -128,12 +130,13 @@ class Controller:
         self.view = view.View(self.config, self.notes_list_model)
         # we want to be notified when the user does stuff
         self.view.add_observer('delete:note', self.observer_view_delete_note)
-        self.view.add_observer('new:note', self.observer_view_new_note)
         self.view.add_observer('select:note', self.observer_view_select_note)
         self.view.add_observer('change:entry', self.observer_view_change_entry)
         self.view.add_observer('change:text', self.observer_view_change_text)
         self.view.add_observer('create:note', self.observer_view_create_note)
         self.view.add_observer('keep:house', self.observer_view_keep_house)
+        self.view.add_observer('command:markdown',
+                self.observer_view_markdown)
         self.view.add_observer('command:sync_full', lambda v, et, e: self.sync_full())
         self.view.add_observer('command:sync_current_note',
                 self.observer_view_sync_current_note)
@@ -202,9 +205,32 @@ class Controller:
         
         # easiest now is just to regenerate the list by resetting search string
         self.view.set_search_entry_text(self.view.get_search_entry_text())
-        
-    def observer_view_new_note(self, view, evt_type, evt):
-        pass
+
+    def helper_markdown_to_html(self):
+        if self.selected_note_idx >= 0:
+            key = self.notes_list_model.list[self.selected_note_idx].key
+            c = self.notes_db.get_note_content(key)
+            html = markdown.markdown(c)
+            # create filename based on key
+            fn = os.path.join(self.config.db_path, key + '.html')
+            f = file(fn, 'w')
+            s = """
+<html>
+<head>
+<meta http-equiv="refresh" content="5">
+</head>
+<body>
+%s
+</body>
+</html>
+            """ % (html,)
+            f.write(s)
+            f.close()
+            return fn
+
+    def observer_view_markdown(self, view, evt_type, evt):
+        fn = self.helper_markdown_to_html()
+        webbrowser.open(fn)
         
     def observer_view_keep_house(self, view, evt_type, evt):
         # queue up all notes that need to be saved
@@ -217,6 +243,11 @@ class Controller:
             self.view.set_status_text('Saving and syncing, %d notes in the queue.' % (qlen,))
         else:
             self.view.set_status_text('Idle.')
+
+        # in continous rendering mode, we also generate a new HTML
+        # the browser, if open, will refresh!
+        if self.view.get_continuous_rendering():
+            self.helper_markdown_to_html()
         
     def observer_view_select_note(self, view, evt_type, evt):
         self.select_note(evt.sel)

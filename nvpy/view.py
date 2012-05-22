@@ -176,6 +176,9 @@ class View(utils.SubjectMixin):
         self.notify_observers('create:note', utils.KeyValueObject(title=self.get_search_entry_text()))
         # the note will be created synchronously, so we can focus the text area already
         self.text_note.focus()
+
+    def get_continuous_rendering(self):
+        return self.continuous_rendering.get()
         
     def get_selected_idx(self):
         # no selection: s = ()
@@ -297,6 +300,15 @@ class View(utils.SubjectMixin):
                 accelerator="Ctrl+S")
         self.root.bind_all("<Control-s>", self.cmd_sync_current_note)
 
+        file_menu.add_command(label = "Render to HTML", underline=0,
+                command=self.cmd_markdown)
+
+        self.continuous_rendering = tk.BooleanVar()
+        self.continuous_rendering.set(False)
+        file_menu.add_checkbutton(label="Continuous rendering",
+                onvalue=True, offvalue=False,
+                variable=self.continuous_rendering)
+
         file_menu.add_command(label = "Exit", underline=1,
                               command=self.cmd_exit, accelerator="Ctrl+Q")
         self.root.bind_all("<Control-q>", self.cmd_exit)
@@ -332,10 +344,8 @@ class View(utils.SubjectMixin):
         self.root.title("nvPY")
         #self.root.configure(background="#b2b2b2")
 
-        if sys.platform.startswith('win'):
-            icon_fn = 'nvpy.ico'
-        else:
-            icon_fn = 'nvpy.gif'
+        # with iconphoto we have to use gif, also on windows
+        icon_fn = 'nvpy.gif'
 
         iconpath = os.path.join(
             self.config.app_dir, 'icons', icon_fn)
@@ -373,8 +383,12 @@ class View(utils.SubjectMixin):
         
         left_frame = tk.Frame(paned_window, width=100)
         paned_window.add(left_frame)
-        
-        self.lb_notes = tk.Listbox(left_frame)
+       
+        # exportselection=0 means it doesn't automatically export to
+        # x selection. with that active, selecting in the text widget
+        # removes selection in listbox.
+        # thank you http://stackoverflow.com/a/756875
+        self.lb_notes = tk.Listbox(left_frame, exportselection=0)
         
         # need both fill and expand to make it fill all avail area
         self.lb_notes.pack(fill=tk.BOTH, expand=1)
@@ -452,6 +466,9 @@ class View(utils.SubjectMixin):
 
     def cmd_copy(self):
         self.text_note.event_generate('<<Copy>>')
+
+    def cmd_markdown(self, event=None):
+        self.notify_observers('command:markdown', None)
         
     def cmd_paste(self):
         self.text_note.event_generate('<<Paste>>')
@@ -534,6 +551,20 @@ class View(utils.SubjectMixin):
                               utils.KeyValueObject(value=self.search_entry_var.get()))
         
     def handler_text_change(self, evt):
+
+        # move this out into separate method that can be called
+        # by housekeeping thingy every few seconds. also consider
+        # using pure python for regexp
+
+        # see search method docs:
+        # http://effbot.org/tkinterbook/text.htm
+        # http://stackoverflow.com/questions/3781670/tkinter-text-highlighting-in-python
+        # regexp from http://stackoverflow.com/a/6183
+        #pos = \
+        #self.text_note.search("((mailto\:|(news|(ht|f)tp(s?))\://){1}\S+)",
+        #        1.0, stopindex=tk.END, regexp=True)
+        # this one better: http://stackoverflow.com/a/13488
+
         self.notify_observers('change:text', None)
                 
     def observer_notes_list(self, notes_list_model, evt_type, evt):
