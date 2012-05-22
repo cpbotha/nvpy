@@ -4,6 +4,7 @@
 
 import os
 import search_entry
+import sys
 import tk
 import tkFont
 import tkMessageBox
@@ -331,14 +332,16 @@ class View(utils.SubjectMixin):
         self.root.title("nvPY")
         #self.root.configure(background="#b2b2b2")
 
-        # try finding icon in resdir and in appdir
-        try:
-            iconpath = os.path.join(
-                self.config.app_dir, 'icons', 'nvpy.ico')
-            self.root.iconbitmap(bitmap=iconpath, default=iconpath)
-            
-        except tk.TclError:
-            pass
+        if sys.platform.startswith('win'):
+            icon_fn = 'nvpy.ico'
+        else:
+            icon_fn = 'nvpy.gif'
+
+        iconpath = os.path.join(
+            self.config.app_dir, 'icons', icon_fn)
+
+        self.icon = tk.PhotoImage(file=iconpath)
+        self.root.tk.call('wm', 'iconphoto', self.root._w, self.icon)
 
         # create menu ###################################################
         self._create_menu()

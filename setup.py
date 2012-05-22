@@ -26,7 +26,7 @@ setup(
     package_data = {
         # http://peak.telecommunity.com/DevCenter/setuptools#including-data-files
         # documentation implies path is relative to package key.
-        'nvpy' : ['icons/nvpy.ico']
+        'nvpy' : ['icons/nvpy.ico', 'icons/nvpy.gif']
     },
     classifiers=[
         "Development Status :: 3 - Alpha",
