@@ -169,25 +169,47 @@ class NotesDB(utils.SubjectMixin):
         """
 
         note = self.notes[k]
+
+        # more DEBUG
+        # even after doing stuff in the web interface
+        # get_note gets the OLD note!
+        shn = self.simplenote.get_note(note['key'])[0]
+        print "server has this:"
+        print json.dumps(shn, indent=2)
+
+        print "we send this via update:"
+        print json.dumps(note, indent=2)
+
         uret = self.simplenote.update_note(note)
 
         if uret[1] == 0:
             # success!
             n = uret[0]
 
+            print "we get this back from the server via update:"
+            print json.dumps(n, indent=2)
+
+            print "get_note gives this:"
+            print json.dumps(self.simplenote.get_note(note['key'])[0],
+                    indent=2)
+
             # if content was unchanged, there'll be no content sent back!
-            if not n.get('content', None):
-                new_content = False
+            if n.get('content', None):
+                new_content = True
 
             else:
-                new_content = True
+                new_content = False
+                # TESTING:
+                # no new content, so we keep the version we had.
+                #del n['version']
                 
             now = time.time()
             # 1. store when we've synced
             n['syncdate'] = now
             
             # update our existing note in-place!
-            self.notes[k].update(n)
+            note.update(n)
+
             # return the key
             return (k, new_content)
             
