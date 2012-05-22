@@ -388,6 +388,8 @@ class View(utils.SubjectMixin):
                                   wrap=tk.WORD,
                                   font=f, tabs=(4 * f.measure(0), 'left'), tabstyle='wordprocessor',
                                   yscrollcommand=yscrollbar.set)
+            # change default font at runtime with:
+            # text.config(font=f)
 
             text.pack(fill=tk.BOTH, expand=1)
 
