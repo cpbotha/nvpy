@@ -161,19 +161,26 @@ class NotesDB(utils.SubjectMixin):
         # record that we saved this to disc.
         note['savedate'] = time.time()
         
-    def helper_sync_note(self, k, note):
+    def sync_note_unthreaded(self, k):
         """Sync a single note with the server.
-        
+
+        Update existing note in memory with the returned data.  
         This is a sychronous (blocking) call.
         """
+
+        note = self.notes[k]
         uret = self.simplenote.update_note(note)
+
         if uret[1] == 0:
             # success!
             n = uret[0]
 
             # if content was unchanged, there'll be no content sent back!
             if not n.get('content', None):
-                pass
+                new_content = False
+
+            else:
+                new_content = True
                 
             now = time.time()
             # 1. store when we've synced
@@ -182,7 +189,7 @@ class NotesDB(utils.SubjectMixin):
             # update our existing note in-place!
             self.notes[k].update(n)
             # return the key
-            return k
+            return (k, new_content)
             
         else:
             return None
@@ -232,7 +239,7 @@ class NotesDB(utils.SubjectMixin):
         return nsaved
         
     
-   def sync_to_server_threaded(self):
+    def sync_to_server_threaded(self):
         """Only sync notes that have been changed / created locally since previous sync.
         
         """

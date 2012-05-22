@@ -135,6 +135,8 @@ class Controller:
         self.view.add_observer('create:note', self.observer_view_create_note)
         self.view.add_observer('keep:house', self.observer_view_keep_house)
         self.view.add_observer('command:sync_full', lambda v, et, e: self.sync_full())
+        self.view.add_observer('command:sync_current_note',
+                self.observer_view_sync_current_note)
         
         self.view.add_observer('close', self.observer_view_close)
         
@@ -218,6 +220,26 @@ class Controller:
         
     def observer_view_select_note(self, view, evt_type, evt):
         self.select_note(evt.sel)
+
+    def observer_view_sync_current_note(self, view, evt_type, evt):
+        if self.selected_note_idx >= 0:
+            key = self.notes_list_model.list[self.selected_note_idx].key
+            # this call will update our in-memory version if necessary
+            ret = self.notes_db.sync_note_unthreaded(key)
+            if ret and ret[1] == True:
+                self.view.update_selected_note_text(
+                        self.notes_db.notes[key]['content'])
+                self.view.set_status_text(
+                'Synced updated note from server.')
+
+            elif ret[1] == False:
+                self.view.set_status_text(
+                        'Server had nothing newer for this note.')
+
+            elif ret is None:
+                self.view.set_status_text(
+                        'Unable to sync with server. Offline?')
+
             
     def observer_view_change_entry(self, view, evt_type, evt):
         # for each new evt.value coming in, get a new list from the notes_db
@@ -268,7 +290,7 @@ class Controller:
         if key:
             self.view.set_note_status(self.notes_db.get_note_status(key))
         self.view.unmute('change:text')
-        
+
     def sync_full(self):
         try:
             self.notes_db.sync_full()

@@ -289,10 +289,13 @@ class View(utils.SubjectMixin):
         
 
         # FILE ##########################################################
-        file_menu.add_command(label = "Sync full", underline=0,
-                              command=self.cmd_sync_full, accelerator="Ctrl-S")
-        self.root.bind_all("<Control-s>", self.cmd_sync_full)
-        
+        file_menu.add_command(label = "Sync full", underline=5,
+                              command=self.cmd_sync_full)
+        file_menu.add_command(label = "Sync current note",
+                underline=0, command=self.cmd_sync_current_note,
+                accelerator="Ctrl+S")
+        self.root.bind_all("<Control-s>", self.cmd_sync_current_note)
+
         file_menu.add_command(label = "Exit", underline=1,
                               command=self.cmd_exit, accelerator="Ctrl+Q")
         self.root.bind_all("<Control-q>", self.cmd_exit)
@@ -460,6 +463,9 @@ class View(utils.SubjectMixin):
 
     def cmd_exit(self, event=None):
         self.close()
+
+    def cmd_sync_current_note(self, event=None):
+        self.notify_observers('command:sync_current_note', None)
         
     def cmd_sync_full(self, event=None):
         self.notify_observers('command:sync_full', None)
@@ -551,4 +557,14 @@ class View(utils.SubjectMixin):
 
     def show_error(self, title, msg):
         tkMessageBox.showerror(title, msg)
+
+    def update_selected_note_text(self, content):
+        # store cursor position
+        cursor_pos = self.text_note.index(tk.INSERT)
+        self.mute('change:text')
+        self.set_text(content)
+        self.text_note.mark_set(tk.INSERT, cursor_pos)
+        self.unmute('change:text')
+
+       
         
