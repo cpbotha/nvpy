@@ -1,8 +1,10 @@
 Introduction
 ============
 
-nvpy is a simplenote-syncing note-taking tool inspired by nvALT and
-ResophNotes. It is significantly uglier, but it is cross-platform.
+nvpy is a simplenote-syncing note-taking tool inspired by nvALT (OS X)
+and ResophNotes (Windows). It is significantly uglier, but it is
+cross-platform.  Yes, you heard right, you can run this on Linux
+(tested), Windows (tested) and OS X (in theory).
 
 It was written by Charl Botha, who needed a simplenote client on
 Linux and doesn't mind ugliness (that much).
