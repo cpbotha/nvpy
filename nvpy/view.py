@@ -189,7 +189,11 @@ class View(utils.SubjectMixin):
     
     def get_text(self):
         # err, you have to specify 1.0 to END, and NOT 0 to END like I thought.
-        return self.text_note.get(1.0, tk.END)
+        # also, see the comment by Bryan Oakley to
+        # http://stackoverflow.com/a/3137169
+        # we need to get rid of newline that text adds automatically
+        # at end.
+        return self.text_note.get(1.0, "end-1c")
     
     def get_search_entry_text(self):
         return self.search_entry_var.get()
