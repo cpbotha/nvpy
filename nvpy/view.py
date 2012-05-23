@@ -304,8 +304,9 @@ class View(utils.SubjectMixin):
                 accelerator="Ctrl+S")
         self.root.bind_all("<Control-s>", self.cmd_sync_current_note)
 
-        file_menu.add_command(label = "Render to HTML", underline=0,
-                command=self.cmd_markdown)
+        file_menu.add_command(label = "Render Markdown to HTML", underline=7,
+                command=self.cmd_markdown, accelerator="Ctrl-M")
+        self.root.bind_all("<Control-m>", self.cmd_markdown)
 
         self.continuous_rendering = tk.BooleanVar()
         self.continuous_rendering.set(False)
