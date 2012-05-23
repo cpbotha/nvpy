@@ -16,6 +16,13 @@ clause at the end of the new BSD licence text in the COPYRIGHT file.
 That being said, I use nvpy daily on my own precious notes database
 and it hasn't disappointed me (yet).
 
+A screenshot
+============
+
+This is what nvpy looked like on Windows on May 23, 2012. Search bar at the top showing a regular expression, notes are sorted last modified first, continuously updated markdown preview in chrome behind the nvpy window:
+
+![screenshot](https://github.com/cpbotha/nvpy/raw/master/images/nvpy_screenshot_20120523.jpg)
+
 Installation
 ============
 
@@ -37,6 +44,7 @@ the following:
 
 If you installed this via pip install, you should now be able to start
 the application by typing "nvpy".
+
 
 Features
 ========
