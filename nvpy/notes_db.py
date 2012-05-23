@@ -169,53 +169,54 @@ class NotesDB(utils.SubjectMixin):
         """
 
         note = self.notes[k]
+        
+        if not note.get('key') or float(note.get('modifydate')) > float(note.get('syncdate')):
+            # if has no key, or it has been modified sync last sync, 
+            # update to server
+            uret = self.simplenote.update_note(note)
 
-        # more DEBUG
-        # even after doing stuff in the web interface
-        # get_note gets the OLD note!
-        shn = self.simplenote.get_note(note['key'])[0]
-        print "server has this:"
-        print json.dumps(shn, indent=2)
-
-        print "we send this via update:"
-        print json.dumps(note, indent=2)
-
-        uret = self.simplenote.update_note(note)
-
-        if uret[1] == 0:
-            # success!
-            n = uret[0]
-
-            print "we get this back from the server via update:"
-            print json.dumps(n, indent=2)
-
-            print "get_note gives this:"
-            print json.dumps(self.simplenote.get_note(note['key'])[0],
-                    indent=2)
-
-            # if content was unchanged, there'll be no content sent back!
-            if n.get('content', None):
-                new_content = True
-
-            else:
-                new_content = False
-                # TESTING:
-                # no new content, so we keep the version we had.
-                #del n['version']
+            if uret[1] == 0:
+                # success!
+                n = uret[0]
+        
+                # if content was unchanged, there'll be no content sent back!
+                if n.get('content', None):
+                    new_content = True
+        
+                else:
+                    new_content = False
+                    
+                now = time.time()
+                # 1. store when we've synced
+                n['syncdate'] = now
                 
-            now = time.time()
-            # 1. store when we've synced
-            n['syncdate'] = now
-            
-            # update our existing note in-place!
-            note.update(n)
+                # update our existing note in-place!
+                note.update(n)
+        
+                # return the key
+                return (k, new_content)
+                
+            else:
+                return None
 
-            # return the key
-            return (k, new_content)
             
         else:
-            return None
-        
+            # our note is synced up, but we check if server has something new for us
+            gret = self.simplenote.get_note(note['key'])
+            
+            if gret[1] == 0:
+                n = gret[0]
+                
+                if int(n.get('syncnum')) > int(note.get('syncnum')):
+                    n['syncdate'] = time.time()
+                    note.update(n)
+                    return (k, True)
+                
+                else:
+                    return (k, False)
+
+            else:
+                return None
         
     def save_unthreaded(self):
         """Write all notes that have been changed since last save to disc.
