@@ -1,11 +1,11 @@
 Introduction
 ============
 
-nvpy is a simplenote-syncing note-taking tool inspired by nvalt and
-resophnotes. It is significantly uglier, but it is cross-platform.
+nvpy is a simplenote-syncing note-taking tool inspired by nvALT and
+ResophNotes. It is significantly uglier, but it is cross-platform.
 
 It was written by Charl Botha, who needed a simplenote client on
-Linux and doesn't mind ugliness.
+Linux and doesn't mind ugliness (that much).
 
 DISCLAIMER
 ----------
@@ -47,14 +47,20 @@ Features
 * Can be used offline, also without simplenote account.
 * Search box does realtime regular expression searching in all your
   notes.
+* Markdown rendering to browser.
+* Continuous rendering mode: If you activate this before
+  starting the markdown rendering, nvpy will render new html of
+  the currently open note every few seconds. Due to the refresh
+  tag in the generated HTML, the browser will refresh every few
+  seconds. MAGIC UPDATES!
 
 Planned features
 ================
 
-* Markdown rendering to browser.
+* Automatic hyperlink highlighting in text widget.
 * Tag support.
 * Full syncs also in background thread. At the moment does a full sync
-  at startup and exit, can take a while.
+  at startup, can take a while.
 
 Bugs and feedback
 =================
@@ -68,3 +74,11 @@ If you really like nvpy, you could make me and you even happier by
 [tipping me with
 paypal](https://www.paypal.com/cgi-bin/webscr?cmd=_s-xclick&hosted_button_id=BXXTJ9E97DG52)! 
 
+Credits
+=======
+
+* nvpy uses the [fantastic simplenote.py library by mrtazz][snpy]
+* The brilliant application icon, a blue mini car (not as fast as the notational velocity rocket, get it?), is by [Cemagraphics][cg]
+  
+[snpy]: https://github.com/mrtazz/simplenote.py
+[cg]: http://cemagraphics.deviantart.com/
