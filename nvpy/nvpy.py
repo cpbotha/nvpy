@@ -48,7 +48,7 @@ class Config:
         """
        
         self.app_dir = app_dir
-        home = os.environ.get('HOME')
+        home = os.path.abspath(os.environ.get('HOME'))
         defaults = {'app_dir' : app_dir,
                     'appdir' : app_dir,
                     'home' : home,
@@ -230,7 +230,9 @@ class Controller:
 
     def observer_view_markdown(self, view, evt_type, evt):
         fn = self.helper_markdown_to_html()
-        webbrowser.open(fn)
+        # turn filename into URI (mac wants this)
+        fn_uri = 'file://' + os.path.abspath(fn)
+        webbrowser.open(fn_uri)
         
     def observer_view_keep_house(self, view, evt_type, evt):
         # queue up all notes that need to be saved
