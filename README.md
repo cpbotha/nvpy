@@ -27,7 +27,7 @@ This is what nvpy looked like on Windows on May 23, 2012. Search bar at the top 
 
 Here's a screenshot showing the automatic hyperlinking on Linux:
 
-![screenshot](https://github.com/cpbotha/nvpy/raw/master/images/nvpy_linking_screenshot_20120525.jpg)
+![screenshot](https://github.com/cpbotha/nvpy/raw/master/images/nvpy_linking_screenshot_20120525.png)
 
 Installation
 ============
