@@ -25,6 +25,10 @@ This is what nvpy looked like on Windows on May 23, 2012. Search bar at the top 
 
 ![screenshot](https://github.com/cpbotha/nvpy/raw/master/images/nvpy_screenshot_20120523.jpg)
 
+Here's a screenshot showing the automatic hyperlinking on Linux:
+
+![screenshot](https://github.com/cpbotha/nvpy/raw/master/images/nvpy_linking_screenshot_20120525.jpg)
+
 Installation
 ============
 
@@ -63,11 +67,11 @@ Features
   the currently open note every few seconds. Due to the refresh
   tag in the generated HTML, the browser will refresh every few
   seconds. MAGIC UPDATES!
+* Automatic hyperlink highlighting in text widget.
 
 Planned features
 ================
 
-* Automatic hyperlink highlighting in text widget.
 * Tag support.
 * Full syncs also in background thread. At the moment does a full sync
   at startup, can take a while.
