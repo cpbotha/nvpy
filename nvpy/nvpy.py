@@ -30,6 +30,7 @@
 
 # to check if we're online
 
+import codecs
 import ConfigParser
 import markdown
 from notes_db import NotesDB, SyncError
@@ -213,8 +214,8 @@ class Controller:
             html = markdown.markdown(c)
             # create filename based on key
             fn = os.path.join(self.config.db_path, key + '.html')
-            f = file(fn, 'w')
-            s = """
+            f = codecs.open(fn, mode='wb', encoding='utf-8')
+            s = u"""
 <html>
 <head>
 <meta http-equiv="refresh" content="5">
