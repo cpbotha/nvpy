@@ -55,7 +55,9 @@ class Config:
                     'home' : home,
                     'housekeeping_interval' : '2',
                     'sort_mode' : '1',
-                    'db_path' : os.path.join(home, '.nvpy')
+                    'db_path' : os.path.join(home, '.nvpy'),
+                    'font_family' : 'courier',
+                    'font_size' : '12'
                    }
         
         # allow_no_value=True means we'll just get None for undefined values
@@ -71,6 +73,9 @@ class Config:
         self.sort_mode = cp.getint('default', 'sort_mode')
         self.housekeeping_interval = cp.getint('default', 'housekeeping_interval')
         self.housekeeping_interval_ms = self.housekeeping_interval * 1000
+        
+        self.font_family = cp.get('default', 'font_family')
+        self.font_size = cp.getint('default', 'font_size')
         
 class NotesListModel(SubjectMixin):
     def __init__(self):
