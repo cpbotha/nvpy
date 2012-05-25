@@ -561,7 +561,12 @@ class View(utils.SubjectMixin):
                               utils.KeyValueObject(value=self.search_entry_var.get()))
 
     def handler_click_link(self, link):
-        webbrowser.open(link)
+        if link.startswith('[['):
+            link = link[2:-2]
+            self.notify_observers('click:notelink', link)
+
+        else:
+            webbrowser.open(link)
 
     def activate_links(self):
         """
@@ -573,8 +578,9 @@ class View(utils.SubjectMixin):
 
 
         t = self.text_note
+        # the last group matches [[bla bla]] inter-note links
         pat = \
-        r"\b((https?|ftp|file)://[-A-Za-z0-9+&@#/%?=~_|!:,.;]*[A-Za-z0-9+&@#/%=~_|])"
+        r"\b((https?|ftp|file)://[-A-Za-z0-9+&@#/%?=~_|!:,.;]*[A-Za-z0-9+&@#/%=~_|])|(\[\[[^][]*\]\])"
 
         # remove all existing tags
         for tag in self.text_tags:
@@ -584,11 +590,16 @@ class View(utils.SubjectMixin):
         
         for mo in re.finditer(pat,t.get('1.0', 'end')):
             # extract the link from the match object
-            link = mo.groups()[0]
+            if mo.groups()[2] is not None:
+                link = mo.groups()[2]
+                ul = 0
+            else:
+                link = mo.groups()[0]
+                ul = 1
 
             # start creating a new tkinter text tag
             tag = 'web-%d' % (len(self.text_tags),)
-            t.tag_config(tag, foreground="blue", underline=1)
+            t.tag_config(tag, foreground="blue", underline=ul)
             # hovering should give us the finger (cursor) hehe
             t.tag_bind(tag, '<Enter>', 
                     lambda e: t.config(cursor="hand2"))

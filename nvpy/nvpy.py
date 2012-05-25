@@ -135,6 +135,8 @@ class Controller:
         # create the interface
         self.view = view.View(self.config, self.notes_list_model)
         # we want to be notified when the user does stuff
+        self.view.add_observer('click:notelink',
+                self.observer_view_click_notelink)
         self.view.add_observer('delete:note', self.observer_view_delete_note)
         self.view.add_observer('select:note', self.observer_view_select_note)
         self.view.add_observer('change:entry', self.observer_view_change_entry)
@@ -197,6 +199,11 @@ class Controller:
                 self.view.mute('change:text')
                 self.view.set_text(selected_note_o.note['content'])
                 self.view.unmute('change:text')
+
+    def observer_view_click_notelink(self, view, evt_type, note_name):
+        # find note_name in titles, try to jump to that note
+        # FIXME: implement find_note_by_name
+        print note_name
         
     def observer_view_delete_note(self, view, evt_type, evt):
         # delete note from notes_db
