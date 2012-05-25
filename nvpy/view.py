@@ -2,13 +2,16 @@
 # copyright 2012 by Charl P. Botha <cpbotha@vxlabs.com>
 # new BSD license
 
+import copy
 import os
+import re
 import search_entry
 import sys
 import tk
 import tkFont
 import tkMessageBox
 import utils
+import webbrowser
 
 class WidgetRedirector:
 
@@ -157,6 +160,8 @@ class View(utils.SubjectMixin):
 
         self._create_ui()
         self._bind_events()
+        
+        self.text_tags = []
 
         #self._current_text = None
         #self.user_text.focus_set()
@@ -554,23 +559,59 @@ class View(utils.SubjectMixin):
     def handler_search_entry(self, *args):
         self.notify_observers('change:entry', 
                               utils.KeyValueObject(value=self.search_entry_var.get()))
+
+    def handler_click_link(self, link):
+        webbrowser.open(link)
+
+    def activate_links(self):
+        """
+
+        Also see this post on URL detection regular expressions:
+        http://www.regexguru.com/2008/11/detecting-urls-in-a-block-of-text/
+        (mine is slightly modified)
+        """
+
+
+        t = self.text_note
+        pat = \
+        r"\b((https?|ftp|file)://[-A-Za-z0-9+&@#/%?=~_|!:,.;]*[A-Za-z0-9+&@#/%=~_|])"
+
+        # remove all existing tags
+        for tag in self.text_tags:
+            t.tag_remove(tag, '1.0', 'end')
+
+        del self.text_tags[:]
         
+        for mo in re.finditer(pat,t.get('1.0', 'end')):
+            # extract the link from the match object
+            link = mo.groups()[0]
+
+            # start creating a new tkinter text tag
+            tag = 'web-%d' % (len(self.text_tags),)
+            t.tag_config(tag, foreground="blue", underline=1)
+            # hovering should give us the finger (cursor) hehe
+            t.tag_bind(tag, '<Enter>', 
+                    lambda e: t.config(cursor="hand2"))
+            t.tag_bind(tag, '<Leave>', 
+                    lambda e: t.config(cursor=""))
+            # and clicking on it should do something sensible
+            t.tag_bind(tag, '<Button-1>', lambda e, link=link:
+                    self.handler_click_link(link))
+
+            # mo.start(), mo.end() or mo.span() in one go
+            t.tag_add(tag, '1.0+%dc' % (mo.start(),), '1.0+%dc' %
+                    (mo.end(),))
+
+            # record the tag name so we can delete it later
+            self.text_tags.append(tag)
+
+
     def handler_text_change(self, evt):
-
-        # move this out into separate method that can be called
-        # by housekeeping thingy every few seconds. also consider
-        # using pure python for regexp
-
-        # see search method docs:
-        # http://effbot.org/tkinterbook/text.htm
-        # http://stackoverflow.com/questions/3781670/tkinter-text-highlighting-in-python
-        # regexp from http://stackoverflow.com/a/6183
-        #pos = \
-        #self.text_note.search("((mailto\:|(news|(ht|f)tp(s?))\://){1}\S+)",
-        #        1.0, stopindex=tk.END, regexp=True)
-        # this one better: http://stackoverflow.com/a/13488
-
         self.notify_observers('change:text', None)
+        # FIXME: consider having this called from the housekeeping
+        # handler, so that the poor regexp doesn't have to do every
+        # single keystroke.
+        self.activate_links()
                 
     def observer_notes_list(self, notes_list_model, evt_type, evt):
         if evt_type == 'set:list':
