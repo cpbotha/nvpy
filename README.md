@@ -75,14 +75,10 @@ Planned features
 Bugs and feedback
 =================
 
-Report bugs with [the github issue tracker](https://github.com/cpbotha/nvpy/issues).
-
-It's an even better idea to clone, fix and then send me a pull
-request.
-
-If you really like nvpy, you could make me and you even happier by
-[tipping me with
-paypal](https://www.paypal.com/cgi-bin/webscr?cmd=_s-xclick&hosted_button_id=BXXTJ9E97DG52)! 
+* Report bugs with [the github issue tracker](https://github.com/cpbotha/nvpy/issues).
+* It's an even better idea to clone, fix and then send me a pull request.
+* If you have questions, or would like to discuss nvpy-related matters, please do so via the [nvpy google discussion group / mailing list](https://groups.google.com/forum/#!forum/nvpy)
+* If you really like nvpy, you could make me and you even happier by [tipping me with paypal][paypal]! 
 
 Credits
 =======
@@ -90,5 +86,6 @@ Credits
 * nvpy uses the [fantastic simplenote.py library by mrtazz][snpy]
 * The brilliant application icon, a blue mini car (not as fast as the notational velocity rocket, get it?), is by [Cemagraphics][cg]
   
+[paypal]: https://www.paypal.com/cgi-bin/webscr?cmd=_s-xclick&hosted_button_id=BXXTJ9E97DG52
 [snpy]: https://github.com/mrtazz/simplenote.py
 [cg]: http://cemagraphics.deviantart.com/
