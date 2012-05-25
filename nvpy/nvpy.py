@@ -56,7 +56,7 @@ class Config:
                     'housekeeping_interval' : '2',
                     'sort_mode' : '1',
                     'db_path' : os.path.join(home, '.nvpy'),
-                    'font_family' : 'courier',
+                    'font_family' : 'Courier',
                     'font_size' : '12'
                    }
         
