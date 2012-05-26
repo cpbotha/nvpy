@@ -223,6 +223,18 @@ class View(utils.SubjectMixin):
         if not silent:
             # we have to generate event explicitly, it doesn't fire by itself in this case
             self.lb_notes.event_generate('<<ListboxSelect>>')
+            
+    def select_note_by_name(self, name):
+        note_names = self.lb_notes.get(0, 'end')
+        try:
+            idx = note_names.index(name)
+        except ValueError:
+            # name is not in the list
+            return -1
+        
+        else:
+            self.select_note(idx)
+            return idx
         
     def select_note_prev(self):
         idx = self.get_selected_idx()

@@ -78,6 +78,9 @@ class Config:
         self.font_size = cp.getint('default', 'font_size')
         
 class NotesListModel(SubjectMixin):
+    """
+    @ivar list: List of (str key, dict note) objects.
+    """
     def __init__(self):
         # call mixin ctor
         SubjectMixin.__init__(self)
@@ -202,8 +205,16 @@ class Controller:
 
     def observer_view_click_notelink(self, view, evt_type, note_name):
         # find note_name in titles, try to jump to that note
+        # if not in current list, change search string in case 
+        # it's somewhere else
         # FIXME: implement find_note_by_name
-        print note_name
+        idx = self.view.select_note_by_name(note_name)
+        
+        if idx < 0:
+            # this means a note with that name was not found
+            # because nvpy kicks ass, it then assumes the contents of [[]]
+            # to be a new regular expression to search for in the notes db.
+            self.view.set_search_entry_text(note_name)
         
     def observer_view_delete_note(self, view, evt_type, evt):
         # delete note from notes_db
