@@ -80,7 +80,9 @@ Planned features
 ================
 
 * Full syncs also in background thread. At the moment does a full sync
-  at startup, can take a while.
+  at startup, which can take a while. nvpy already does background thread
+  saving and syncing while you work, so everything you type is backed up
+  within a few seconds of you typing it.
 * Tag support.
 
 Bugs and feedback
