@@ -72,13 +72,16 @@ Features
   tag in the generated HTML, the browser will refresh every few
   seconds. MAGIC UPDATES!
 * Automatic hyperlink highlighting in text widget.
+* KickAss(tm) inter-note linking with [[note name]]. If note name is
+  not found in current list of notes, assumes it's a regular expression
+  and sets it in the search bar. See the [screencast][inl_screencast].
 
 Planned features
 ================
 
-* Tag support.
 * Full syncs also in background thread. At the moment does a full sync
   at startup, can take a while.
+* Tag support.
 
 Bugs and feedback
 =================
@@ -95,6 +98,7 @@ Credits
 * The brilliant application icon, a blue mini car (not as fast as the notational velocity rocket, get it?), is by [Cemagraphics][cg]
 
 [ex_nvpycfg]: https://github.com/cpbotha/nvpy/blob/master/nvpy/nvpy-example.cfg  
+[inl_screencast]: http://youtu.be/NXuVMZr31SI
 [paypal]: https://www.paypal.com/cgi-bin/webscr?cmd=_s-xclick&hosted_button_id=BXXTJ9E97DG52
 [snpy]: https://github.com/mrtazz/simplenote.py
 [cg]: http://cemagraphics.deviantart.com/
