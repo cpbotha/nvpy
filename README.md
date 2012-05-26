@@ -18,8 +18,8 @@ clause at the end of the new BSD licence text in the COPYRIGHT file.
 That being said, I use nvpy daily on my own precious notes database
 and it hasn't disappointed me (yet).
 
-A screenshot
-============
+Screenshots
+===========
 
 This is what nvpy looked like on Windows on May 23, 2012. Search bar at the top showing a regular expression, notes are sorted last modified first, continuously updated markdown preview in chrome behind the nvpy window:
 
@@ -49,8 +49,12 @@ the following:
     sn_password = your_simplenote_password
 
 If you installed this via pip install, you should now be able to start
-the application by typing "nvpy".
+the application by typing "nvpy". The first time you run it, it will take
+a while as it downloads all of your simplenote notes. Subsequest runs
+are much faster as it uses the database it stores in your home directory.
 
+The [example nvpy.cfg][ex_nvpycfg] shows how you can configure the font 
+family and size.
 
 Features
 ========
@@ -89,7 +93,8 @@ Credits
 
 * nvpy uses the [fantastic simplenote.py library by mrtazz][snpy]
 * The brilliant application icon, a blue mini car (not as fast as the notational velocity rocket, get it?), is by [Cemagraphics][cg]
-  
+
+[ex_nvpycfg]: https://github.com/cpbotha/nvpy/blob/master/nvpy/nvpy-example.cfg  
 [paypal]: https://www.paypal.com/cgi-bin/webscr?cmd=_s-xclick&hosted_button_id=BXXTJ9E97DG52
 [snpy]: https://github.com/mrtazz/simplenote.py
 [cg]: http://cemagraphics.deviantart.com/
