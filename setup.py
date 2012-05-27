@@ -10,7 +10,7 @@ def read(fname):
 
 setup(
     name = "nvpy",
-    version = "0.1",
+    version = "0.2",
     author = "Charl P. Botha",
     author_email = "cpbotha@vxlabs.com",
     description = "A cross-platform simplenote-syncing note-taking app inspired by nvALT.",
