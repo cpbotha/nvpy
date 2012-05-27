@@ -32,11 +32,20 @@ Here's a screenshot showing the automatic hyperlinking on Linux:
 Installation
 ============
 
-To get the latest version from github, do:
+To insall the latest development version from github, do:
 
     pip install git+https://github.com/cpbotha/nvpy.git#egg=nvpy
 
-I'll upload this to pypi soon.
+OR, to install the version currently on pypi, do:
+
+    pip install nvpy
+
+OR, you can of course use easy\_install instead:
+
+    easy_install nvpy
+
+github always has the latest development version, whereas I upload
+tagged snapshots (v0.1 for example) to pypi.
 
 How to run for the first time
 =============================
