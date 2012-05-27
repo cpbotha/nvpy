@@ -32,7 +32,6 @@
 
 import codecs
 import ConfigParser
-import markdown
 from notes_db import NotesDB, SyncError
 import os
 import sys
@@ -41,6 +40,13 @@ import time
 from utils import KeyValueObject, SubjectMixin
 import view
 import webbrowser
+
+try:
+    import markdown
+except ImportError:
+    HAVE_MARKDOWN = False
+else:
+    HAVE_MARKDOWN = True
 
 class Config:
     def __init__(self, app_dir):
@@ -236,7 +242,13 @@ class Controller:
         if self.selected_note_idx >= 0:
             key = self.notes_list_model.list[self.selected_note_idx].key
             c = self.notes_db.get_note_content(key)
-            html = markdown.markdown(c)
+            if HAVE_MARKDOWN:
+                html = markdown.markdown(c)
+                
+            else:
+                html = "<p>python markdown not installed, required for rendering to HTML.</p>"
+                html += "<p>Please install with \"pip install markdown\".</p>"
+                
             # create filename based on key
             fn = os.path.join(self.config.db_path, key + '.html')
             f = codecs.open(fn, mode='wb', encoding='utf-8')
