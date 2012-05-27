@@ -79,6 +79,8 @@ Features
 Planned features
 ================
 
+* Undo / redo.
+* Full(ish) screen mode.
 * Full syncs also in background thread. At the moment does a full sync
   at startup, which can take a while. nvpy already does background thread
   saving and syncing while you work, so everything you type is backed up

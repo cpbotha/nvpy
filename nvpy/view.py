@@ -172,11 +172,11 @@ class View(utils.SubjectMixin):
         sidx = self.get_selected_idx()
         self.notify_observers('select:note', utils.KeyValueObject(sel=sidx))
         
-    def cmd_root_delete(self, evt):
+    def cmd_root_delete(self, evt=None):
         sidx = self.get_selected_idx()
         self.notify_observers('delete:note', utils.KeyValueObject(sel=sidx))
         
-    def cmd_root_new(self, evt):
+    def cmd_root_new(self, evt=None):
         # this'll get caught by a controller event handler
         self.notify_observers('create:note', utils.KeyValueObject(title=self.get_search_entry_text()))
         # the note will be created synchronously, so we can focus the text area already
@@ -269,10 +269,6 @@ class View(utils.SubjectMixin):
         # make sure window close also goes through our handler
         self.root.protocol('WM_DELETE_WINDOW', self.close)
         
-        self.root.bind_all("<Control-d>", self.cmd_root_delete)
-        self.root.bind_all("<Control-f>", lambda e: self.search_entry.focus())
-        self.root.bind_all("<Control-n>", self.cmd_root_new)
-        
         self.lb_notes.bind("<<ListboxSelect>>", self.cmd_lb_notes_select)
         # same behaviour as when the user presses enter on search entry:
         # if something is selected, focus the text area
@@ -312,8 +308,21 @@ class View(utils.SubjectMixin):
         file_menu = tk.Menu(menu, tearoff=False)
         menu.add_cascade(label="File", underline='0', menu=file_menu)
         
+        
+        
+        
 
         # FILE ##########################################################
+        file_menu.add_command(label = "New note", underline=0,
+                              command=self.cmd_root_new, accelerator="Ctrl+N")
+        self.root.bind_all("<Control-n>", self.cmd_root_new)
+
+        file_menu.add_command(label = "Delete note", underline=0,
+                              command=self.cmd_root_delete, accelerator="Ctrl+D")        
+        self.root.bind_all("<Control-d>", self.cmd_root_delete)
+        
+        file_menu.add_separator()
+        
         file_menu.add_command(label = "Sync full", underline=5,
                               command=self.cmd_sync_full)
         file_menu.add_command(label = "Sync current note",
@@ -322,7 +331,7 @@ class View(utils.SubjectMixin):
         self.root.bind_all("<Control-s>", self.cmd_sync_current_note)
 
         file_menu.add_command(label = "Render Markdown to HTML", underline=7,
-                command=self.cmd_markdown, accelerator="Ctrl-M")
+                command=self.cmd_markdown, accelerator="Ctrl+M")
         self.root.bind_all("<Control-m>", self.cmd_markdown)
 
         self.continuous_rendering = tk.BooleanVar()
@@ -331,6 +340,8 @@ class View(utils.SubjectMixin):
                 onvalue=True, offvalue=False,
                 variable=self.continuous_rendering)
 
+        file_menu.add_separator()
+
         file_menu.add_command(label = "Exit", underline=1,
                               command=self.cmd_exit, accelerator="Ctrl+Q")
         self.root.bind_all("<Control-q>", self.cmd_exit)
@@ -338,6 +349,12 @@ class View(utils.SubjectMixin):
         # EDIT ##########################################################
         edit_menu = tk.Menu(menu, tearoff=False)
         menu.add_cascade(label="Edit", underline=0, menu=edit_menu)
+        
+        edit_menu.add_command(label="Find", accelerator="Ctrl+F",
+                              underline=0, command=lambda: self.search_entry.focus())
+        self.root.bind_all("<Control-f>", lambda e: self.search_entry.focus())
+        
+        edit_menu.add_separator()
         
         edit_menu.add_command(label="Cut", accelerator="Ctrl+X",
                               underline=2, command=self.cmd_cut)
