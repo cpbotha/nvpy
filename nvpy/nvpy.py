@@ -49,7 +49,9 @@ class Config:
         """
        
         self.app_dir = app_dir
-        home = os.path.abspath(os.environ.get('HOME'))
+        # cross-platform way of getting home dir!
+        # http://stackoverflow.com/a/4028943/532513
+        home = os.path.abspath(os.path.expanduser('~'))
         defaults = {'app_dir' : app_dir,
                     'appdir' : app_dir,
                     'home' : home,
