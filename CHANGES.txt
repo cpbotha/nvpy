@@ -1,2 +1,3 @@
+v0.2, 2012-05-27 -- Documentation fixes, had to make new release.
 v0.1, 2012-05-27 -- Initial release.
 
