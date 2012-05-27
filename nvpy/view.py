@@ -329,6 +329,8 @@ class View(utils.SubjectMixin):
                 underline=0, command=self.cmd_sync_current_note,
                 accelerator="Ctrl+S")
         self.root.bind_all("<Control-s>", self.cmd_sync_current_note)
+        
+        file_menu.add_separator()
 
         file_menu.add_command(label = "Render Markdown to HTML", underline=7,
                 command=self.cmd_markdown, accelerator="Ctrl+M")
@@ -340,6 +342,10 @@ class View(utils.SubjectMixin):
                 onvalue=True, offvalue=False,
                 variable=self.continuous_rendering)
 
+        file_menu.add_command(label = "Render reST to HTML", underline=7,
+                command=self.cmd_rest, accelerator="Ctrl+R")
+        self.root.bind_all("<Control-r>", self.cmd_rest)
+        
         file_menu.add_separator()
 
         file_menu.add_command(label = "Exit", underline=1,
@@ -523,6 +529,9 @@ class View(utils.SubjectMixin):
 
     def cmd_exit(self, event=None):
         self.close()
+
+    def cmd_rest(self, event=None):
+        self.notify_observers('command:rest', None)
 
     def cmd_sync_current_note(self, event=None):
         self.notify_observers('command:sync_current_note', None)

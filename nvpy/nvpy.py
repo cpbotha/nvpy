@@ -47,6 +47,14 @@ except ImportError:
     HAVE_MARKDOWN = False
 else:
     HAVE_MARKDOWN = True
+    
+try:
+    import docutils
+    import docutils.core
+except ImportError:
+    HAVE_DOCUTILS = False
+else:
+    HAVE_DOCUTILS = True
 
 class Config:
     def __init__(self, app_dir):
@@ -156,6 +164,8 @@ class Controller:
         self.view.add_observer('keep:house', self.observer_view_keep_house)
         self.view.add_observer('command:markdown',
                 self.observer_view_markdown)
+        self.view.add_observer('command:rest',
+                self.observer_view_rest)
         self.view.add_observer('command:sync_full', lambda v, et, e: self.sync_full())
         self.view.add_observer('command:sync_current_note',
                 self.observer_view_sync_current_note)
@@ -265,9 +275,41 @@ class Controller:
             f.write(s)
             f.close()
             return fn
+        
+    def helper_rest_to_html(self):
+        if self.selected_note_idx >= 0:
+            key = self.notes_list_model.list[self.selected_note_idx].key
+            c = self.notes_db.get_note_content(key)
+            if HAVE_DOCUTILS:
+                # this gives the whole document
+                html = docutils.core.publish_string(c, writer_name='html')
+                # publish_parts("*anurag*",writer_name='html')['body']
+                # gives just the desired part of the tree
+                
+            else:
+                html = "<p>python docutils not installed, required for rendering reST to HTML.</p>"
+                html += "<p>Please install with \"pip install docutils\".</p>"
+                
+            # create filename based on key
+            fn = os.path.join(self.config.db_path, key + '_rest.html')
+            f = codecs.open(fn, mode='wb', encoding='utf-8')
+            # we keep this for later, in case we want to modify rest output
+            # or combine it with our own headers.
+            s = u"""
+%s
+            """ % (html,)
+            f.write(s)
+            f.close()
+            return fn
 
     def observer_view_markdown(self, view, evt_type, evt):
         fn = self.helper_markdown_to_html()
+        # turn filename into URI (mac wants this)
+        fn_uri = 'file://' + os.path.abspath(fn)
+        webbrowser.open(fn_uri)
+        
+    def observer_view_rest(self, view, evt_type, evt):
+        fn = self.helper_rest_to_html()
         # turn filename into URI (mac wants this)
         fn_uri = 'file://' + os.path.abspath(fn)
         webbrowser.open(fn_uri)
