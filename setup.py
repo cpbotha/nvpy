@@ -18,7 +18,7 @@ setup(
     keywords = "simplenote note-taking tkinter nvalt markdown",
     url = "http://vxlabs.com/software/nvpy",
     packages=['nvpy'],
-    long_description=read('README.md'),
+    long_description=read('README.rst'),
     install_requires = ['Markdown'],
     entry_points = {
         'gui_scripts' : ['nvpy = nvpy.nvpy:main']
