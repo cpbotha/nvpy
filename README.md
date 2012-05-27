@@ -7,7 +7,8 @@ cross-platform.  Yes, you heard right, you can run this on Linux
 (tested), Windows (tested) and OS X (in theory).
 
 It was written by Charl Botha, who needed a simplenote client on
-Linux and doesn't mind ugliness (that much).
+Linux and doesn't mind ugliness (that much). nvpy lives happily at
+https://github.com/cpbotha/nvpy
 
 DISCLAIMER
 ----------
