@@ -13,7 +13,7 @@ setup(
     version = "0.5",
     author = "Charl P. Botha",
     author_email = "cpbotha@vxlabs.com",
-    description = "A cross-platform simplenote-syncing note-taking app inspired by nvALT.",
+    description = "A cross-platform simplenote-syncing note-taking app inspired by Notational Velocity.",
     license = "BSD",
     keywords = "simplenote note-taking tkinter nvalt markdown",
     url = "https://github.com/cpbotha/nvpy",
