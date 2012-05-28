@@ -151,11 +151,6 @@ class NotesDB(utils.SubjectMixin):
         
         """
         
-        # simplenote key in note gets precedence when saving.
-        sk = note.get('key')
-        if sk:
-            k = sk
-            
         fn = self.helper_key_to_fname(k)
         json.dump(note, open(fn, 'wb'), indent=2)
         # record that we saved this to disc.
@@ -218,20 +213,6 @@ class NotesDB(utils.SubjectMixin):
             else:
                 return None
         
-    def save_unthreaded(self):
-        """Write all notes that have been changed since last save to disc.
-        
-        This is usually called every few seconds by nvPY, so it should be quick.
-        """
-        nsaved = 0
-        for k,n in self.notes.items():
-            if float(n.get('modifydate')) > float(n.get('savedate')):
-                # helper_save_note will pick simplenote key if available, else localkey
-                self.helper_save_note(k, n)
-                nsaved += 1
-                
-        return nsaved
-    
     def save_threaded(self):
         for k,n in self.notes.items():
             savedate = float(n.get('savedate'))
@@ -356,6 +337,7 @@ class NotesDB(utils.SubjectMixin):
         for ni,lk in enumerate(self.notes.keys()):
             n = self.notes[lk]
             if not n.get('key') or float(n.get('modifydate')) > float(n.get('syncdate')):
+                import pdb; pdb.set_trace();
                 uret = self.simplenote.update_note(n)
                 if uret[1] == 0:
                     # replace n with uret[0]
