@@ -218,7 +218,9 @@ class Controller:
         if selected_note_o.key == evt.lkey:
             if selected_note_o.note['content'] != evt.old_note['content']:
                 self.view.mute('change:text')
-                self.view.set_text(selected_note_o.note['content'])
+                # in this case, we want to keep the user's undo buffer so that they
+                # can undo synced back changes if they would want to.
+                self.view.set_text(selected_note_o.note['content'], reset_undo=False)
                 self.view.unmute('change:text')
 
     def observer_view_click_notelink(self, view, evt_type, note_name):

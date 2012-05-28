@@ -356,9 +356,14 @@ class View(utils.SubjectMixin):
         edit_menu = tk.Menu(menu, tearoff=False)
         menu.add_cascade(label="Edit", underline=0, menu=edit_menu)
         
-        edit_menu.add_command(label="Find", accelerator="Ctrl+F",
-                              underline=0, command=lambda: self.search_entry.focus())
-        self.root.bind_all("<Control-f>", lambda e: self.search_entry.focus())
+        edit_menu.add_command(label="Undo", accelerator="Ctrl+Z",
+                              underline=0, command=lambda: self.text_note.edit_undo())
+        self.root.bind_all("<Control-z>", lambda e: self.text_note.edit_undo())
+        
+        edit_menu.add_command(label="Redo", accelerator="Ctrl+Y",
+                              underline=0, command=lambda: self.text_note.edit_undo())
+        self.root.bind_all("<Control-y>", lambda e: self.text_note.edit_redo())
+                
         
         edit_menu.add_separator()
         
@@ -368,6 +373,14 @@ class View(utils.SubjectMixin):
                               underline=0, command=self.cmd_copy)
         edit_menu.add_command(label="Paste", accelerator="Ctrl+V",
                               underline=0, command=self.cmd_paste)
+
+        edit_menu.add_separator()
+        
+        edit_menu.add_command(label="Find", accelerator="Ctrl+F",
+                              underline=0, command=lambda: self.search_entry.focus())
+        self.root.bind_all("<Control-f>", lambda e: self.search_entry.focus())
+        
+        
 
 
         # HELP ##########################################################
@@ -453,9 +466,10 @@ class View(utils.SubjectMixin):
             text = RedirectedText(master, height=25, width=TEXT_WIDTH,
                                   wrap=tk.WORD,
                                   font=f, tabs=(4 * f.measure(0), 'left'), tabstyle='wordprocessor',
-                                  yscrollcommand=yscrollbar.set)
+                                  yscrollcommand=yscrollbar.set,
+                                  undo=True)
             # change default font at runtime with:
-            # text.config(font=f)
+            text.config(font=f)
 
             text.pack(fill=tk.BOTH, expand=1)
 
@@ -673,9 +687,24 @@ class View(utils.SubjectMixin):
     def set_status_text(self, txt):
         self.statusbar.set_status(txt)
         
-    def set_text(self, note_content):
+    def set_text(self, note_content, reset_undo=True):
+        """Replace text in editor with content.
+        
+        This is usually called when a new note is selected (case 1), or
+        when a modified note comes back from the server (case 2).
+        
+        @param reset_undo: Set to False if you don't want to have the undo
+        buffer to reset.
+        """
+        
         self.text_note.delete(1.0, tk.END) # clear all
         self.text_note.insert(tk.END, note_content)
+        
+        if reset_undo:
+            # usually when a new note is selected, we want to reset the
+            # undo buffer, so that a user can't undo right into the previously
+            # selected note.
+            self.text_note.edit_reset()
         
         
     def set_notes(self, notes):
