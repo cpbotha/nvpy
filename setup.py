@@ -16,7 +16,7 @@ setup(
     description = "A cross-platform simplenote-syncing note-taking app inspired by nvALT.",
     license = "BSD",
     keywords = "simplenote note-taking tkinter nvalt markdown",
-    url = "http://vxlabs.com/software/nvpy",
+    url = "https://github.com/cpbotha/nvpy",
     packages=['nvpy'],
     long_description=read('README.rst'),
     install_requires = ['Markdown'],

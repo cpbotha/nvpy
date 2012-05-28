@@ -84,6 +84,8 @@ Ctrl-N     Create new note.
 Ctrl-Q     Exit nvPY.
 Ctrl-R     Render reStructuredText (reST) note to HTML and open browser window.
 Ctrl-S     Force sync of current note with simplenote server. Saving to disc and syncing to server also happen continuously in the background.
+Ctrl-Y     Redo note edits.
+Ctrl-Z     Undo note edits.
 ESC        Go from edit mode to notes list.
 ENTER      Start editing currently selected note. If there's a search string but no notes in the list, ENTER creates a new note with that search string as its title.
 ========== ==========
@@ -113,7 +115,7 @@ Features
 Planned features
 ================
 
-* Undo / redo.
+* Search string highlighting in text note.
 * Full(ish) screen mode.
 * Full syncs also in background thread. At the moment does a full sync
   at startup, which can take a while. nvpy already does background thread
