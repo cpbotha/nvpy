@@ -1,3 +1,4 @@
+v0.5, 2012-05-28 -- Small fixes to the docs.
 v0.4, 2012-05-28 -- Sync bug fix. Undo / redo in note editor.
 v0.3, 2012-05-28 -- Added reST->HTML rendering. README.md->.rst.
 v0.2, 2012-05-27 -- Documentation fixes, had to make new release.
