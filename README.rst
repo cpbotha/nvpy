@@ -20,16 +20,18 @@ clause at the end of the new BSD licence text in the COPYRIGHT file.
 That being said, I use nvpy daily on my own precious notes database
 and it hasn't disappointed me (yet).
 
-Screenshots
-===========
+Screenshots and screencasts
+===========================
 
-This is what nvpy looked like on Windows on May 23, 2012. Search bar at the top showing a regular expression, notes are sorted last modified first, continuously updated markdown preview in chrome behind the nvpy window:
-
-.. image:: https://github.com/cpbotha/nvpy/raw/master/images/nvpy_screenshot_20120523.jpg
-
-Here's a screenshot showing the automatic hyperlinking on Linux:
+* Automatic hyperlinking on Linux:
 
 .. image:: https://github.com/cpbotha/nvpy/raw/master/images/nvpy_linking_screenshot_20120525.png
+
+
+* This is what nvpy looked like on Windows on May 23, 2012. Search bar at the top showing a regular expression, notes are sorted last modified first, continuously updated markdown preview in chrome behind the nvpy window: `nvpy_screenshot_20120523.jpg <https://github.com/cpbotha/nvpy/raw/master/images/nvpy_screenshot_20120523.jpg>`_.
+
+* Screencast of nvpy's inter-note linking: http://youtu.be/NXuVMZr31SI
+
 
 Installation
 ============
@@ -66,6 +68,25 @@ are much faster as it uses the database it stores in your home directory.
 
 The `example nvpy.cfg <https://github.com/cpbotha/nvpy/blob/master/nvpy/nvpy-example.cfg>`_ shows how you can configure the font 
 family and size.
+
+Keyboard handling
+=================
+
+nvPY was designed for lightning-speed note-taking and management with the keyboard. Here's a summary of the different shortcut keys:
+
+========== ==========
+Key combo  Action
+========== ==========
+Ctrl-D     Move note to trash. This can be easily recovered using the simplenote webapp.
+Ctrl-F     Start real-time incremental regular expression search. As you type, notes list is filtered. Up / down cursor keys go to previous / next note.
+Ctrl-M     Render Markdown note to HTML and open browser window.
+Ctrl-N     Create new note.
+Ctrl-Q     Exit nvPY.
+Ctrl-R     Render reStructuredText (reST) note to HTML and open browser window.
+Ctrl-S     Force sync of current note with simplenote server. Saving to disc and syncing to server also happen continuously in the background.
+ESC        Go from edit mode to notes list.
+ENTER      Start editing currently selected note. If there's a search string but no notes in the list, ENTER creates a new note with that search string as its title.
+========== ==========
 
 Features
 ========
