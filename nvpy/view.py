@@ -184,6 +184,8 @@ class View(utils.SubjectMixin):
 
     def cmd_select_all(self, evt=None):
         self.text_note.tag_add("sel", "1.0", "end-1c")
+        # we don't want the text bind_class() handler for Ctrl-A to be fired.
+        return "break"
 
     def get_continuous_rendering(self):
         return self.continuous_rendering.get()
@@ -296,7 +298,7 @@ class View(utils.SubjectMixin):
         self.text_note.bind("<Escape>", lambda e: self.lb_notes.focus())
         # <Key>
         
-        self.text_note.bind_all("<Control-a>", self.cmd_select_all)
+        self.text_note.bind("<Control-a>", self.cmd_select_all)
 
         self.root.after(self.config.housekeeping_interval_ms, self.handler_housekeeper)
 
