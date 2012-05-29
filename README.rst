@@ -80,6 +80,7 @@ nvPY was designed for lightning-speed note-taking and management with the keyboa
 ========== ==========
 Key combo  Action
 ========== ==========
+Ctrl-A     Select all text when in the note editor.
 Ctrl-D     Move note to trash. This can be easily recovered using the simplenote webapp.
 Ctrl-F     Start real-time incremental regular expression search. As you type, notes list is filtered. Up / down cursor keys go to previous / next note.
 Ctrl-M     Render Markdown note to HTML and open browser window.
