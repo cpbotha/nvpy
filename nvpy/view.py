@@ -296,6 +296,8 @@ class View(utils.SubjectMixin):
         self.text_note.bind("<Escape>", lambda e: self.lb_notes.focus())
         # <Key>
         
+        self.text_note.bind_all("<Control-a>", self.cmd_select_all)
+
         self.root.after(self.config.housekeeping_interval_ms, self.handler_housekeeper)
 
     def _create_menu(self):
@@ -379,7 +381,6 @@ class View(utils.SubjectMixin):
 
         edit_menu.add_command(label="Select All", accelerator="Ctrl+A",
                               underline=7, command=self.cmd_select_all)
-        self.root.bind_all("<Control-a>", self.cmd_select_all)
         # FIXME: ctrl-a is usually bound to start-of-line. What's a
         # better binding for select all then?
 
