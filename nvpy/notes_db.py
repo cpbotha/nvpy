@@ -103,11 +103,20 @@ class NotesDB(utils.SubjectMixin):
         a regular expression, each a tuple with (local_key, note). 
         """
 
+        if search_string:
+            try:
+                sspat = re.compile(search_string)
+            except re.error:
+                sspat = None
+            
+        else:
+            sspat = None
+
         filtered_notes = []
         for k in self.notes:
             n = self.notes[k]
             c = n.get('content')
-            if not n.get('deleted') and (not search_string or re.search(search_string, c)):
+            if not n.get('deleted') and (not sspat or sspat.search(c)):
                 # we have to store our local key also
                 filtered_notes.append(utils.KeyValueObject(key=k, note=n))
             
