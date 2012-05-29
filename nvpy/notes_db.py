@@ -346,7 +346,6 @@ class NotesDB(utils.SubjectMixin):
         for ni,lk in enumerate(self.notes.keys()):
             n = self.notes[lk]
             if not n.get('key') or float(n.get('modifydate')) > float(n.get('syncdate')):
-                import pdb; pdb.set_trace();
                 uret = self.simplenote.update_note(n)
                 if uret[1] == 0:
                     # replace n with uret[0]
