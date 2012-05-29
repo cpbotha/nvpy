@@ -370,9 +370,13 @@ class Controller:
             self.view.select_note(0)
             
         else:
+            # we don't want new text to be implanted so we keep this silent
             self.view.select_note(idx, silent=True)
+            # but of course we DO have to record the possibly new IDX!!
+            self.selected_note_idx = idx
             # we have a new search string, but did not make any text changes
-            # so we have to update the search highlighting here.
+            # so we have to update the search highlighting here. (usually
+            # text changes trigger this)
             self.view.activate_search_string_highlights()
 
     def observer_view_change_text(self, view, evt_type, evt):

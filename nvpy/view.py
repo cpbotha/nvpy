@@ -210,14 +210,17 @@ class View(utils.SubjectMixin):
         return self.search_entry_var.get()
     
     def refresh_notes_list(self):
-        """Trigger a complete refresh notes list by resetting search entry,
-        selected note, and cursor position within that note.
+        """Trigger a complete refresh notes list by resetting search entry.
         """
         # store cursor position first! returns e.g. 8.32
-        cursor_pos = self.text_note.index(tk.INSERT)
+        #cursor_pos = self.text_note.index(tk.INSERT)
+        
+        # since 0.6, set_search_entry() tries to leave the currently selected
+        # note untouched if it still exists in the newly returned list
+        # so we don't have to do an explicit reselect.
         self.set_search_entry_text(self.get_search_entry_text())
-        self.select_note(self.get_selected_idx(), silent=True)
-        self.text_note.mark_set(tk.INSERT, cursor_pos)
+        
+        #self.text_note.mark_set(tk.INSERT, cursor_pos)
 
     def select_note(self, idx, silent=False):
         # programmatically select the note by idx
