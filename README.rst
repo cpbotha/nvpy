@@ -102,7 +102,8 @@ Features
   background thread so you can keep on working at light speed.
 * Can be used offline, also without simplenote account.
 * Search box does realtime regular expression searching in all your
-  notes.
+  notes. All occurrences of that regular expression are also
+  highlighted in currently active note.
 * Markdown rendering to browser.
 * Continuous rendering mode: If you activate this before
   starting the markdown rendering, nvpy will render new html of
@@ -119,7 +120,6 @@ Features
 Planned features
 ================
 
-* Search string highlighting in text note.
 * Full(ish) screen mode.
 * Full syncs also in background thread. At the moment does a full sync
   at startup, which can take a while. nvpy already does background thread
