@@ -357,13 +357,23 @@ class Controller:
 
             
     def observer_view_change_entry(self, view, evt_type, evt):
+        # store the currently selected note key
+        k = self.get_selected_note_key()
         # for each new evt.value coming in, get a new list from the notes_db
         # and set it in the notes_list_model
         nn = self.notes_db.filter_notes(evt.value)
         self.notes_list_model.set_list(nn)
-        # we select note in the view, this will eventually come back to us
-        # in observer_view_select_note
-        self.view.select_note(0)
+
+        idx = self.notes_list_model.get_idx(k)
+
+        if idx < 0:
+            self.view.select_note(0)
+            
+        else:
+            self.view.select_note(idx, silent=True)
+            # we have a new search string, but did not make any text changes
+            # so we have to update the search highlighting here.
+            self.view.activate_search_string_highlights()
 
     def observer_view_change_text(self, view, evt_type, evt):
         # get new text and update our database
