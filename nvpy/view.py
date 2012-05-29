@@ -182,6 +182,9 @@ class View(utils.SubjectMixin):
         # the note will be created synchronously, so we can focus the text area already
         self.text_note.focus()
 
+    def cmd_select_all(self, evt=None):
+        self.text_note.tag_add("sel", "1.0", "end-1c")
+
     def get_continuous_rendering(self):
         return self.continuous_rendering.get()
         
@@ -373,6 +376,12 @@ class View(utils.SubjectMixin):
                               underline=0, command=self.cmd_copy)
         edit_menu.add_command(label="Paste", accelerator="Ctrl+V",
                               underline=0, command=self.cmd_paste)
+
+        edit_menu.add_command(label="Select All", accelerator="Ctrl+A",
+                              underline=7, command=self.cmd_select_all)
+        self.root.bind_all("<Control-a>", self.cmd_select_all)
+        # FIXME: ctrl-a is usually bound to start-of-line. What's a
+        # better binding for select all then?
 
         edit_menu.add_separator()
         
