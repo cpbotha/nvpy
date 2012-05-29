@@ -161,7 +161,8 @@ class View(utils.SubjectMixin):
         self._create_ui()
         self._bind_events()
         
-        self.text_tags = []
+        self.text_tags_links = []
+        self.text_tags_search = []
 
         #self._current_text = None
         #self.user_text.focus_set()
@@ -631,10 +632,43 @@ class View(utils.SubjectMixin):
 
         else:
             webbrowser.open(link)
+            
+    def activate_search_string_highlights(self):
+        t = self.text_note
+        
+        # remove all existing tags
+        for tag in self.text_tags_search:
+            t.tag_remove(tag, '1.0', 'end')
+        
+        del self.text_tags_search[:]
+        
+        st = self.get_search_entry_text()
+        if not st:
+            return
+        
+        # take care of invalid regular expressions...
+        try:
+            pat = re.compile(st)
+        except re.error:
+            return
+        
+        for mo in pat.finditer(t.get('1.0', 'end')):
+
+            # start creating a new tkinter text tag
+            tag = 'search-%d' % (len(self.text_tags_search),)
+            t.tag_config(tag, background="yellow")
+
+            # mo.start(), mo.end() or mo.span() in one go
+            t.tag_add(tag, '1.0+%dc' % (mo.start(),), '1.0+%dc' %
+                    (mo.end(),))
+
+            # record the tag name so we can delete it later
+            self.text_tags_search.append(tag)
+            
+        
 
     def activate_links(self):
         """
-
         Also see this post on URL detection regular expressions:
         http://www.regexguru.com/2008/11/detecting-urls-in-a-block-of-text/
         (mine is slightly modified)
@@ -647,10 +681,10 @@ class View(utils.SubjectMixin):
         r"\b((https?|ftp|file)://[-A-Za-z0-9+&@#/%?=~_|!:,.;]*[A-Za-z0-9+&@#/%=~_|])|(\[\[[^][]*\]\])"
 
         # remove all existing tags
-        for tag in self.text_tags:
+        for tag in self.text_tags_links:
             t.tag_remove(tag, '1.0', 'end')
 
-        del self.text_tags[:]
+        del self.text_tags_links[:]
         
         for mo in re.finditer(pat,t.get('1.0', 'end')):
             # extract the link from the match object
@@ -662,7 +696,7 @@ class View(utils.SubjectMixin):
                 ul = 1
 
             # start creating a new tkinter text tag
-            tag = 'web-%d' % (len(self.text_tags),)
+            tag = 'web-%d' % (len(self.text_tags_links),)
             t.tag_config(tag, foreground="blue", underline=ul)
             # hovering should give us the finger (cursor) hehe
             t.tag_bind(tag, '<Enter>', 
@@ -678,7 +712,7 @@ class View(utils.SubjectMixin):
                     (mo.end(),))
 
             # record the tag name so we can delete it later
-            self.text_tags.append(tag)
+            self.text_tags_links.append(tag)
 
 
     def handler_text_change(self, evt):
@@ -687,6 +721,7 @@ class View(utils.SubjectMixin):
         # handler, so that the poor regexp doesn't have to do every
         # single keystroke.
         self.activate_links()
+        self.activate_search_string_highlights()
                 
     def observer_notes_list(self, notes_list_model, evt_type, evt):
         if evt_type == 'set:list':
