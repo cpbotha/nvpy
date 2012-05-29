@@ -9,8 +9,10 @@ you heard right, you can run this on Linux (tested), Windows (tested)
 and OS X (in theory).
 
 It was written by Charl Botha, who needed a simplenote client on
-Linux and doesn't mind ugliness (that much). nvpy lives happily at
-https://github.com/cpbotha/nvpy
+Linux and doesn't mind ugliness (that much).
+
+* nvpy lives happily at https://github.com/cpbotha/nvpy
+* For news and discussion, join the `public nvpy google group <https://groups.google.com/d/forum/nvpy>`_ or subscribe to its `RSS topic feed <https://groups.google.com/group/nvpy/feed/rss_v2_0_topics.xml>`_.
 
 DISCLAIMER
 ==========
@@ -129,7 +131,7 @@ Bugs and feedback
 
 * Report bugs with `the github issue tracker <https://github.com/cpbotha/nvpy/issues>`_.
 * It's an even better idea to clone, fix and then send me a pull request.
-* If you have questions, or would like to discuss nvpy-related matters, please do so via the `nvpy google discussion group / mailing list <https://groups.google.com/forum/#!forum/nvpy>`_.
+* If you have questions, or would like to discuss nvpy-related matters, please do so via the `nvpy google discussion group / mailing list <https://groups.google.com/d/forum/nvpy>`_.
 * If you really like nvpy, you could make me and you even happier by `tipping me with paypal <https://www.paypal.com/cgi-bin/webscr?cmd=_s-xclick&hosted_button_id=BXXTJ9E97DG52>`_! 
 
 Credits
