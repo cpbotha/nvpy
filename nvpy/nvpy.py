@@ -368,6 +368,12 @@ class Controller:
 
         if idx < 0:
             self.view.select_note(0)
+            # the user is typing, but her previously selected note is
+            # not in the new filtered list. as a convenience, we move
+            # the text in the text widget so it's on the first
+            # occurrence of the search string, IF there's such an
+            # occurrenc.
+            self.view.see_first_search_instance()
             
         else:
             # we don't want new text to be implanted so we keep this silent

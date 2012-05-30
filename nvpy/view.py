@@ -222,6 +222,14 @@ class View(utils.SubjectMixin):
         
         #self.text_note.mark_set(tk.INSERT, cursor_pos)
 
+    def see_first_search_instance(self):
+        """If there are instances of the search string in the current
+        note, ensure that the first one is visible.
+        """
+
+        if self.text_tags_search:
+            self.text_note.see(self.text_tags_search[0] + '.first')
+
     def select_note(self, idx, silent=False):
         """Programmatically select the note by idx
 
