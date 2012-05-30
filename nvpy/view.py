@@ -223,7 +223,14 @@ class View(utils.SubjectMixin):
         #self.text_note.mark_set(tk.INSERT, cursor_pos)
 
     def select_note(self, idx, silent=False):
-        # programmatically select the note by idx
+        """Programmatically select the note by idx
+
+        @param silent: If this is True, don't fire an event. VERY
+        IMPORTANT: if you use silent, the controller won't set the
+        selected_note_idx. You should make sure that it's in sync with
+        what you've just selected.
+        """
+
         self.lb_notes.select_clear(0, tk.END)
         self.lb_notes.select_set(idx)
         # we move the active (underlined) selection along, else we lose
