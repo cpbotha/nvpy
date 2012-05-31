@@ -61,15 +61,19 @@ class NotesDB(utils.SubjectMixin):
         self.threaded_syncing_keys = {}
         
         # save and sync queue
-        # we only want ONE thread to do both saving and syncing
-        self.q_ss = Queue()
-        # but separate result queues for saving and syncing
+        self.q_save = Queue()
         self.q_save_res = Queue()
+
+        thread_save = Thread(target=self.worker_save)
+        thread_save.setDaemon(True)
+        thread_save.start()
+        
+        self.q_sync = Queue()
         self.q_sync_res = Queue()
         
-        thread_ss = Thread(target=self.worker_ss)
-        thread_ss.setDaemon(True)
-        thread_ss.start()
+        thread_sync = Thread(target=self.worker_sync)
+        thread_sync.setDaemon(True)
+        thread_sync.start()
         
     def create_note(self, title):
         # need to get a key unique to this database. not really important
@@ -148,9 +152,13 @@ class NotesDB(utils.SubjectMixin):
             o.synced = True
             
         return o
+
+    def get_save_queue_len(self):
+        return self.q_save.qsize()
+
             
-    def get_ss_queue_len(self):
-        return self.q_ss.qsize()
+    def get_sync_queue_len(self):
+        return self.q_sync.qsize()
         
     def helper_key_to_fname(self, k):
         return os.path.join(self.db_path, k) + '.json'
@@ -230,7 +238,7 @@ class NotesDB(utils.SubjectMixin):
                 cn = copy.deepcopy(n)
                 # put it on my queue as a save
                 o = utils.KeyValueObject(action=ACTION_SAVE, key=k, note=cn)
-                self.q_ss.put(o)
+                self.q_save.put(o)
                 
         # in this same call, we process stuff that might have been put on the result queue
         nsaved = 0
@@ -276,7 +284,7 @@ class NotesDB(utils.SubjectMixin):
                 cn['syncdate'] = time.time()
                 # put it on my queue as a sync
                 o = utils.KeyValueObject(action=ACTION_SYNC_PARTIAL_TO_SERVER, key=k, note=cn)
-                self.q_ss.put(o)
+                self.q_sync.put(o)
                 
         # in this same call, we read out the result queue
         nsynced = 0
@@ -435,9 +443,9 @@ class NotesDB(utils.SubjectMixin):
             n['modifydate'] = time.time()
             self.notify_observers('change:note-status', utils.KeyValueObject(what='modifydate', key=key))
 
-    def worker_ss(self):
+    def worker_save(self):
         while True:
-            o = self.q_ss.get()
+            o = self.q_save.get()
             
             if o.action == ACTION_SAVE:
                 # this will write the savedate into o.note
@@ -450,7 +458,11 @@ class NotesDB(utils.SubjectMixin):
                 # somebody has to read out the queue...
                 self.q_save_res.put(o)
                 
-            elif o.action == ACTION_SYNC_PARTIAL_TO_SERVER:
+    def worker_sync(self):
+        while True:
+            o = self.q_sync.get()
+            
+            if o.action == ACTION_SYNC_PARTIAL_TO_SERVER:
                 uret = self.simplenote.update_note(o.note)
                 if uret[1] == 0:
                     # success!
