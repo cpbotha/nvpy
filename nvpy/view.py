@@ -169,6 +169,9 @@ class View(utils.SubjectMixin):
 
         self.search_entry.focus_set()
         
+    def askyesno(self, title, msg):
+        return tkMessageBox.askyesno(title, msg)
+    
     def cmd_lb_notes_select(self, evt):
         sidx = self.get_selected_idx()
         self.notify_observers('select:note', utils.KeyValueObject(sel=sidx))
@@ -291,7 +294,7 @@ class View(utils.SubjectMixin):
         
     def _bind_events(self):
         # make sure window close also goes through our handler
-        self.root.protocol('WM_DELETE_WINDOW', self.close)
+        self.root.protocol('WM_DELETE_WINDOW', self.handler_close)
         
         self.lb_notes.bind("<<ListboxSelect>>", self.cmd_lb_notes_select)
         # same behaviour as when the user presses enter on search entry:
@@ -375,8 +378,8 @@ class View(utils.SubjectMixin):
         file_menu.add_separator()
 
         file_menu.add_command(label = "Exit", underline=1,
-                              command=self.cmd_exit, accelerator="Ctrl+Q")
-        self.root.bind_all("<Control-q>", self.cmd_exit)
+                              command=self.handler_close, accelerator="Ctrl+Q")
+        self.root.bind_all("<Control-q>", self.handler_close)
 
         # EDIT ##########################################################
         edit_menu = tk.Menu(menu, tearoff=False)
@@ -546,10 +549,17 @@ class View(utils.SubjectMixin):
         self.root.update_idletasks()
         
         
-    def close(self):
+    def handler_close(self, evt=None):
+        """Handler for exit menu command and close window event.
+        """
         self.notify_observers('close', None)
+        
+    def close(self):
+        """Programmatically close application windows.
+        
+        Called by controller. 
+        """
         self.root.destroy()
-
 
     def cmd_cut(self):
         self.text_note.event_generate('<<Cut>>')
@@ -571,9 +581,6 @@ class View(utils.SubjectMixin):
             '<http://charlbotha.com/>\n\n'
             'A rather ugly but cross-platform simplenote client.' % (self.config.app_version,),
             parent = self.root)
-
-    def cmd_exit(self, event=None):
-        self.close()
 
     def cmd_rest(self, event=None):
         self.notify_observers('command:rest', None)

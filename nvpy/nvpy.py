@@ -316,11 +316,7 @@ class Controller:
         fn_uri = 'file://' + os.path.abspath(fn)
         webbrowser.open(fn_uri)
         
-    def observer_view_keep_house(self, view, evt_type, evt):
-        # queue up all notes that need to be saved
-        nsaved = self.notes_db.save_threaded()
-        nsynced, sync_errors = self.notes_db.sync_to_server_threaded()
-        
+    def helper_save_sync_msg(self):
         # Saving 2 notes. Syncing 3 notes, waiting for simplenote server.
         # All notes saved. All notes synced.
         
@@ -331,8 +327,17 @@ class Controller:
         savet = 'Saving %d notes. ' % (saven,) if saven > 0 else '';
         synct = 'Waiting to sync %d notes. ' % (syncn,) if syncn > 0 else '';
         wfsnt = 'Syncing with simplenote server.' if wfsn else '';
+        
+        return savet + synct + wfsnt
+        
+        
+    def observer_view_keep_house(self, view, evt_type, evt):
+        # queue up all notes that need to be saved
+        nsaved = self.notes_db.save_threaded()
+        nsynced, sync_errors = self.notes_db.sync_to_server_threaded()
+        
                 
-        self.view.set_status_text(savet + synct + wfsnt)
+        self.view.set_status_text(self.helper_save_sync_msg())
 
         # in continous rendering mode, we also generate a new HTML
         # the browser, if open, will refresh!
@@ -400,9 +405,27 @@ class Controller:
                                            self.view.get_text())
             
     def observer_view_close(self, view, evt_type, evt):
-        # do a last full sync before we go!
-        #self.sync_full()
-        pass
+        # check that everything has been saved and synced before exiting
+        
+        # first make sure all our queues are up to date
+        self.notes_db.save_threaded()
+        self.notes_db.sync_to_server_threaded(wait_for_idle=False)        
+        
+        # then check all queues
+        saven = self.notes_db.get_save_queue_len()
+        syncn = self.notes_db.get_sync_queue_len()
+        wfsn = self.notes_db.waiting_for_simplenote
+        
+        # if there's still something to do, warn the user.
+        if saven or syncn or wfsn:
+            msg = "Are you sure you want to exit? I'm still busy: " + self.helper_save_sync_msg()
+            really_want_to_exit = self.view.askyesno("Confirm exit", msg)
+            
+            if really_want_to_exit:
+                self.view.close()
+                
+        else:
+            self.view.close()
         
     def observer_view_create_note(self, view, evt_type, evt):
         # create the note

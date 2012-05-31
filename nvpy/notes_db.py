@@ -265,10 +265,22 @@ class NotesDB(utils.SubjectMixin):
         return nsaved
         
     
-    def sync_to_server_threaded(self):
+    def sync_to_server_threaded(self, wait_for_idle=True):
         """Only sync notes that have been changed / created locally since previous sync.
         
+        @param wait_for_idle: Usually, last modification date has to be more
+        than a few seconds ago before a sync to server is attempted. If
+        wait_for_idle is set to False, no waiting is applied. Used by exit
+        cleanup in controller.
+        
         """
+        
+        # this many seconds of idle time (i.e. modification this long ago)
+        # before we try to sync.
+        if wait_for_idle:
+            lastmod = 3
+        else:
+            lastmod = 0
         
         now = time.time()
         for k,n in self.notes.items():
@@ -279,7 +291,7 @@ class NotesDB(utils.SubjectMixin):
             modifydate = float(n.get('modifydate', -1))
             syncdate = float(n.get('syncdate', -1))
             if modifydate > syncdate and \
-               now - modifydate > 3 and \
+               now - modifydate > lastmod and \
                k not in self.threaded_syncing_keys:
                 # record that we've requested a sync on this note,
                 # so that we don't keep on putting stuff on the queue.
