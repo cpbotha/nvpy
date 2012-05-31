@@ -321,12 +321,18 @@ class Controller:
         nsaved = self.notes_db.save_threaded()
         nsynced, sync_errors = self.notes_db.sync_to_server_threaded()
         
-        # get list of note titles, and pass to view to check and fix if necessary
-        #qlen = self.notes_db.get_ss_queue_len() 
-        #if qlen > 0:
-        #    self.view.set_status_text('Saving and syncing, %d notes in the queue.' % (qlen,))
-        #else:
-        #    self.view.set_status_text('Idle.')
+        # Saving 2 notes. Syncing 3 notes, waiting for simplenote server.
+        # All notes saved. All notes synced.
+        
+        saven = self.notes_db.get_save_queue_len()
+        syncn = self.notes_db.get_sync_queue_len()
+        wfsn = self.notes_db.waiting_for_simplenote
+        
+        savet = 'Saving %d notes. ' % (saven,) if saven > 0 else '';
+        synct = 'Waiting to sync %d notes. ' % (syncn,) if syncn > 0 else '';
+        wfsnt = 'Syncing with simplenote server.' if wfsn else '';
+                
+        self.view.set_status_text(savet + synct + wfsnt)
 
         # in continous rendering mode, we also generate a new HTML
         # the browser, if open, will refresh!

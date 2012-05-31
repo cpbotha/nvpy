@@ -57,8 +57,13 @@ class NotesDB(utils.SubjectMixin):
         
         # we'll use this to store which notes are currently being synced by
         # the background thread, so we don't add them anew if they're still
-        # in progress
+        # in progress. This variable is only used by the background thread.
         self.threaded_syncing_keys = {}
+        
+        # reading a variable or setting this variable is atomic
+        # so sync thread will write to it, main thread will only
+        # check it sometimes.
+        self.waiting_for_simplenote = False
         
         # save and sync queue
         self.q_save = Queue()
@@ -463,7 +468,10 @@ class NotesDB(utils.SubjectMixin):
             o = self.q_sync.get()
             
             if o.action == ACTION_SYNC_PARTIAL_TO_SERVER:
+                self.waiting_for_simplenote = True
                 uret = self.simplenote.update_note(o.note)
+                self.waiting_for_simplenote = False
+                
                 if uret[1] == 0:
                     # success!
                     n = uret[0]
