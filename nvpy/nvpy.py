@@ -324,11 +324,11 @@ class Controller:
         syncn = self.notes_db.get_sync_queue_len()
         wfsn = self.notes_db.waiting_for_simplenote
         
-        savet = 'Saving %d notes. ' % (saven,) if saven > 0 else '';
-        synct = 'Waiting to sync %d notes. ' % (syncn,) if syncn > 0 else '';
+        savet = 'Saving %d notes.' % (saven,) if saven > 0 else '';
+        synct = 'Waiting to sync %d notes.' % (syncn,) if syncn > 0 else '';
         wfsnt = 'Syncing with simplenote server.' if wfsn else '';
         
-        return savet + synct + wfsnt
+        return ' '.join([i for i in [savet, synct, wfsnt] if i])
         
         
     def observer_view_keep_house(self, view, evt_type, evt):
@@ -336,8 +336,12 @@ class Controller:
         nsaved = self.notes_db.save_threaded()
         nsynced, sync_errors = self.notes_db.sync_to_server_threaded()
         
-                
-        self.view.set_status_text(self.helper_save_sync_msg())
+        msg = self.helper_save_sync_msg()
+
+        if sync_errors:
+            msg = ' '.join([i for i in [msg, 'Could not connect to simplenote server.'] if i])
+            
+        self.view.set_status_text(msg)
 
         # in continous rendering mode, we also generate a new HTML
         # the browser, if open, will refresh!

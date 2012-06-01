@@ -268,6 +268,9 @@ class NotesDB(utils.SubjectMixin):
     def sync_to_server_threaded(self, wait_for_idle=True):
         """Only sync notes that have been changed / created locally since previous sync.
         
+        This function is called by the housekeeping handler, so once every
+        few seconds.
+        
         @param wait_for_idle: Usually, last modification date has to be more
         than a few seconds ago before a sync to server is attempted. If
         wait_for_idle is set to False, no waiting is applied. Used by exit
@@ -509,5 +512,5 @@ class NotesDB(utils.SubjectMixin):
                     
                 else:
                     o.error = 1
+                    self.q_sync_res.put(o)
                     
-                   
