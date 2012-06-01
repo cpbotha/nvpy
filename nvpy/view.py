@@ -476,11 +476,18 @@ class View(utils.SubjectMixin):
         left_frame = tk.Frame(paned_window, width=100)
         paned_window.add(left_frame)
        
+        # setup the scrollbar
+        self.sb_notes = tk.Scrollbar(left_frame, orient=tk.VERTICAL)
+        
         # exportselection=0 means it doesn't automatically export to
         # x selection. with that active, selecting in the text widget
         # removes selection in listbox.
         # thank you http://stackoverflow.com/a/756875
-        self.lb_notes = tk.Listbox(left_frame, exportselection=0)
+        self.lb_notes = tk.Listbox(left_frame, exportselection=0,
+                                   yscrollcommand=self.sb_notes.set)
+        
+        self.sb_notes.config(command=self.lb_notes.yview)
+        self.sb_notes.pack(side=tk.RIGHT, fill=tk.Y)
         
         # need both fill and expand to make it fill all avail area
         self.lb_notes.pack(fill=tk.BOTH, expand=1)
