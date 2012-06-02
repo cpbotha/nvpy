@@ -6,7 +6,7 @@ nvpy is a simplenote-syncing note-taking tool inspired by Notational
 Velocity (and a little bit by nvALT too) on OSX and ResophNotes on
 Windows. It is significantly uglier, but it is cross-platform.  Yes,
 you heard right, you can run this on Linux (tested), Windows (tested)
-and OS X (in theory).
+and OS X (lightly tested).
 
 It was written by Charl Botha, who needed a simplenote client on
 Linux and doesn't mind ugliness (that much).
