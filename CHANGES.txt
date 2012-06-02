@@ -1,3 +1,4 @@
+v0.8, 2012-06-02 -- Save/sync check at exit. Listbox + statusbar improvements.
 v0.7.1, 2012-05-29 -- Removed pdb.set_trace() in notes_db.
 v0.7, 2012-05-29 -- lb selection != selected note bug fix.
 v0.6, 2012-05-29 -- Search string highlighting in text. Bug fixes.

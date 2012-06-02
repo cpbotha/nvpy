@@ -192,7 +192,7 @@ class Controller:
             return None
                 
     def get_version(self):
-        return "0.7.1"
+        return "0.8"
     
     def main_loop(self):
         self.view.main_loop()
