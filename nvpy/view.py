@@ -247,6 +247,11 @@ class View(utils.SubjectMixin):
         # we move the active (underlined) selection along, else we lose
         # synchronization during arrow movements with the search entry selected
         self.lb_notes.activate(idx)
+        
+        # make sure the selected index is visible
+        # this only moves the view if the selected note is really not visible
+        self.lb_notes.see(idx)
+        
         if not silent:
             # we have to generate event explicitly, it doesn't fire by itself in this case
             self.lb_notes.event_generate('<<ListboxSelect>>')
