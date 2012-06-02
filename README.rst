@@ -69,6 +69,8 @@ the application by typing "nvpy". The first time you run it, it will take
 a while as it downloads all of your simplenote notes. Subsequest runs
 are much faster as it uses the database it stores in your home directory.
 
+If you prefer to run from your git clone, you can just invoke python on nvpy.py, or on the nvpy package directory.
+
 The `example nvpy.cfg <https://github.com/cpbotha/nvpy/blob/master/nvpy/nvpy-example.cfg>`_ shows how you can configure the font 
 family and size.
 
