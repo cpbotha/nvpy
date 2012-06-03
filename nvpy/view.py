@@ -3,6 +3,7 @@
 # new BSD license
 
 import copy
+import logging
 import os
 import re
 import search_entry
@@ -617,14 +618,14 @@ class View(utils.SubjectMixin):
             ot = self.lb_notes.get(i)
             # if we strike a note with an out-of-date title, redo.
             if nt != ot:
-                print "title out of date"
+                logging.debug('title "%s" resync' % (nt,))
                 refresh_notes_list = True
                 continue
             
             if self.config.sort_mode == 0:
                 # alpha
                 if prev_title is not None and prev_title > nt:
-                    print "alpha resort"
+                    logging.debug("alpha resort triggered")
                     refresh_notes_list = True
                     continue
                 
@@ -633,7 +634,7 @@ class View(utils.SubjectMixin):
             else:
                 md = float(o.note.get('modifydate', 0))
                 if prev_modifydate is not None and prev_modifydate < md:
-                    print "modifydate resort"
+                    logging.debug("modifydate resort triggered")
                     refresh_notes_list = True
                     continue
                 

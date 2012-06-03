@@ -32,6 +32,8 @@
 
 import codecs
 import ConfigParser
+import logging
+from logging.handlers import RotatingFileHandler
 from notes_db import NotesDB, SyncError
 import os
 import sys
@@ -139,6 +141,19 @@ class Controller:
         # should probably also look in $HOME
         self.config = Config(self.appdir)
         self.config.app_version = self.get_version()
+
+	# configure logging module
+	log_filename = os.path.join(self.config.db_path, 'nvpy.log')
+	# file will get nuked when it reaches 100kB
+	lhandler = RotatingFileHandler(log_filename, maxBytes=100000)
+	lhandler.setLevel(logging.DEBUG)
+	lhandler.setFormatter(logging.Formatter(fmt='%(asctime)s - %(levelname)s - %(message)s'))
+	# we get the root logger and configure it
+	logger = logging.getLogger()
+	logger.setLevel(logging.DEBUG)
+	logger.addHandler(lhandler)
+	# this will go to the root logger
+	logging.debug('nvpy logging initialized')
         
         # read our database of notes into memory
         # and sync with simplenote.
@@ -203,7 +218,7 @@ class Controller:
             self.view.set_note_status(self.notes_db.get_note_status(skey))
             
     def observer_notes_db_sync_full(self, notes_db, evt_type, evt):
-        print evt.msg
+	logging.debug(evt.msg)
         self.view.set_status_text(evt.msg)
         
     def observer_notes_db_synced_note(self, notes_db, evt_type, evt):
