@@ -82,7 +82,9 @@ class Config:
         cp = ConfigParser.SafeConfigParser(defaults, allow_no_value=True)
         # later config files overwrite earlier files
         cp.read([os.path.join(app_dir, 'nvpy.cfg'), os.path.join(home, 'nvpy.cfg'), os.path.join(home, '.nvpy.cfg')])
-        
+
+        # FIXME:
+        # if there's no file, this errors with ConfigParser.NoSectionError
         self.sn_username = cp.get('default', 'sn_username')
         self.sn_password = cp.get('default', 'sn_password')
         # make logic to find in $HOME if not set
@@ -142,19 +144,25 @@ class Controller:
         self.config = Config(self.appdir)
         self.config.app_version = self.get_version()
 
-	# configure logging module
-	log_filename = os.path.join(self.config.db_path, 'nvpy.log')
-	# file will get nuked when it reaches 100kB
-	lhandler = RotatingFileHandler(log_filename, maxBytes=100000)
-	lhandler.setLevel(logging.DEBUG)
-	lhandler.setFormatter(logging.Formatter(fmt='%(asctime)s - %(levelname)s - %(message)s'))
-	# we get the root logger and configure it
-	logger = logging.getLogger()
-	logger.setLevel(logging.DEBUG)
-	logger.addHandler(lhandler)
-	# this will go to the root logger
-	logging.debug('nvpy logging initialized')
-        
+        # configure logging module
+        #############################
+
+        # first create db directory if it doesn't exist yet.
+        if not os.path.exists(self.config.db_path):
+            os.mkdir(self.config.db_path)
+
+        log_filename = os.path.join(self.config.db_path, 'nvpy.log')
+        # file will get nuked when it reaches 100kB
+        lhandler = RotatingFileHandler(log_filename, maxBytes=100000)
+        lhandler.setLevel(logging.DEBUG)
+        lhandler.setFormatter(logging.Formatter(fmt='%(asctime)s - %(levelname)s - %(message)s'))
+        # we get the root logger and configure it
+        logger = logging.getLogger()
+        logger.setLevel(logging.DEBUG)
+        logger.addHandler(lhandler)
+        # this will go to the root logger
+        logging.debug('nvpy logging initialized')
+                
         # read our database of notes into memory
         # and sync with simplenote.
         c = self.config
