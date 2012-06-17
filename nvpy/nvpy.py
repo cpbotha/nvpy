@@ -59,6 +59,10 @@ else:
     HAVE_DOCUTILS = True
 
 class Config:
+    """
+    @ivar files_read: list of config files that were parsed.
+    @ivar ok: True if config files had a default section, False otherwise.
+    """
     def __init__(self, app_dir):
         """
         @param app_dir: the directory containing nvPY.py
@@ -75,26 +79,42 @@ class Config:
                     'sort_mode' : '1',
                     'db_path' : os.path.join(home, '.nvpy'),
                     'font_family' : 'Courier',
-                    'font_size' : '12'
+                    'font_size' : '12',
+                    'sn_username' : '',
+                    'sn_password' : ''
                    }
         
         cp = ConfigParser.SafeConfigParser(defaults)
         # later config files overwrite earlier files
-        cp.read([os.path.join(app_dir, 'nvpy.cfg'), os.path.join(home, 'nvpy.cfg'), os.path.join(home, '.nvpy.cfg')])
+        # try a number of alternatives
+        self.files_read = cp.read([os.path.join(app_dir, 'nvpy.cfg'), 
+                                   os.path.join(home, 'nvpy.cfg'), 
+                                   os.path.join(home, '.nvpy.cfg'),
+                                   os.path.join(home, '.nvpy'),
+                                   os.path.join(home, '.nvpyrc')])
+        
+        cfg_sec = 'nvpy'
+        
+        if not cp.has_section(cfg_sec):
+            cp.add_section(cfg_sec)
+            self.ok = False
+            
+        else:
+            self.ok = True
 
         # FIXME:
         # if there's no file, this errors with ConfigParser.NoSectionError
-        self.sn_username = cp.get('default', 'sn_username')
-        self.sn_password = cp.get('default', 'sn_password')
+        self.sn_username = cp.get(cfg_sec, 'sn_username')
+        self.sn_password = cp.get(cfg_sec, 'sn_password')
         # make logic to find in $HOME if not set
-        self.db_path = cp.get('default', 'db_path')
+        self.db_path = cp.get(cfg_sec, 'db_path')
         #  0 = alpha sort, 1 = last modified first
-        self.sort_mode = cp.getint('default', 'sort_mode')
-        self.housekeeping_interval = cp.getint('default', 'housekeeping_interval')
+        self.sort_mode = cp.getint(cfg_sec, 'sort_mode')
+        self.housekeeping_interval = cp.getint(cfg_sec, 'housekeeping_interval')
         self.housekeeping_interval_ms = self.housekeeping_interval * 1000
         
-        self.font_family = cp.get('default', 'font_family')
-        self.font_size = cp.getint('default', 'font_size')
+        self.font_family = cp.get(cfg_sec, 'font_family')
+        self.font_size = cp.getint(cfg_sec, 'font_size')
         
 class NotesListModel(SubjectMixin):
     """
@@ -161,6 +181,8 @@ class Controller:
         logger.addHandler(lhandler)
         # this will go to the root logger
         logging.debug('nvpy logging initialized')
+        
+        logging.debug('config read from %s' % (str(self.config.files_read),))
                 
         # read our database of notes into memory
         # and sync with simplenote.

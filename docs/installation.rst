@@ -17,7 +17,7 @@ Windows step-by-step for beginners
 
 6. In c:\\users\\yourlogin\\ create a file called nvpy.cfg, using your favourite text editor, with the lines::
 
-    [default]
+    [nvpy]
     sn_username = your_simplenote_email
     sn_password = your_simplenote_password
 
@@ -33,7 +33,7 @@ On Debian-flavoured systems with apt, this generally works::
 
 Create a file in your home directory called .nvpy.cfg with just the following contents::
 
-    [default]
+    [nvpy]
     sn_username = your_simplenote_email
     sn_password = your_simplenote_password
 

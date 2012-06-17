@@ -63,7 +63,7 @@ How to run for the first time
 Create a file called .nvpy.cfg in your home directory that looks like
 the following::
 
-    [default]
+    [nvpy]
     sn_username = your_simplenote_username
     sn_password = your_simplenote_password
 
