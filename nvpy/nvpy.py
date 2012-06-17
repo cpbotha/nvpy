@@ -78,8 +78,7 @@ class Config:
                     'font_size' : '12'
                    }
         
-        # allow_no_value=True means we'll just get None for undefined values
-        cp = ConfigParser.SafeConfigParser(defaults, allow_no_value=True)
+        cp = ConfigParser.SafeConfigParser(defaults)
         # later config files overwrite earlier files
         cp.read([os.path.join(app_dir, 'nvpy.cfg'), os.path.join(home, 'nvpy.cfg'), os.path.join(home, '.nvpy.cfg')])
 
