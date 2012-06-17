@@ -802,6 +802,12 @@ class View(utils.SubjectMixin):
     def show_error(self, title, msg):
         tkMessageBox.showerror(title, msg)
 
+    def show_info(self, title, msg):        
+        tkMessageBox.showinfo(title, msg,parent = self.root)
+
+    def show_warning(self, title, msg):
+        tkMessageBox.showwarning(title, msg)
+
     def update_selected_note_text(self, content):
         # store cursor position
         cursor_pos = self.text_note.index(tk.INSERT)

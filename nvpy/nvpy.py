@@ -239,6 +239,10 @@ class Controller:
         return "0.8"
     
     def main_loop(self):
+        if not self.config.files_read:
+            self.view.show_warning('No config file', 
+                                  'Could not read any configuration files. See https://github.com/cpbotha/nvpy for details.')
+            
         self.view.main_loop()
         
     def observer_notes_db_change_note_status(self, notes_db, evt_type, evt):
