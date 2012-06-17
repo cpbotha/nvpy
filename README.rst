@@ -54,6 +54,9 @@ OR, you can of course use easy\_install instead::
 github always has the latest development version, whereas I upload
 tagged snapshots (v0.3 for example) to pypi.
 
+For more detailed installation recipes, also for beginners, see
+the `nvPY installation guide <https://github.com/cpbotha/nvpy/blob/master/docs/installation.rst>`_.
+
 How to run for the first time
 =============================
 
