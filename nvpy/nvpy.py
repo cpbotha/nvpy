@@ -242,6 +242,12 @@ class Controller:
         if not self.config.files_read:
             self.view.show_warning('No config file', 
                                   'Could not read any configuration files. See https://github.com/cpbotha/nvpy for details.')
+
+        elif not self.config.ok:
+            wmsg = ('Please rename [default] to [nvpy] in %s. ' + \
+                    'Config file format changed after nvPY 0.8.') % \
+            (str(self.config.files_read),)
+            self.view.show_warning('Rename config section', wmsg)
             
         self.view.main_loop()
         

@@ -416,6 +416,8 @@ class NotesDB(utils.SubjectMixin):
         for ni,n in enumerate(nl):
             k = n.get('key')
             server_keys[k] = True
+            # this works, only because in phase 1 we rewrite local keys to
+            # server keys when we get an updated not back from the server
             if k in self.notes:
                 # we already have this
                 # check if server n has a newer syncnum than mine
