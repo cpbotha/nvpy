@@ -6,6 +6,7 @@ import copy
 import glob
 import os
 import json
+import logging
 from Queue import Queue, Empty
 import re
 import simplenote
@@ -486,6 +487,9 @@ class NotesDB(utils.SubjectMixin):
             
             if o.action == ACTION_SYNC_PARTIAL_TO_SERVER:
                 self.waiting_for_simplenote = True
+                if 'key' in o.note:
+                    logging.debug('Updating note ' + o.note['key'] + ' to server.')
+                    
                 uret = self.simplenote.update_note(o.note)
                 self.waiting_for_simplenote = False
                 
@@ -497,6 +501,8 @@ class NotesDB(utils.SubjectMixin):
                         # if note has not been changed, we don't get content back
                         # delete our own copy too.
                         del o.note['content']
+                        
+                    logging.debug('Server replies with updated note ' + n['key'])
                         
                     # syncdate was set when the note was copied into our queue
                     # we rely on that to determine when a returned note should
