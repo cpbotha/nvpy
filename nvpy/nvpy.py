@@ -237,7 +237,7 @@ class Controller:
             return None
                 
     def get_version(self):
-        return "0.8"
+        return "0.8.5"
     
     def main_loop(self):
         if not self.config.files_read:
