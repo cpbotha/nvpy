@@ -320,8 +320,6 @@ class NotesDB(utils.SubjectMixin):
                 
             else:
                 okey = o.key
-                # this has come back.
-                del self.threaded_syncing_keys[okey]
 
                 if o.error:
                     nerrored += 1
@@ -348,13 +346,23 @@ class NotesDB(utils.SubjectMixin):
                             # the user has changed stuff since the version that got synced
                             # just record syncnum and version that we got from simplenote
                             # if we don't do this, merging problems start happening.
-                            tkeys = ['syncnum', 'version', 'syncdate']
+                            # VERY importantly: also store the key. It
+                            # could be that we've just created the
+                            # note, but that the user continued
+                            # typing. We need to store the new server
+                            # key, else we'll keep on sending new
+                            # notes.
+                            tkeys = ['syncnum', 'version', 'syncdate', 'key']
                             for tk in tkeys:
                                 self.notes[okey][tk] = o.note[tk]
                             
                         nsynced += 1
                         self.notify_observers('change:note-status', utils.KeyValueObject(what='syncdate',key=okey))
                     
+                # after having handled the note that just came back,
+                # we can take it from this blocker dict
+                del self.threaded_syncing_keys[okey]
+
         return (nsynced, nerrored)
     
     
@@ -488,7 +496,10 @@ class NotesDB(utils.SubjectMixin):
             if o.action == ACTION_SYNC_PARTIAL_TO_SERVER:
                 self.waiting_for_simplenote = True
                 if 'key' in o.note:
-                    logging.debug('Updating note ' + o.note['key'] + ' to server.')
+                    logging.debug('Updating note %s (local key %s) to server.' % (o.note['key'], o.key))
+
+                else:
+                    logging.debug('Sending new note (local key %s) to server.' % (o.key,))
                     
                 uret = self.simplenote.update_note(o.note)
                 self.waiting_for_simplenote = False
