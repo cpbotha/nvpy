@@ -102,10 +102,11 @@ class Config:
         else:
             self.ok = True
 
-        # FIXME:
-        # if there's no file, this errors with ConfigParser.NoSectionError
-        self.sn_username = cp.get(cfg_sec, 'sn_username')
-        self.sn_password = cp.get(cfg_sec, 'sn_password')
+        # for the username and password, we don't want interpolation,
+        # hence the raw parameter. Fixes
+        # https://github.com/cpbotha/nvpy/issues/9
+        self.sn_username = cp.get(cfg_sec, 'sn_username', raw=True)
+        self.sn_password = cp.get(cfg_sec, 'sn_password', raw=True)
         # make logic to find in $HOME if not set
         self.db_path = cp.get(cfg_sec, 'db_path')
         #  0 = alpha sort, 1 = last modified first
