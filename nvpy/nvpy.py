@@ -77,6 +77,8 @@ class Config:
                     'home' : home,
                     'housekeeping_interval' : '2',
                     'sort_mode' : '1',
+						  'pinned_ontop' : '1',
+                    'print_date' : '0',
                     'db_path' : os.path.join(home, '.nvpy'),
                     'font_family' : 'Courier',
                     'font_size' : '12',
@@ -111,6 +113,8 @@ class Config:
         self.db_path = cp.get(cfg_sec, 'db_path')
         #  0 = alpha sort, 1 = last modified first
         self.sort_mode = cp.getint(cfg_sec, 'sort_mode')
+        self.pinned_ontop = cp.getint(cfg_sec, 'pinned_ontop')
+        self.print_date = cp.getint(cfg_sec, 'print_date')
         self.housekeeping_interval = cp.getint(cfg_sec, 'housekeeping_interval')
         self.housekeeping_interval_ms = self.housekeeping_interval * 1000
         
@@ -188,7 +192,7 @@ class Controller:
         # read our database of notes into memory
         # and sync with simplenote.
         c = self.config
-        notes_db_config = KeyValueObject(db_path=c.db_path, sn_username=c.sn_username, sn_password=c.sn_password, sort_mode=c.sort_mode)
+        notes_db_config = KeyValueObject(db_path=c.db_path, sn_username=c.sn_username, sn_password=c.sn_password, sort_mode=c.sort_mode, pinned_ontop=c.pinned_ontop)
         self.notes_db = NotesDB(notes_db_config)
         self.notes_db.add_observer('synced:note', self.observer_notes_db_synced_note)
         self.notes_db.add_observer('change:note-status', self.observer_notes_db_change_note_status)

@@ -131,12 +131,18 @@ class NotesDB(utils.SubjectMixin):
                 filtered_notes.append(utils.KeyValueObject(key=k, note=n))
             
         if self.config.sort_mode == 0:
-            # sort alphabetically on title
-            filtered_notes.sort(key=lambda o: utils.get_note_title(o.note))
+            if self.config.pinned_ontop == 0:
+                # sort alphabetically on title
+                filtered_notes.sort(key=lambda o: utils.get_note_title(o.note))
+            else:
+                filtered_notes.sort(utils.SortByTitlePinned)
             
         else:
-            # last modified on top
-            filtered_notes.sort(key=lambda o: -float(o.note.get('modifydate', 0)))
+            if self.config.pinned_ontop == 0:
+                # last modified on top
+                filtered_notes.sort(key=lambda o: -float(o.note.get('modifydate', 0)))
+            else:
+                filtered_notes.sort(utils.SortByModifyDatePinned, reverse=True)
             
         return filtered_notes
     
