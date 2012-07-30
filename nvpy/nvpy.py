@@ -76,6 +76,8 @@ class Config:
                     'appdir' : app_dir,
                     'home' : home,
                     'housekeeping_interval' : '2',
+						  'case_sensitive' : '1',
+						  'search_tags' : '0',
                     'sort_mode' : '1',
 						  'pinned_ontop' : '1',
                     'print_date' : '0',
@@ -112,6 +114,8 @@ class Config:
         # make logic to find in $HOME if not set
         self.db_path = cp.get(cfg_sec, 'db_path')
         #  0 = alpha sort, 1 = last modified first
+        self.case_sensitive = cp.getint(cfg_sec, 'case_sensitive')
+        self.search_tags = cp.getint(cfg_sec, 'search_tags')
         self.sort_mode = cp.getint(cfg_sec, 'sort_mode')
         self.pinned_ontop = cp.getint(cfg_sec, 'pinned_ontop')
         self.print_date = cp.getint(cfg_sec, 'print_date')
@@ -192,7 +196,7 @@ class Controller:
         # read our database of notes into memory
         # and sync with simplenote.
         c = self.config
-        notes_db_config = KeyValueObject(db_path=c.db_path, sn_username=c.sn_username, sn_password=c.sn_password, sort_mode=c.sort_mode, pinned_ontop=c.pinned_ontop)
+        notes_db_config = KeyValueObject(db_path=c.db_path, sn_username=c.sn_username, sn_password=c.sn_password, sort_mode=c.sort_mode, pinned_ontop=c.pinned_ontop, case_sensitive=c.case_sensitive, search_tags=c.search_tags)
         self.notes_db = NotesDB(notes_db_config)
         self.notes_db.add_observer('synced:note', self.observer_notes_db_synced_note)
         self.notes_db.add_observer('change:note-status', self.observer_notes_db_change_note_status)

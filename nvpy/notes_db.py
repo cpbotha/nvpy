@@ -115,7 +115,10 @@ class NotesDB(utils.SubjectMixin):
 
         if search_string:
             try:
-                sspat = re.compile(search_string)
+                if self.config.case_sensitive == 0:
+                    sspat = re.compile(search_string, re.I)
+                else:
+                    sspat = re.compile(search_string)
             except re.error:
                 sspat = None
             
@@ -126,9 +129,15 @@ class NotesDB(utils.SubjectMixin):
         for k in self.notes:
             n = self.notes[k]
             c = n.get('content')
-            if not n.get('deleted') and (not sspat or sspat.search(c)):
-                # we have to store our local key also
-                filtered_notes.append(utils.KeyValueObject(key=k, note=n))
+            if self.config.search_tags == 1:
+                t = n.get('tags')
+                if not n.get('deleted') and ((not sspat or sspat.search(c)) or filter(sspat.search, t)):
+                    # we have to store our local key also
+                    filtered_notes.append(utils.KeyValueObject(key=k, note=n))
+            else:
+                if not n.get('deleted') and (not sspat or sspat.search(c)):
+                    # we have to store our local key also
+                    filtered_notes.append(utils.KeyValueObject(key=k, note=n))
             
         if self.config.sort_mode == 0:
             if self.config.pinned_ontop == 0:
