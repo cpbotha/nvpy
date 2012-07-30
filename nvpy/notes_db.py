@@ -436,18 +436,20 @@ class NotesDB(utils.SubjectMixin):
                     if ret[1] == 0:
                         self.notes[k].update(ret[0])
                         local_updates[k] = True
+                        # in both cases, new or newer note, syncdate is now.
+                        self.notes[k]['syncdate'] = now
                         self.notify_observers('progress:sync_full', utils.KeyValueObject(msg='Synced newer note %d (%d) from server.' % (ni,lennl)))
-                        
+
             else:
                 # new note
                 ret = self.simplenote.get_note(k)
                 if ret[1] == 0:
                     self.notes[k] = ret[0]
                     local_updates[k] = True
+                    # in both cases, new or newer note, syncdate is now.
+                    self.notes[k]['syncdate'] = now
                     self.notify_observers('progress:sync_full', utils.KeyValueObject(msg='Synced new note %d (%d) from server.' % (ni,lennl)))
                     
-            # in both cases, new or newer note, syncdate is now.
-            self.notes[k]['syncdate'] = now
                     
         # 3. for each local note not in server index, remove.     
         for lk in self.notes.keys():
