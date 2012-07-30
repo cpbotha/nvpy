@@ -258,7 +258,7 @@ class Controller:
             self.view.set_note_status(self.notes_db.get_note_status(skey))
             
     def observer_notes_db_sync_full(self, notes_db, evt_type, evt):
-	logging.debug(evt.msg)
+        logging.debug(evt.msg)
         self.view.set_status_text(evt.msg)
         
     def observer_notes_db_synced_note(self, notes_db, evt_type, evt):
@@ -516,15 +516,19 @@ class Controller:
 
     def sync_full(self):
         try:
-            self.notes_db.sync_full()
-        except SyncError:
-            pass
+            sync_from_server_errors = self.notes_db.sync_full()
+
+        except SyncError as e:
+            self.view.show_error('Sync error', e.message)
         
         else:
             # regenerate display list
             # reselect old selection
             # put cursor where it used to be.
             self.view.refresh_notes_list()
+
+            if sync_from_server_errors > 0:
+                self.view.show_error('Error syncing notes from server', 'Error syncing %d notes from server. Please check nvpy.log for details.' % (sync_from_server_errors,))
         
 
 def main():

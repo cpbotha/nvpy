@@ -407,7 +407,7 @@ class NotesDB(utils.SubjectMixin):
                     self.notify_observers('progress:sync_full', utils.KeyValueObject(msg='Synced modified note %d to server.' % (ni,)))
                         
                 else:
-                    raise SyncError("Sync step 1 error: Could not update note to server.")
+                    raise SyncError("Sync step 1 error - Could not update note to server")
              
         # 2. if remote syncnum > local syncnum, update our note; if key is new, add note to local.
         # this gets the FULL note list, even if multiple gets are required
@@ -422,6 +422,7 @@ class NotesDB(utils.SubjectMixin):
         
         server_keys = {}
         lennl = len(nl)
+        sync_from_server_errors = 0
         for ni,n in enumerate(nl):
             k = n.get('key')
             server_keys[k] = True
@@ -440,6 +441,10 @@ class NotesDB(utils.SubjectMixin):
                         self.notes[k]['syncdate'] = now
                         self.notify_observers('progress:sync_full', utils.KeyValueObject(msg='Synced newer note %d (%d) from server.' % (ni,lennl)))
 
+                    else:
+                        logging.error('Error syncing newer note %s from server: %s' % (k, ret[0]))
+                        sync_from_server_errors+=1
+
             else:
                 # new note
                 ret = self.simplenote.get_note(k)
@@ -449,8 +454,11 @@ class NotesDB(utils.SubjectMixin):
                     # in both cases, new or newer note, syncdate is now.
                     self.notes[k]['syncdate'] = now
                     self.notify_observers('progress:sync_full', utils.KeyValueObject(msg='Synced new note %d (%d) from server.' % (ni,lennl)))
-                    
-                    
+
+                else:
+                    logging.error('Error syncing new note %s from server: %s' % (k, ret[0]))
+                    sync_from_server_errors+=1
+
         # 3. for each local note not in server index, remove.     
         for lk in self.notes.keys():
             if lk not in server_keys:
@@ -467,6 +475,8 @@ class NotesDB(utils.SubjectMixin):
                 os.unlink(fn)
 
         self.notify_observers('progress:sync_full', utils.KeyValueObject(msg='Full sync complete.'))
+
+        return sync_from_server_errors
         
     def set_note_content(self, key, content):
         n = self.notes[key]
