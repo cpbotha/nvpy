@@ -25,6 +25,9 @@ def get_note_title(note):
 
 def NotePinned(n):
     asystags = n.get('systemtags', 0)
+    if not asystags:
+        return 0
+
     if 'pinned' in asystags:
         return 1
     else:
