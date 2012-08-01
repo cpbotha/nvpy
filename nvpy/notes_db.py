@@ -43,14 +43,20 @@ class NotesDB(utils.SubjectMixin):
         fnlist = glob.glob(self.helper_key_to_fname('*'))
         self.notes = {}
         for fn in fnlist:
-            n = json.load(open(fn, 'rb'))
-            # we always have a localkey, also when we don't have a note['key'] yet (no sync)
-            localkey = os.path.splitext(os.path.basename(fn))[0]
-            self.notes[localkey] = n
-            # we maintain in memory a timestamp of the last save
-            # these notes have just been read, so at this moment
-            # they're in sync with the disc.
-            n['savedate'] = now
+            try:
+                n = json.load(open(fn, 'rb'))
+
+            except ValueError, e:
+                logging.error('Error parsing %s: %s' % (fn, str(e)))
+
+            else:
+                # we always have a localkey, also when we don't have a note['key'] yet (no sync)
+                localkey = os.path.splitext(os.path.basename(fn))[0]
+                self.notes[localkey] = n
+                # we maintain in memory a timestamp of the last save
+                # these notes have just been read, so at this moment
+                # they're in sync with the disc.
+                n['savedate'] = now
         
         # initialise the simplenote instance we're going to use
         # this does not yet need network access
