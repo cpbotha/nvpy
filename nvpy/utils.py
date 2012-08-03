@@ -22,8 +22,34 @@ def get_note_title(note):
         return mo.groups()[0]
     else:
         return ''
-    
 
+def NotePinned(n):
+    asystags = n.get('systemtags', 0)
+    # no systemtag at all
+    if not asystags:
+        return 0
+
+    if 'pinned' in asystags:
+        return 1
+    else:
+        return 0
+
+    
+def SortByTitlePinned(a, b):
+    if NotePinned(a.note) and not NotePinned(b.note):
+        return -1
+    elif not NotePinned(a.note) and NotePinned(b.note):
+        return 1
+    else:
+        return cmp(get_note_title(a.note), get_note_title(b.note))
+
+def SortByModifyDatePinned(a, b):
+    if NotePinned(a.note) and not NotePinned(b.note):
+        return 1
+    elif not NotePinned(a.note) and NotePinned(b.note):
+        return -1
+    else:
+        return cmp(float(a.note.get('modifydate', 0)), float(b.note.get('modifydate', 0)))
 
 def check_internet_on():
     """Utility method to check if we have an internet connection.
