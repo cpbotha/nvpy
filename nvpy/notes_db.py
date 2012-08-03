@@ -121,7 +121,10 @@ class NotesDB(utils.SubjectMixin):
 
         if search_string:
             try:
-                sspat = re.compile(search_string)
+                if self.config.case_sensitive == 0:
+                    sspat = re.compile(search_string, re.I)
+                else:
+                    sspat = re.compile(search_string)
             except re.error:
                 sspat = None
             
@@ -132,17 +135,29 @@ class NotesDB(utils.SubjectMixin):
         for k in self.notes:
             n = self.notes[k]
             c = n.get('content')
-            if not n.get('deleted') and (not sspat or sspat.search(c)):
-                # we have to store our local key also
-                filtered_notes.append(utils.KeyValueObject(key=k, note=n))
+            if self.config.search_tags == 1:
+                t = n.get('tags')
+                if not n.get('deleted') and ((not sspat or sspat.search(c)) or filter(sspat.search, t)):
+                    # we have to store our local key also
+                    filtered_notes.append(utils.KeyValueObject(key=k, note=n))
+            else:
+                if not n.get('deleted') and (not sspat or sspat.search(c)):
+                    # we have to store our local key also
+                    filtered_notes.append(utils.KeyValueObject(key=k, note=n))
             
         if self.config.sort_mode == 0:
-            # sort alphabetically on title
-            filtered_notes.sort(key=lambda o: utils.get_note_title(o.note))
+            if self.config.pinned_ontop == 0:
+                # sort alphabetically on title
+                filtered_notes.sort(key=lambda o: utils.get_note_title(o.note))
+            else:
+                filtered_notes.sort(utils.SortByTitlePinned)
             
         else:
-            # last modified on top
-            filtered_notes.sort(key=lambda o: -float(o.note.get('modifydate', 0)))
+            if self.config.pinned_ontop == 0:
+                # last modified on top
+                filtered_notes.sort(key=lambda o: -float(o.note.get('modifydate', 0)))
+            else:
+                filtered_notes.sort(utils.SortByModifyDatePinned, reverse=True)
             
         return filtered_notes
     

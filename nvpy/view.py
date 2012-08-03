@@ -14,6 +14,8 @@ import tkMessageBox
 import utils
 import webbrowser
 
+from datetime import datetime
+
 class WidgetRedirector:
 
     """Support for redirecting arbitrary widget subcommands."""
@@ -797,7 +799,18 @@ class View(utils.SubjectMixin):
         self.lb_notes.delete(0, tk.END)
         
         for o in notes:
-            self.lb_notes.insert(tk.END, utils.get_note_title(o.note))
+            title = ""
+            if self.config.print_date:
+                date = datetime.fromtimestamp( float(o.note.get('modifydate', 0)) )
+                title += date.strftime("%Y-%m-%d %H:%M")
+                title += " "
+
+            pinned = str(o.note.get('systemtags', 0))
+            if pinned.find('pinned') > -1 :
+                title += "* "
+
+            title += utils.get_note_title(o.note)
+            self.lb_notes.insert(tk.END, title )
 
     def show_error(self, title, msg):
         tkMessageBox.showerror(title, msg)
