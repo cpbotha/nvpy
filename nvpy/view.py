@@ -166,6 +166,21 @@ class MultiColumnListbox(tk.Treeview):
         else:
             return []
 
+    def select_next(self):
+        selected_items = self.selection()
+        if len(selected_items) > 0:
+            nitem = self.next(selected_items[0])
+            if nitem:
+                self.selection_set(nitem)
+
+    def select_prev(self):
+        selected_items = self.selection()
+        if len(selected_items) > 0:
+            pitem = self.prev(selected_items[0])
+            if pitem:
+                self.selection_set(pitem)
+
+
     # Listbox emulation calls.
     ###################################################################
 
@@ -348,16 +363,11 @@ class View(utils.SubjectMixin):
             return idx
         
     def select_note_prev(self):
-        idx = self.get_selected_idx()
-        if idx > 0:
-            self.select_note(idx - 1)
-    
+        self.lb_notes.select_prev()
+
     def select_note_next(self):
-        idx = self.get_selected_idx()
-        # self.lb_notes.index(tk.END) returns the number of items
-        if idx < self.lb_notes.index(tk.END) - 1:
-            self.select_note(idx + 1)
-            
+        self.lb_notes.select_next()
+
     def set_note_status(self, status):
         """status is an object with ivars modified, saved and synced.
         """
