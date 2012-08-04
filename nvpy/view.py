@@ -688,7 +688,10 @@ class View(utils.SubjectMixin):
         
         # take care of invalid regular expressions...
         try:
-            pat = re.compile(st)
+            if self.config.case_sensitive == 0: 
+                pat = re.compile(st, re.I)
+            else:
+                pat = re.compile(st)
         except re.error:
             return
         
@@ -805,12 +808,13 @@ class View(utils.SubjectMixin):
                 title += date.strftime("%Y-%m-%d %H:%M")
                 title += " "
 
-            pinned = str(o.note.get('systemtags', 0))
-            if pinned.find('pinned') > -1 :
+            if utils.NotePinned(o.note) :
                 title += "* "
 
             title += utils.get_note_title(o.note)
             self.lb_notes.insert(tk.END, title )
+            if o.tagfilter:
+                self.lb_notes.itemconfig(tk.END, { 'bg' : 'lightyellow' , 'selectbackground' : 'lightgoldenrodyellow' } ) 
 
     def show_error(self, title, msg):
         tkMessageBox.showerror(title, msg)
