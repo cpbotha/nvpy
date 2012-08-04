@@ -813,6 +813,8 @@ class View(utils.SubjectMixin):
 
             title += utils.get_note_title(o.note)
             self.lb_notes.insert(tk.END, title )
+            if o.tagfilter:
+                self.lb_notes.itemconfig(tk.END, { 'bg' : 'lightyellow' , 'selectbackground' : 'lightgoldenrodyellow' } ) 
 
     def show_error(self, title, msg):
         tkMessageBox.showerror(title, msg)
