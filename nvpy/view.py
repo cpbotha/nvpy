@@ -808,7 +808,7 @@ class View(utils.SubjectMixin):
                 title += date.strftime("%Y-%m-%d %H:%M")
                 title += " "
 
-            if utils.NotePinned(o.note) :
+            if utils.note_pinned(o.note) :
                 title += "* "
 
             title += utils.get_note_title(o.note)
