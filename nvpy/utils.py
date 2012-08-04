@@ -23,7 +23,7 @@ def get_note_title(note):
     else:
         return ''
 
-def NotePinned(n):
+def note_pinned(n):
     asystags = n.get('systemtags', 0)
     # no systemtag at all
     if not asystags:
@@ -35,18 +35,18 @@ def NotePinned(n):
         return 0
 
     
-def SortByTitlePinned(a, b):
-    if NotePinned(a.note) and not NotePinned(b.note):
+def sort_by_title_pinned(a, b):
+    if note_pinned(a.note) and not note_pinned(b.note):
         return -1
-    elif not NotePinned(a.note) and NotePinned(b.note):
+    elif not note_pinned(a.note) and note_pinned(b.note):
         return 1
     else:
         return cmp(get_note_title(a.note), get_note_title(b.note))
 
-def SortByModifyDatePinned(a, b):
-    if NotePinned(a.note) and not NotePinned(b.note):
+def sort_by_modify_date_pinned(a, b):
+    if note_pinned(a.note) and not note_pinned(b.note):
         return 1
-    elif not NotePinned(a.note) and NotePinned(b.note):
+    elif not note_pinned(a.note) and note_pinned(b.note):
         return -1
     else:
         return cmp(float(a.note.get('modifydate', 0)), float(b.note.get('modifydate', 0)))
