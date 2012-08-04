@@ -213,7 +213,8 @@ class MultiColumnListbox(tk.Treeview):
         """
 
         item = self.get_children()[idx]
-        return tk.Treeview.item(self, item)['values'][0]
+        title = tk.Treeview.item(self, item)['values'][0]
+        return title
 
     def insert(self, where, values):
         """
@@ -348,7 +349,7 @@ class View(utils.SubjectMixin):
         
         if not silent:
             # we have to generate event explicitly, it doesn't fire by itself in this case
-            self.lb_notes.event_generate('<<ListboxSelect>>')
+            self.lb_notes.event_generate('<<TreeviewSelect>>')
             
     def select_note_by_name(self, name):
         note_names = self.lb_notes.get(0, 'end')
@@ -390,7 +391,7 @@ class View(utils.SubjectMixin):
         # make sure window close also goes through our handler
         self.root.protocol('WM_DELETE_WINDOW', self.handler_close)
         
-        self.lb_notes.bind("<<ListboxSelect>>", self.cmd_lb_notes_select)
+        self.lb_notes.bind("<<TreeviewSelect>>", self.cmd_lb_notes_select)
         # same behaviour as when the user presses enter on search entry:
         # if something is selected, focus the text area
         # if nothing is selected, try to create new note with
