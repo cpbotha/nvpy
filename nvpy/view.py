@@ -147,6 +147,82 @@ class StatusBar(tk.Frame):
         self.status.config(text="")
         self.status.update_idletasks()
 
+class MultiColumnListbox(tk.Treeview):
+    """
+    Compatibility layer so we can use a small subset of Listbox semantics
+    on a ttk.Treeview. This should make it easier if we ever want to move
+    back to a Listbox.
+
+    """
+
+    def lbrange_to_tvchildren(self, start, end):
+        if end == 'end':
+            end = -1
+
+        children = self.get_children()
+        if len(children) > 0:
+            return children[start:end]
+
+        else:
+            return []
+
+    # Listbox emulation calls.
+    ###################################################################
+
+    def activate(self, idx):
+        """
+        Dummy call to emulate the Listbox.
+        """
+        pass
+
+    def curselection(self):
+        # no selection: s = ()
+        # something: s = ('idx',)
+        selected_items = tk.Treeview.selection(self)
+        if len(selected_items) > 0:
+            return (tk.Treeview.index(self,selected_items[0]),)
+
+        else:
+            return ()
+
+    def delete(self, start, end):
+        children = self.lbrange_to_tvchildren(start,end)
+        if len(children) > 0:
+            for c in children:
+                # deleting the whole list in one go doesn't work for some or other reason.
+                tk.Treeview.delete(self, c)
+
+    def get(self, idx):
+        """
+        Emulate Listbox by returning value in first column, i.e. the title.
+        """
+
+        item = self.get_children()[idx]
+        return tk.Treeview.item(self, item)['values'][0]
+
+    def insert(self, where, values):
+        """
+        @param values: Tuple with values corresponding to our columns.
+        """
+
+        # where has similar semantics: 'end' is at end, 0 or smaller at start,
+        # larger than that it does the right thing, even if past the end.
+        tk.Treeview.insert(self, '', where, iid=None, values=values)
+
+    def see(self, idx):
+        tk.Treeview.see(self, self.get_children()[idx])
+
+
+    def select_clear(self, start, end):
+        children = self.lbrange_to_tvchildren(start,end)
+        if len(children) > 0:
+            tk.Treeview.selection_remove(self, children)
+
+    def select_set(self, idx):
+        children = self.get_children()
+        tk.Treeview.selection_set(self, children[idx])
+
+
 class View(utils.SubjectMixin):
     """Main user interface class.
     """
@@ -491,8 +567,14 @@ class View(utils.SubjectMixin):
         # x selection. with that active, selecting in the text widget
         # removes selection in listbox.
         # thank you http://stackoverflow.com/a/756875
-        self.lb_notes = tk.Listbox(left_frame, exportselection=0,
-                                   yscrollcommand=self.sb_notes.set)
+        #self.lb_notes = tk.Listbox(left_frame, exportselection=0,
+        #                           yscrollcommand=self.sb_notes.set)
+
+        self.lb_notes = MultiColumnListbox(
+            left_frame,
+            columns=('title', 'tags', 'modified'),
+            selectmode='browse', # single item selection
+            show='headings') # instead of "tree headings", don't show tree)
         
         self.sb_notes.config(command=self.lb_notes.yview)
         self.sb_notes.pack(side=tk.RIGHT, fill=tk.Y)
@@ -797,7 +879,7 @@ class View(utils.SubjectMixin):
             self.text_note.edit_reset()
         
         
-    def set_notes(self, notes):
+    def set_notes_listbox(self, notes):
         # clear the listbox
         self.lb_notes.delete(0, tk.END)
         
@@ -814,7 +896,19 @@ class View(utils.SubjectMixin):
             title += utils.get_note_title(o.note)
             self.lb_notes.insert(tk.END, title )
             if o.tagfilter:
-                self.lb_notes.itemconfig(tk.END, { 'bg' : 'lightyellow' , 'selectbackground' : 'lightgoldenrodyellow' } ) 
+                self.lb_notes.itemconfig(tk.END, { 'bg' : 'lightyellow' , 'selectbackground' : 'lightgoldenrodyellow' } )
+
+    def set_notes(self, notes):
+        # clear the listbox
+        self.lb_notes.delete(0, tk.END)
+
+        for o in notes:
+            date = datetime.fromtimestamp( float(o.note.get('modifydate', 0)) )
+
+            #if utils.note_pinned(o.note) :
+            #    title += "* "
+
+            self.lb_notes.insert(tk.END, (utils.get_note_title(o.note), ','.join(o.note.get('tags')), date) )
 
     def show_error(self, title, msg):
         tkMessageBox.showerror(title, msg)
