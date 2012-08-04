@@ -157,7 +157,9 @@ class MultiColumnListbox(tk.Treeview):
 
     def lbrange_to_tvchildren(self, start, end):
         if end == 'end':
-            end = -1
+            # we're going to slice
+            # None means include the last element
+            end = None
 
         else:
             # end is last item to delete
