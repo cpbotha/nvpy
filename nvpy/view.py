@@ -159,6 +159,12 @@ class MultiColumnListbox(tk.Treeview):
         if end == 'end':
             end = -1
 
+        else:
+            # end is last item to delete
+            # but we're going to use slicing, with last index not included
+            # so pre-emptively add one.
+            end += 1
+
         children = self.get_children()
         if len(children) > 0:
             return children[start:end]
@@ -172,6 +178,8 @@ class MultiColumnListbox(tk.Treeview):
             nitem = self.next(selected_items[0])
             if nitem:
                 self.selection_set(nitem)
+                # ensure that it's visible if we scroll past the end
+                tk.Treeview.see(self, nitem)
 
     def select_prev(self):
         selected_items = self.selection()
@@ -179,6 +187,8 @@ class MultiColumnListbox(tk.Treeview):
             pitem = self.prev(selected_items[0])
             if pitem:
                 self.selection_set(pitem)
+                # ensure that it's visible if we scroll past the start
+                tk.Treeview.see(self, pitem)
 
 
     # Listbox emulation calls.
@@ -195,7 +205,8 @@ class MultiColumnListbox(tk.Treeview):
         # something: s = ('idx',)
         selected_items = tk.Treeview.selection(self)
         if len(selected_items) > 0:
-            return (tk.Treeview.index(self,selected_items[0]),)
+            idx = tk.Treeview.index(self,selected_items[0])
+            return (idx,)
 
         else:
             return ()
