@@ -198,10 +198,7 @@ class NotesList(tk.Frame):
 
         yscrollbar.config(command=self.text.yview)
 
-        self.text.bind("<Button 1>", self.cmd_text_button1)
-        self.text.bind("<Up>", lambda e: self.select_prev(silent=False))
-        self.text.bind("<Down>", lambda e: self.select_next(silent=False))
-
+        self._bind_events()
 
         self.selected_idx = -1
         # list containing tuples with each note's title, tags,
@@ -236,6 +233,30 @@ class NotesList(tk.Frame):
         self.text.insert(tk.END, '\n')
 
         self.disable_text()
+
+    def _bind_events(self):
+        # Text widget events ##########################################
+
+
+        self.text.bind("<Button 1>", self.cmd_text_button1)
+
+        self.text.bind("<Up>", lambda e: self.select_prev(silent=False))
+        # for pageup, event handler needs to return "break" so that
+        # Text widget's default class handler for pageup does not trigger.
+        def cmd_pageup(e):
+            self.select_prev(silent=False, delta=10)
+            return "break"
+
+        self.text.bind("<Prior>", cmd_pageup)
+
+
+        self.text.bind("<Down>", lambda e: self.select_next(silent=False))
+        def cmd_pagedown(e):
+            self.select_next(silent=False, delta=10)
+            return "break"
+
+        self.text.bind("<Next>", cmd_pagedown)
+
 
     def cmd_text_button1(self, event):
         # find line that was clicked on
@@ -323,21 +344,21 @@ class NotesList(tk.Frame):
         if not silent:
             self.event_generate('<<NotesListSelect>>')
 
-    def select_next(self, silent=True):
+    def select_next(self, silent=True, delta=1):
         """
         Select note right after the current selection.
         """
 
-        new_idx = self.selected_idx + 1
+        new_idx = self.selected_idx + delta
         if new_idx >= 0 and new_idx <= self.get_number_of_notes():
             self.select(new_idx, silent)
 
-    def select_prev(self, silent=True):
+    def select_prev(self, silent=True, delta=1):
         """
         Select note right after the current selection.
         """
 
-        new_idx = self.selected_idx - 1
+        new_idx = self.selected_idx - delta
         if new_idx >= 0 and new_idx <= self.get_number_of_notes():
             self.select(new_idx, silent)
 
@@ -478,10 +499,16 @@ class View(utils.SubjectMixin):
         self.search_entry.bind("<Return>", self.handler_search_enter)
         
         self.search_entry.bind("<Up>", lambda e:
-                               self.notes_list.select_prev(silent=False))
+            self.notes_list.select_prev(silent=False))
+        self.search_entry.bind("<Prior>", lambda e:
+            self.notes_list.select_prev(silent=False, delta=10))
+
         self.search_entry.bind("<Down>", lambda e:
-                               self.notes_list.select_next(silent=False))
-        
+            self.notes_list.select_next(silent=False))
+        self.search_entry.bind("<Next>", lambda e:
+            self.notes_list.select_next(silent=False, delta=10))
+
+
         self.text_note.bind("<<Change>>", self.handler_text_change)
         
         # user presses escape in text area, they go back to notes list
