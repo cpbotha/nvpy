@@ -147,6 +147,201 @@ class StatusBar(tk.Frame):
         self.status.config(text="")
         self.status.update_idletasks()
 
+class NotesList(tk.Frame):
+    """
+    @ivar note_headers: list containing tuples with each note's title, tags,
+    modified date and so forth. Always in sync with what is displayed.
+    """
+
+    TITLE_COL = 0
+
+    def __init__(self, master):
+        tk.Frame.__init__(self, master)
+
+        yscrollbar = tk.Scrollbar(self)
+        yscrollbar.pack(side=tk.RIGHT, fill=tk.Y)
+
+        #f = tkFont.nametofont('TkFixedFont')
+        #f = tkFont.Font(family=self.config.font_family, size=-self.config.font_size)
+        # tkFont.families(root) returns list of available font family names
+        # this determines the width of the complete interface (yes)
+        # size=-self.config.font_size
+        self.text = tk.Text(self, height=25, width=30,
+            wrap=tk.NONE,
+            yscrollcommand=yscrollbar.set,
+            undo=True)
+        # change default font at runtime with:
+        #text.config(font=f)
+
+        self.text.config(cursor="arrow")
+        self.disable_text()
+        self.text.pack(fill=tk.BOTH, expand=1)
+
+        # tags for all kinds of styling ############################
+        ############################################################
+
+        self.text.tag_config("selected", background="light blue")
+
+        self.text.tag_config("pinned", foreground="dark gray")
+
+        # next two lines from:
+        # http://stackoverflow.com/a/9901862/532513
+        bold_font = tkFont.Font(self.text, self.text.cget("font"))
+        bold_font.configure(weight="bold")
+        self.text.tag_config("title", font=bold_font)
+
+        italic_font = tkFont.Font(self.text, self.text.cget("font"))
+        italic_font.configure(slant="italic")
+        self.text.tag_config("tags", font=italic_font, foreground="dark gray")
+
+        self.text.tag_config("modifydate", foreground="dark gray")
+
+        yscrollbar.config(command=self.text.yview)
+
+        self.text.bind("<Button 1>", self.cmd_text_button1)
+        self.text.bind("<Up>", lambda e: self.select_prev(silent=False))
+        self.text.bind("<Down>", lambda e: self.select_next(silent=False))
+
+
+        self.selected_idx = -1
+        # list containing tuples with each note's title, tags,
+        self.note_headers = []
+
+    def append(self, note):
+        """
+        @param note: The complete note dictionary.
+        """
+
+
+        title = utils.get_note_title(note)
+        tags = note.get('tags')
+        modifydate = float(note.get('modifydate'))
+        pinned = utils.note_pinned(note)
+        self.note_headers.append((title, tags, modifydate, pinned))
+
+        self.enable_text()
+
+
+        self.text.insert(tk.END, title, ("title,"))
+
+        if pinned:
+            self.text.insert(tk.END, ' *', ("pinned",))
+
+        self.text.insert(tk.END, ' ' + utils.human_date(modifydate), ("modifydate",))
+
+        # tags can be None (newly created note) or [] or ['tag1', 'tag2']
+        if tags > 0:
+            self.text.insert(tk.END, ' ' + ','.join(tags), ("tags",))
+
+        self.text.insert(tk.END, '\n')
+
+        self.disable_text()
+
+    def cmd_text_button1(self, event):
+        # find line that was clicked on
+        text_index = self.text.index("@%d,%d" % (event.x, event.y))
+        # go from event coordinate to tkinter text INDEX to note idx!
+        idx = int(text_index.split('.')[0]) - 1
+        self.select(idx, silent=False)
+
+
+    def clear(self):
+        """
+
+        """
+        self.enable_text()
+        # clear everything from the display
+        self.text.delete(1.0, tk.END)
+        # and make sure our backing store is in sync
+        del self.note_headers[:]
+        self.disable_text()
+
+    def disable_text(self):
+        self.text.config(state=tk.DISABLED)
+
+    def enable_text(self):
+        self.text.config(state=tk.NORMAL)
+
+    def find_note_by_title(self, title):
+        """
+        Find note with given title.
+
+        @returns: Note index if found, -1 otherwise.
+        """
+
+        idx = -1
+        for i, nh in enumerate(self.note_headers):
+            t = nh[NotesList.TITLE_COL]
+            if t == title:
+                idx = i
+                break
+
+        return idx
+
+    def get_number_of_notes(self):
+        # could also have used:
+        # return int(self.text.index('end-1c').split('.')[0])
+        # but we have the backing store!
+        return len(self.note_headers)
+
+    def get_title(self, idx):
+        return self.note_headers[idx][NotesList.TITLE_COL]
+
+    def idx_to_index_range(self, idx):
+        """
+        Given a note index idx, return the Tkinter text index range for
+        the start and end of that note.
+        """
+
+        # tkinter text first line is 1, but first column is 0
+        row = idx+1
+        start = "%d.0" % (row,)
+        end = "%d.end" % (row,)
+
+        return (start, end)
+
+    def select(self, idx, silent=True):
+        """
+        @param idx: index of note to select. -1 if no selection.
+        """
+
+        # remove tag selected from row 1 (first) and column 0 to the end of the buffer
+        self.text.tag_remove("selected", "1.0", "end")
+
+        if idx >= 0 and idx < self.get_number_of_notes():
+            # then add it to the requested note line(s)
+            start, end = self.idx_to_index_range(idx)
+            self.text.tag_add("selected", start, end)
+            # ensure that this is visible
+            self.text.see(start)
+            # and store the current idx
+            self.selected_idx = idx
+
+        else:
+            self.selected_idx = -1
+
+        if not silent:
+            self.event_generate('<<NotesListSelect>>')
+
+    def select_next(self, silent=True):
+        """
+        Select note right after the current selection.
+        """
+
+        new_idx = self.selected_idx + 1
+        if new_idx >= 0 and new_idx <= self.get_number_of_notes():
+            self.select(new_idx, silent)
+
+    def select_prev(self, silent=True):
+        """
+        Select note right after the current selection.
+        """
+
+        new_idx = self.selected_idx - 1
+        if new_idx >= 0 and new_idx <= self.get_number_of_notes():
+            self.select(new_idx, silent)
+
+
 class View(utils.SubjectMixin):
     """Main user interface class.
     """
@@ -175,12 +370,12 @@ class View(utils.SubjectMixin):
     def askyesno(self, title, msg):
         return tkMessageBox.askyesno(title, msg)
     
-    def cmd_lb_notes_select(self, evt):
-        sidx = self.get_selected_idx()
+    def cmd_notes_list_select(self, evt):
+        sidx = self.notes_list.selected_idx
         self.notify_observers('select:note', utils.KeyValueObject(sel=sidx))
         
     def cmd_root_delete(self, evt=None):
-        sidx = self.get_selected_idx()
+        sidx = self.notes_list.selected_idx
         self.notify_observers('delete:note', utils.KeyValueObject(sel=sidx))
         
     def cmd_root_new(self, evt=None):
@@ -197,13 +392,6 @@ class View(utils.SubjectMixin):
     def get_continuous_rendering(self):
         return self.continuous_rendering.get()
         
-    def get_selected_idx(self):
-        # no selection: s = ()
-        # something: s = ('idx',)
-        s = self.lb_notes.curselection()
-        sidx = int(s[0]) if s else -1
-        return sidx
-    
     def get_text(self):
         # err, you have to specify 1.0 to END, and NOT 0 to END like I thought.
         # also, see the comment by Bryan Oakley to
@@ -245,43 +433,15 @@ class View(utils.SubjectMixin):
         what you've just selected.
         """
 
-        self.lb_notes.select_clear(0, tk.END)
-        self.lb_notes.select_set(idx)
-        # we move the active (underlined) selection along, else we lose
-        # synchronization during arrow movements with the search entry selected
-        self.lb_notes.activate(idx)
-        
-        # make sure the selected index is visible
-        # this only moves the view if the selected note is really not visible
-        self.lb_notes.see(idx)
-        
-        if not silent:
-            # we have to generate event explicitly, it doesn't fire by itself in this case
-            self.lb_notes.event_generate('<<ListboxSelect>>')
-            
+        self.notes_list.select(idx, silent)
+
     def select_note_by_name(self, name):
-        note_names = self.lb_notes.get(0, 'end')
-        try:
-            idx = note_names.index(name)
-        except ValueError:
-            # name is not in the list
-            return -1
-        
-        else:
-            self.select_note(idx)
-            return idx
-        
-    def select_note_prev(self):
-        idx = self.get_selected_idx()
-        if idx > 0:
-            self.select_note(idx - 1)
-    
-    def select_note_next(self):
-        idx = self.get_selected_idx()
-        # self.lb_notes.index(tk.END) returns the number of items
-        if idx < self.lb_notes.index(tk.END) - 1:
-            self.select_note(idx + 1)
-            
+        idx = self.notes_list.find_note_by_title(name)
+        if idx >= 0:
+            self.select_note(idx, silent=False)
+
+        return idx
+
     def set_note_status(self, status):
         """status is an object with ivars modified, saved and synced.
         """
@@ -304,12 +464,12 @@ class View(utils.SubjectMixin):
         # make sure window close also goes through our handler
         self.root.protocol('WM_DELETE_WINDOW', self.handler_close)
         
-        self.lb_notes.bind("<<ListboxSelect>>", self.cmd_lb_notes_select)
+        self.notes_list.bind("<<NotesListSelect>>", self.cmd_notes_list_select)
         # same behaviour as when the user presses enter on search entry:
         # if something is selected, focus the text area
         # if nothing is selected, try to create new note with
         # search entry value as name
-        self.lb_notes.bind("<Return>", self.handler_search_enter)        
+        self.notes_list.bind("<Return>", self.handler_search_enter)
         
         self.search_entry.bind("<Escape>", lambda e:
                 self.search_entry.delete(0, tk.END))
@@ -318,14 +478,14 @@ class View(utils.SubjectMixin):
         self.search_entry.bind("<Return>", self.handler_search_enter)
         
         self.search_entry.bind("<Up>", lambda e:
-                               self.select_note_prev())
+                               self.notes_list.select_prev(silent=False))
         self.search_entry.bind("<Down>", lambda e:
-                               self.select_note_next())
+                               self.notes_list.select_next(silent=False))
         
         self.text_note.bind("<<Change>>", self.handler_text_change)
         
         # user presses escape in text area, they go back to notes list
-        self.text_note.bind("<Escape>", lambda e: self.lb_notes.focus())
+        self.text_note.bind("<Escape>", lambda e: self.notes_list.focus_set())
         # <Key>
         
         self.text_note.bind("<Control-a>", self.cmd_select_all)
@@ -483,22 +643,9 @@ class View(utils.SubjectMixin):
         
         left_frame = tk.Frame(paned_window, width=100)
         paned_window.add(left_frame)
-       
-        # setup the scrollbar
-        self.sb_notes = tk.Scrollbar(left_frame, orient=tk.VERTICAL)
-        
-        # exportselection=0 means it doesn't automatically export to
-        # x selection. with that active, selecting in the text widget
-        # removes selection in listbox.
-        # thank you http://stackoverflow.com/a/756875
-        self.lb_notes = tk.Listbox(left_frame, exportselection=0,
-                                   yscrollcommand=self.sb_notes.set)
-        
-        self.sb_notes.config(command=self.lb_notes.yview)
-        self.sb_notes.pack(side=tk.RIGHT, fill=tk.Y)
-        
-        # need both fill and expand to make it fill all avail area
-        self.lb_notes.pack(fill=tk.BOTH, expand=1)
+
+        self.notes_list = NotesList(left_frame)
+        self.notes_list.pack(fill=tk.BOTH, expand=1)
 
         right_frame = tk.Frame(paned_window, width=400)
         paned_window.add(right_frame)
@@ -531,29 +678,6 @@ class View(utils.SubjectMixin):
         # setup user_text ###############################################
         self.text_note = create_scrolled_text(right_frame)
 
-#        def cb_ut_fi(event):
-#            self.set_current_text(CURTEXT_USER)
-#
-#        self.user_text.bind('<FocusIn>', cb_ut_fi)
-#
-#        def cb_ut_m(event):
-#            self.set_user_mode(MODE_MODIFIED)
-#
-#        self.user_text.bind('<<Change>>', cb_ut_m)
-#
-#        # setup sys_text ################################################
-#        self.sys_text, self._sys_mode_label_var = \
-#                      create_scrolled_text(bottom_frame, "System Environment")
-#
-#        def cb_st_fi(event):
-#            self.set_current_text(CURTEXT_SYS)
-#
-#        self.sys_text.bind('<FocusIn>', cb_st_fi)
-#
-#        def cb_st_c(event):
-#            self.set_sys_mode(MODE_MODIFIED)
-#            
-#        self.sys_text.bind('<<Change>>', cb_st_c)
 
         # finish UI creation ###########################################
 
@@ -614,33 +738,41 @@ class View(utils.SubjectMixin):
         refresh_notes_list = False
         prev_title = None
         prev_modifydate = None
+        prev_pinned = 0
         for i,o in enumerate(self.notes_list_model.list):
             # order should be the same as our listbox
             nt = utils.get_note_title(o.note)
-            ot = self.lb_notes.get(i)
+            ot = self.notes_list.get_title(i)
             # if we strike a note with an out-of-date title, redo.
             if nt != ot:
                 logging.debug('title "%s" resync' % (nt,))
                 refresh_notes_list = True
-                continue
+                break
             
             if self.config.sort_mode == 0:
                 # alpha
                 if prev_title is not None and prev_title > nt:
                     logging.debug("alpha resort triggered")
                     refresh_notes_list = True
-                    continue
+                    break
                 
                 prev_title = nt
                 
             else:
+
                 md = float(o.note.get('modifydate', 0))
-                if prev_modifydate is not None and prev_modifydate < md:
+                # we go from top to bottom, newest to oldest
+                # this means that prev_modifydate (above) needs to be larger
+                # than md (below). if it's not, re-sort.
+                if prev_modifydate is not None and prev_modifydate < md and \
+                   not prev_pinned:
                     logging.debug("modifydate resort triggered")
                     refresh_notes_list = True
-                    continue
+                    break
                 
-                prev_modifydate = md 
+                prev_modifydate = md
+                if self.config.pinned_ontop:
+                    prev_pinned = utils.note_pinned(o.note)
             
         if refresh_notes_list:
             self.refresh_notes_list()
@@ -652,7 +784,7 @@ class View(utils.SubjectMixin):
         # 1. if a note is selected, focus that
         # 2. if nothing is selected, create a new note with this title
 
-        if self.get_selected_idx() >= 0:
+        if self.notes_list.selected_idx >= 0:
             self.text_note.focus()
             
         else:
@@ -797,7 +929,7 @@ class View(utils.SubjectMixin):
             self.text_note.edit_reset()
         
         
-    def set_notes(self, notes):
+    def set_notes_LISTBOX(self, notes):
         # clear the listbox
         self.lb_notes.delete(0, tk.END)
         
@@ -814,7 +946,14 @@ class View(utils.SubjectMixin):
             title += utils.get_note_title(o.note)
             self.lb_notes.insert(tk.END, title )
             if o.tagfilter:
-                self.lb_notes.itemconfig(tk.END, { 'bg' : 'lightyellow' , 'selectbackground' : 'lightgoldenrodyellow' } ) 
+                self.lb_notes.itemconfig(tk.END, { 'bg' : 'lightyellow' , 'selectbackground' : 'lightgoldenrodyellow' } )
+
+    def set_notes(self, notes):
+        # clear the notes list
+        self.notes_list.clear()
+
+        for o in notes:
+            self.notes_list.append(o.note)
 
     def show_error(self, title, msg):
         tkMessageBox.showerror(title, msg)
