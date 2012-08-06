@@ -365,7 +365,7 @@ class NotesList(tk.Frame):
             self.select(new_idx, silent)
 
         elif new_idx >= self.get_number_of_notes():
-            self.select(self.get_number_of_notes() - 1)
+            self.select(self.get_number_of_notes() - 1, silent)
 
     def select_prev(self, silent=True, delta=1):
         """
@@ -377,7 +377,7 @@ class NotesList(tk.Frame):
             self.select(new_idx, silent)
 
         elif new_idx < 0:
-            self.select(0)
+            self.select(0, silent)
 
 
 class View(utils.SubjectMixin):
