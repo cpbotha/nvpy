@@ -82,9 +82,9 @@ class Config:
                     'pinned_ontop' : '1',
                     'db_path' : os.path.join(home, '.nvpy'),
                     'font_family' : 'Courier', # monospaced on all platforms
-                    'font_size' : 12,
+                    'font_size' : '12',
                     'list_font_family' : 'Helvetica', # sans on all platforms
-                    'list_font_size' : 10,
+                    'list_font_size' : '10',
                     'sn_username' : '',
                     'sn_password' : ''
                    }
