@@ -82,8 +82,10 @@ class Config:
                     'pinned_ontop' : '1',
                     'print_date' : '0',
                     'db_path' : os.path.join(home, '.nvpy'),
-                    'font_family' : 'Courier',
-                    'font_size' : '12',
+                    'font_family' : 'Courier', # monospaced on all platforms
+                    'font_size' : 12,
+                    'list_font_family' : 'Helvetica', # sans on all platforms
+                    'list_font_size' : 10,
                     'sn_username' : '',
                     'sn_password' : ''
                    }
@@ -124,7 +126,11 @@ class Config:
         
         self.font_family = cp.get(cfg_sec, 'font_family')
         self.font_size = cp.getint(cfg_sec, 'font_size')
-        
+
+        self.list_font_family = cp.get(cfg_sec, 'list_font_family')
+        self.list_font_size = cp.getint(cfg_sec, 'list_font_size')
+
+
 class NotesListModel(SubjectMixin):
     """
     @ivar list: List of (str key, dict note) objects.

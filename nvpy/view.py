@@ -155,19 +155,19 @@ class NotesList(tk.Frame):
 
     TITLE_COL = 0
 
-    def __init__(self, master):
+    def __init__(self, master, font_family, font_size):
         tk.Frame.__init__(self, master)
 
         yscrollbar = tk.Scrollbar(self)
         yscrollbar.pack(side=tk.RIGHT, fill=tk.Y)
 
-        #f = tkFont.nametofont('TkFixedFont')
-        #f = tkFont.Font(family=self.config.font_family, size=-self.config.font_size)
+        f = tkFont.Font(family=font_family, size=font_size)
         # tkFont.families(root) returns list of available font family names
         # this determines the width of the complete interface (yes)
         # size=-self.config.font_size
         self.text = tk.Text(self, height=25, width=30,
             wrap=tk.NONE,
+            font=f,
             yscrollcommand=yscrollbar.set,
             undo=True)
         # change default font at runtime with:
@@ -677,7 +677,9 @@ class View(utils.SubjectMixin):
         left_frame = tk.Frame(paned_window, width=100)
         paned_window.add(left_frame)
 
-        self.notes_list = NotesList(left_frame)
+        self.notes_list = NotesList(
+            left_frame,
+            self.config.list_font_family, self.config.list_font_size)
         self.notes_list.pack(fill=tk.BOTH, expand=1)
 
         right_frame = tk.Frame(paned_window, width=400)
