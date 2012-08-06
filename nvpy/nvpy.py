@@ -80,7 +80,6 @@ class Config:
                     'search_tags' : '0',
                     'sort_mode' : '1',
                     'pinned_ontop' : '1',
-                    'print_date' : '0',
                     'db_path' : os.path.join(home, '.nvpy'),
                     'font_family' : 'Courier', # monospaced on all platforms
                     'font_size' : 12,
@@ -120,7 +119,6 @@ class Config:
         self.search_tags = cp.getint(cfg_sec, 'search_tags')
         self.sort_mode = cp.getint(cfg_sec, 'sort_mode')
         self.pinned_ontop = cp.getint(cfg_sec, 'pinned_ontop')
-        self.print_date = cp.getint(cfg_sec, 'print_date')
         self.housekeeping_interval = cp.getint(cfg_sec, 'housekeeping_interval')
         self.housekeeping_interval_ms = self.housekeeping_interval * 1000
         

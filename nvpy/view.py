@@ -964,25 +964,6 @@ class View(utils.SubjectMixin):
             self.text_note.edit_reset()
         
         
-    def set_notes_LISTBOX(self, notes):
-        # clear the listbox
-        self.lb_notes.delete(0, tk.END)
-        
-        for o in notes:
-            title = ""
-            if self.config.print_date:
-                date = datetime.fromtimestamp( float(o.note.get('modifydate', 0)) )
-                title += date.strftime("%Y-%m-%d %H:%M")
-                title += " "
-
-            if utils.note_pinned(o.note) :
-                title += "* "
-
-            title += utils.get_note_title(o.note)
-            self.lb_notes.insert(tk.END, title )
-            if o.tagfilter:
-                self.lb_notes.itemconfig(tk.END, { 'bg' : 'lightyellow' , 'selectbackground' : 'lightgoldenrodyellow' } )
-
     def set_notes(self, notes):
         # clear the notes list
         self.notes_list.clear()
