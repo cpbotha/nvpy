@@ -832,6 +832,7 @@ class View(utils.SubjectMixin):
 
         if self.notes_list.selected_idx >= 0:
             self.text_note.focus()
+            self.text_note.see(tk.INSERT)
             
         else:
             # nothing selected
