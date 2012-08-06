@@ -240,7 +240,14 @@ class NotesList(tk.Frame):
 
         self.text.bind("<Button 1>", self.cmd_text_button1)
 
-        self.text.bind("<Up>", lambda e: self.select_prev(silent=False))
+        # same deal as for pageup
+        # we have to stop the text widget class event handler from firing
+        def cmd_up(e):
+            self.select_prev(silent=False)
+            return "break"
+
+        self.text.bind("<Up>", cmd_up)
+
         # for pageup, event handler needs to return "break" so that
         # Text widget's default class handler for pageup does not trigger.
         def cmd_pageup(e):
@@ -249,8 +256,12 @@ class NotesList(tk.Frame):
 
         self.text.bind("<Prior>", cmd_pageup)
 
+        def cmd_down(e):
+            self.select_next(silent=False)
+            return "break"
 
-        self.text.bind("<Down>", lambda e: self.select_next(silent=False))
+        self.text.bind("<Down>", cmd_down)
+
         def cmd_pagedown(e):
             self.select_next(silent=False, delta=10)
             return "break"
@@ -496,7 +507,7 @@ class View(utils.SubjectMixin):
         # if something is selected, focus the text area
         # if nothing is selected, try to create new note with
         # search entry value as name
-        self.notes_list.bind("<Return>", self.handler_search_enter)
+        self.notes_list.text.bind("<Return>", self.handler_search_enter)
         
         self.search_entry.bind("<Escape>", lambda e:
                 self.search_entry.delete(0, tk.END))
@@ -518,7 +529,7 @@ class View(utils.SubjectMixin):
         self.text_note.bind("<<Change>>", self.handler_text_change)
         
         # user presses escape in text area, they go back to notes list
-        self.text_note.bind("<Escape>", lambda e: self.notes_list.focus_set())
+        self.text_note.bind("<Escape>", lambda e: self.notes_list.text.focus())
         # <Key>
         
         self.text_note.bind("<Control-a>", self.cmd_select_all)
