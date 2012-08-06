@@ -47,11 +47,11 @@ def human_date(timestamp):
     elif dt.year == now.year:
         # this year: Aug 6
         # format code %d unfortunately 0-pads
-        return dt.strftime('%h') + ' ' + str(dt.day)
+        return dt.strftime('%b') + ' ' + str(dt.day)
 
     else:
         # not today or this year, so we do "Dec 11, 2011"
-        return '%s %d, %d' % (dt.strftime('%h'), dt.day, dt.year)
+        return '%s %d, %d' % (dt.strftime('%b'), dt.day, dt.year)
 
 
 def note_pinned(n):
