@@ -156,7 +156,7 @@ class NotesList(tk.Frame):
     TITLE_COL = 0
     MODIFYDATE_COL = 2
 
-    def __init__(self, master, font_family, font_size):
+    def __init__(self, master, font_family, font_size, background_color):
         tk.Frame.__init__(self, master)
 
         yscrollbar = tk.Scrollbar(self)
@@ -171,7 +171,7 @@ class NotesList(tk.Frame):
             font=f,
             yscrollcommand=yscrollbar.set,
             undo=True,
-            background = 'white' )
+            background = background_color)
         # change default font at runtime with:
         #text.config(font=f)
 
@@ -705,7 +705,7 @@ class View(utils.SubjectMixin):
 
         self.notes_list = NotesList(
             left_frame,
-            self.config.list_font_family, self.config.list_font_size)
+            self.config.list_font_family, self.config.list_font_size, self.config.background_color)
         self.notes_list.pack(fill=tk.BOTH, expand=1)
 
         right_frame = tk.Frame(paned_window, width=400)
@@ -725,7 +725,7 @@ class View(utils.SubjectMixin):
                                   font=f, tabs=(4 * f.measure(0), 'left'), tabstyle='wordprocessor',
                                   yscrollcommand=yscrollbar.set,
                                   undo=True,
-                                  background = 'white')
+                                  background = self.config.background_color)
             # change default font at runtime with:
             text.config(font=f)
 
