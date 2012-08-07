@@ -170,7 +170,8 @@ class NotesList(tk.Frame):
             wrap=tk.NONE,
             font=f,
             yscrollcommand=yscrollbar.set,
-            undo=True)
+            undo=True,
+            background = 'white' )
         # change default font at runtime with:
         #text.config(font=f)
 
@@ -194,6 +195,7 @@ class NotesList(tk.Frame):
         italic_font = tkFont.Font(self.text, self.text.cget("font"))
         italic_font.configure(slant="italic")
         self.text.tag_config("tags", font=italic_font, foreground="dark gray")
+        self.text.tag_config("found", font=italic_font, foreground="dark gray", background="lightyellow")
 
         self.text.tag_config("modifydate", foreground="dark gray")
 
@@ -205,7 +207,7 @@ class NotesList(tk.Frame):
         # list containing tuples with each note's title, tags,
         self.note_headers = []
 
-    def append(self, note):
+    def append(self, note, tagfound):
         """
         @param note: The complete note dictionary.
         """
@@ -229,7 +231,11 @@ class NotesList(tk.Frame):
 
         # tags can be None (newly created note) or [] or ['tag1', 'tag2']
         if tags > 0:
-            self.text.insert(tk.END, ' ' + ','.join(tags), ("tags",))
+            if tagfound:
+                self.text.insert(tk.END, ' ' + ','.join(tags), ("found",))
+            else:
+                self.text.insert(tk.END, ' ' + ','.join(tags), ("tags",))
+
 
         self.text.insert(tk.END, '\n')
 
@@ -718,7 +724,8 @@ class View(utils.SubjectMixin):
                                   wrap=tk.WORD,
                                   font=f, tabs=(4 * f.measure(0), 'left'), tabstyle='wordprocessor',
                                   yscrollcommand=yscrollbar.set,
-                                  undo=True)
+                                  undo=True,
+                                  background = 'white')
             # change default font at runtime with:
             text.config(font=f)
 
@@ -1000,7 +1007,7 @@ class View(utils.SubjectMixin):
         self.notes_list.clear()
 
         for o in notes:
-            self.notes_list.append(o.note)
+            self.notes_list.append(o.note, o.tagfound)
 
     def show_error(self, title, msg):
         tkMessageBox.showerror(title, msg)

@@ -140,17 +140,17 @@ class NotesDB(utils.SubjectMixin):
                 if not n.get('deleted') and sspat:
                    if filter(sspat.search, t):
                        # we have to store our local key also
-                       filtered_notes.append(utils.KeyValueObject(key=k, note=n, tagfilter=1))
+                       filtered_notes.append(utils.KeyValueObject(key=k, note=n, tagfound=1))
                    elif sspat.search(c):
                        # we have to store our local key also
-                       filtered_notes.append(utils.KeyValueObject(key=k, note=n, tagfilter=0))
+                       filtered_notes.append(utils.KeyValueObject(key=k, note=n, tagfound=0))
                 elif not n.get('deleted') and not sspat:
                     # we have to store our local key also
-                    filtered_notes.append(utils.KeyValueObject(key=k, note=n, tagfilter=0))
+                    filtered_notes.append(utils.KeyValueObject(key=k, note=n, tagfound=0))
             else:
                 if not n.get('deleted') and (not sspat or sspat.search(c)):
                     # we have to store our local key also
-                    filtered_notes.append(utils.KeyValueObject(key=k, note=n, tagfilter=0))
+                    filtered_notes.append(utils.KeyValueObject(key=k, note=n, tagfound=0))
             
         if self.config.sort_mode == 0:
             if self.config.pinned_ontop == 0:
