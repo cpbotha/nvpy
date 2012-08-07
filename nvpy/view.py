@@ -154,6 +154,7 @@ class NotesList(tk.Frame):
     """
 
     TITLE_COL = 0
+    MODIFYDATE_COL = 2
 
     def __init__(self, master, font_family, font_size):
         tk.Frame.__init__(self, master)
@@ -318,6 +319,14 @@ class NotesList(tk.Frame):
 
     def get_title(self, idx):
         return self.note_headers[idx][NotesList.TITLE_COL]
+
+    def get_modifydate(self, idx):
+        """
+        Return modifydate of idx'th note.
+
+        @returns: modifydate as a floating point timestamp.
+        """
+        return self.note_headers[idx][NotesList.MODIFYDATE_COL]
 
     def idx_to_index_range(self, idx):
         """
@@ -794,7 +803,18 @@ class View(utils.SubjectMixin):
                 logging.debug('title "%s" resync' % (nt,))
                 refresh_notes_list = True
                 break
-            
+
+            # compare modifydate timestamp in our notes_list_model to what's displayed
+            # if these are unequal, we need to refresh.
+            md = float(o.note.get('modifydate', 0))
+            omd = self.notes_list.get_modifydate(i)
+            if md != omd:
+                # we log the title
+                logging.debug('modifydate "%s" resync' % (nt,))
+                refresh_notes_list = True
+                break
+
+
             if self.config.sort_mode == 0:
                 # alpha
                 if prev_title is not None and prev_title > nt:
@@ -806,7 +826,6 @@ class View(utils.SubjectMixin):
                 
             else:
 
-                md = float(o.note.get('modifydate', 0))
                 # we go from top to bottom, newest to oldest
                 # this means that prev_modifydate (above) needs to be larger
                 # than md (below). if it's not, re-sort.
