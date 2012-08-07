@@ -38,9 +38,8 @@ def human_date(timestamp):
     dt = datetime.datetime.fromtimestamp(timestamp)
     # this returns localtime
     now = datetime.datetime.now()
-    delta = now - dt
 
-    if delta.days == 0:
+    if dt.date() == now.date():
         # today: 15:11
         return dt.strftime('%H:%M')
 
