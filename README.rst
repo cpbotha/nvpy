@@ -26,9 +26,9 @@ and it hasn't disappointed me (yet).
 Screenshots and screencasts
 ===========================
 
-* Automatic hyperlinking on Linux:
+* Automatic hyperlinking on Linux (post 0.8.5):
 
-.. image:: https://github.com/cpbotha/nvpy/raw/master/images/nvpy_linking_screenshot_20120525.png
+.. image:: https://github.com/cpbotha/nvpy/raw/master/images/nvpy_post0.8.5_screenshot.png
 
 
 * This is what nvpy looked like on Windows on May 23, 2012. Search bar at the top showing a regular expression, notes are sorted last modified first, continuously updated markdown preview in chrome behind the nvpy window: `nvpy_screenshot_20120523.jpg <https://github.com/cpbotha/nvpy/raw/master/images/nvpy_screenshot_20120523.jpg>`_.
