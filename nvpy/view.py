@@ -154,7 +154,9 @@ class NotesList(tk.Frame):
     """
 
     TITLE_COL = 0
+    TAGS_COL = 1
     MODIFYDATE_COL = 2
+    PINNED_COL = 3
 
     def __init__(self, master, font_family, font_size):
         tk.Frame.__init__(self, master)
@@ -316,6 +318,15 @@ class NotesList(tk.Frame):
         # return int(self.text.index('end-1c').split('.')[0])
         # but we have the backing store!
         return len(self.note_headers)
+
+    def get_pinned(self, idx):
+        return self.note_headers[idx][NotesList.PINNED_COL]
+
+    def get_tags(self, idx):
+        """
+        @returns: raw list of tag strings, e.g. ['work', 'howto']
+        """
+        return self.note_headers[idx][NotesList.TAGS_COL]
 
     def get_title(self, idx):
         return self.note_headers[idx][NotesList.TITLE_COL]
@@ -543,6 +554,10 @@ class View(utils.SubjectMixin):
         
         self.text_note.bind("<Control-a>", self.cmd_select_all)
 
+        self.tags_entry_var.trace('w', self.handler_tags_entry)
+
+        self.pinned_checkbutton_var.trace('w', self.handler_pinned_checkbutton)
+
         self.root.after(self.config.housekeeping_interval_ms, self.handler_housekeeper)
 
     def _create_menu(self):
@@ -705,6 +720,22 @@ class View(utils.SubjectMixin):
         right_frame = tk.Frame(paned_window, width=400)
         paned_window.add(right_frame)
 
+        note_meta_frame = tk.Frame(right_frame)
+        note_meta_frame.pack(side=tk.BOTTOM, fill=tk.X)
+
+        pinned_label = tk.Label(note_meta_frame,text="Pinned")
+        pinned_label.pack(side=tk.LEFT)
+        self.pinned_checkbutton_var = tk.IntVar()
+        pinned_checkbutton = tk.Checkbutton(note_meta_frame, variable=self.pinned_checkbutton_var)
+        pinned_checkbutton.pack(side=tk.LEFT)
+
+        tags_label = tk.Label(note_meta_frame, text="Tags")
+        tags_label.pack(side=tk.LEFT)
+        self.tags_entry_var = tk.StringVar()
+        tags_entry = tk.Entry(note_meta_frame, textvariable=self.tags_entry_var)
+        tags_entry.pack(side=tk.LEFT, fill=tk.X, expand=1, pady=3, padx=3)
+
+
         # we'll use this method to create the different edit boxes
         def create_scrolled_text(master):
             yscrollbar = tk.Scrollbar(master)
@@ -817,6 +848,21 @@ class View(utils.SubjectMixin):
                 refresh_notes_list = True
                 break
 
+            pinned = utils.note_pinned(o.note)
+            old_pinned = self.notes_list.get_pinned(i)
+            if pinned != old_pinned:
+                # we log the title
+                logging.debug('pinned "%s" resync' % (nt,))
+                refresh_notes_list = True
+                break
+
+            tags = o.note.get('tags', 0)
+            old_tags = self.notes_list.get_tags(i)
+            if tags != old_tags:
+                # we log the title
+                logging.debug('tags "%s" resync' % (nt,))
+                refresh_notes_list = True
+                break
 
             if self.config.sort_mode == 0:
                 # alpha
@@ -847,6 +893,10 @@ class View(utils.SubjectMixin):
         
         self.root.after(self.config.housekeeping_interval_ms, self.handler_housekeeper)
         
+    def handler_pinned_checkbutton(self, *args):
+        self.notify_observers('change:pinned',
+            utils.KeyValueObject(value=self.pinned_checkbutton_var.get()))
+
     def handler_search_enter(self, evt):
         # user has pressed enter whilst searching
         # 1. if a note is selected, focus that
@@ -865,6 +915,10 @@ class View(utils.SubjectMixin):
     def handler_search_entry(self, *args):
         self.notify_observers('change:entry', 
                               utils.KeyValueObject(value=self.search_entry_var.get()))
+
+    def handler_tags_entry(self, *args):
+        self.notify_observers('change:tags',
+            utils.KeyValueObject(value=self.tags_entry_var.get()))
 
     def handler_click_link(self, link):
         if link.startswith('[['):
@@ -974,11 +1028,16 @@ class View(utils.SubjectMixin):
             
     def main_loop(self):
         self.root.mainloop()
+
+    def mute_note_data_changes(self):
+        self.mute('change:text')
+        self.mute('change:tags')
+        self.mute('change:pinned')
         
     def set_status_text(self, txt):
         self.statusbar.set_status(txt)
         
-    def set_text(self, note_content, reset_undo=True):
+    def set_note_data(self, note, reset_undo=True):
         """Replace text in editor with content.
         
         This is usually called when a new note is selected (case 1), or
@@ -989,8 +1048,12 @@ class View(utils.SubjectMixin):
         """
         
         self.text_note.delete(1.0, tk.END) # clear all
-        self.text_note.insert(tk.END, note_content)
-        
+
+        if note is not None:
+            self.text_note.insert(tk.END, note['content'])
+            self.tags_entry_var.set(','.join(note['tags']))
+            self.pinned_checkbutton_var.set(utils.note_pinned(note))
+
         if reset_undo:
             # usually when a new note is selected, we want to reset the
             # undo buffer, so that a user can't undo right into the previously
@@ -1014,13 +1077,27 @@ class View(utils.SubjectMixin):
     def show_warning(self, title, msg):
         tkMessageBox.showwarning(title, msg)
 
-    def update_selected_note_text(self, content):
+    def unmute_note_data_changes(self):
+        self.unmute('change:text')
+        self.unmute('change:tags')
+        self.unmute('change:pinned')
+
+
+    def update_selected_note_data(self, note):
+        """
+        Update currently selected note's data.
+
+        This is called only by the event handler for the per-note on-demand
+        syncing.
+        """
+
         # store cursor position
         cursor_pos = self.text_note.index(tk.INSERT)
-        self.mute('change:text')
-        self.set_text(content)
+        # the user is not changing anything, so we don't want the event to fire
+        self.mute_note_data_changes()
+        self.set_note_data(note)
         self.text_note.mark_set(tk.INSERT, cursor_pos)
-        self.unmute('change:text')
+        self.unmute_note_data_changes()
 
 
         

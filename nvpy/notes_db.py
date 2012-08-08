@@ -167,7 +167,10 @@ class NotesDB(utils.SubjectMixin):
                 filtered_notes.sort(utils.sort_by_modify_date_pinned, reverse=True)
             
         return filtered_notes
-    
+
+    def get_note(self, key):
+        return self.notes[key]
+
     def get_note_content(self, key):
         return self.notes[key].get('content')
     
@@ -513,6 +516,35 @@ class NotesDB(utils.SubjectMixin):
             n['content'] = content
             n['modifydate'] = time.time()
             self.notify_observers('change:note-status', utils.KeyValueObject(what='modifydate', key=key))
+
+    def set_note_tags(self, key, tags):
+        n = self.notes[key]
+        old_tags = n.get('tags')
+        tags = utils.sanitise_tags(tags)
+        if tags != old_tags:
+            n['tags'] = tags
+            n['modifydate'] = time.time()
+            self.notify_observers('change:note-status', utils.KeyValueObject(what='modifydate', key=key))
+
+    def set_note_pinned(self, key, pinned):
+        n = self.notes[key]
+        old_pinned = utils.note_pinned(n)
+        if pinned != old_pinned:
+            if 'systemtags' not in n:
+                n['systemtags'] = []
+
+            systemtags = n['systemtags']
+
+            if pinned:
+                # which by definition means that it was NOT pinned
+                systemtags.append('pinned')
+
+            else:
+                systemtags.remove('pinned')
+
+            n['modifydate'] = time.time()
+            self.notify_observers('change:note-status', utils.KeyValueObject(what='modifydate', key=key))
+
 
     def worker_save(self):
         while True:
