@@ -413,7 +413,7 @@ class View(utils.SubjectMixin):
         #self.user_text.focus_set()
 
         self.search_entry.focus_set()
-        
+
     def askyesno(self, title, msg):
         return tkMessageBox.askyesno(title, msg)
     
@@ -805,10 +805,11 @@ class View(utils.SubjectMixin):
                 break
 
             # compare modifydate timestamp in our notes_list_model to what's displayed
-            # if these are unequal, we need to refresh.
+            # if these are more than 60 seconds apart, we want to update our
+            # mod-date display.
             md = float(o.note.get('modifydate', 0))
             omd = self.notes_list.get_modifydate(i)
-            if md != omd:
+            if abs(md - omd) > 60:
                 # we log the title
                 logging.debug('modifydate "%s" resync' % (nt,))
                 refresh_notes_list = True

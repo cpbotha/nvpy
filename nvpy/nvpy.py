@@ -238,10 +238,10 @@ class Controller:
         # we only use idx, because key could change from right under us.
         self.selected_note_idx = -1
         self.view.select_note(0)
-        
+
         # perform full sync with server, and refresh notes list if successful
         self.sync_full()
-                
+
     def get_selected_note_key(self):
         if self.selected_note_idx >= 0:
             return self.notes_list_model.list[self.selected_note_idx].key
