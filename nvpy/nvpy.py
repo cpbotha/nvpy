@@ -241,10 +241,10 @@ class Controller:
         # we only use idx, because key could change from right under us.
         self.selected_note_idx = -1
         self.view.select_note(0)
-        
+
         # perform full sync with server, and refresh notes list if successful
         self.sync_full()
-                
+
     def get_selected_note_key(self):
         if self.selected_note_idx >= 0:
             return self.notes_list_model.list[self.selected_note_idx].key
@@ -313,12 +313,22 @@ class Controller:
         # if these two are not equal, something is not kosher.
         assert(evt.sel == self.selected_note_idx)
 
-        # delete the note        
+        # first get key of note that is to be deleted
         key = self.get_selected_note_key()
+
+        # then try to select after the one that is to be deleted
+        nidx = evt.sel + 1
+        if nidx >= 0 and nidx < self.view.get_number_of_notes():
+            self.view.select_note(nidx)
+
+        # finally delete the note
         self.notes_db.delete_note(key)
         
         # easiest now is just to regenerate the list by resetting search string
+        # if the note after the deleted one is already selected, this will
+        # simply keep that selection!
         self.view.set_search_entry_text(self.view.get_search_entry_text())
+
 
     def helper_markdown_to_html(self):
         if self.selected_note_idx >= 0:
