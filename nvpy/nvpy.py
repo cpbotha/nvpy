@@ -203,7 +203,7 @@ class Controller:
         # read our database of notes into memory
         # and sync with simplenote.
         c = self.config
-        notes_db_config = KeyValueObject(db_path=c.db_path, sn_username=c.sn_username, sn_password=c.sn_password, sort_mode=c.sort_mode, pinned_ontop=c.pinned_ontop, case_sensitive=c.case_sensitive, search_tags=c.search_tags, background_color=c.background_color)
+        notes_db_config = KeyValueObject(db_path=c.db_path, sn_username=c.sn_username, sn_password=c.sn_password, sort_mode=c.sort_mode, pinned_ontop=c.pinned_ontop, case_sensitive=c.case_sensitive, search_tags=c.search_tags)
         self.notes_db = NotesDB(notes_db_config)
         self.notes_db.add_observer('synced:note', self.observer_notes_db_synced_note)
         self.notes_db.add_observer('change:note-status', self.observer_notes_db_change_note_status)
