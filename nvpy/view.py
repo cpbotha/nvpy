@@ -741,8 +741,10 @@ class View(utils.SubjectMixin):
         
         # call update so we know that sizes are up to date
         self.root.update_idletasks()
-        
-        
+
+    def get_number_of_notes(self):
+        return self.notes_list.get_number_of_notes()
+
     def handler_close(self, evt=None):
         """Handler for exit menu command and close window event.
         """
@@ -1020,5 +1022,5 @@ class View(utils.SubjectMixin):
         self.text_note.mark_set(tk.INSERT, cursor_pos)
         self.unmute('change:text')
 
-       
+
         
