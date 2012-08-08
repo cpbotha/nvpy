@@ -207,7 +207,7 @@ class NotesList(tk.Frame):
         # list containing tuples with each note's title, tags,
         self.note_headers = []
 
-    def append(self, note, tagfound):
+    def append(self, note, config):
         """
         @param note: The complete note dictionary.
         """
@@ -231,7 +231,7 @@ class NotesList(tk.Frame):
 
         # tags can be None (newly created note) or [] or ['tag1', 'tag2']
         if tags > 0:
-            if tagfound:
+            if config.tagfound:
                 self.text.insert(tk.END, ' ' + ','.join(tags), ("found",))
             else:
                 self.text.insert(tk.END, ' ' + ','.join(tags), ("tags",))
@@ -1085,7 +1085,7 @@ class View(utils.SubjectMixin):
             tags = o.note.get('tags', 0)
             if tags:
                 self.taglist += tags
-            self.notes_list.append(o.note, o.tagfound)
+            self.notes_list.append(o.note, utils.KeyValueObject(tagfound=o.tagfound))
 
     def show_error(self, title, msg):
         tkMessageBox.showerror(title, msg)
