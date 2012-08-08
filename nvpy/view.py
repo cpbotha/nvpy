@@ -413,7 +413,8 @@ class AutocompleteEntry(tk.Entry):
         self._completion_list = completion_list
         self._hits = []
         self._hit_index = 0
-        self.position = 0
+        self.position = 0               
+        self.status = 0
         self.bind('<KeyRelease>', self.handle_keyrelease)               
 
     def autocomplete(self, delta=0):
@@ -446,10 +447,14 @@ class AutocompleteEntry(tk.Entry):
 
     def handle_keyrelease(self, event):
         """event handler for the keyrelease event on this widget"""
+        ctrl  = ((event.state & 0x0004) != 0)
+
         if event.keysym == "BackSpace":
+            self.status = 0
             self.delete(self.index(tk.INSERT), tk.END) 
             self.position = self.index(tk.END)
         if event.keysym == "Left":
+            self.status = 0
             if self.position < self.index(tk.END): # delete the selection
                 self.delete(self.position, tk.END)
             else:
@@ -457,13 +462,16 @@ class AutocompleteEntry(tk.Entry):
                 self.delete(self.position, tk.END)
         if event.keysym == "Right":
             self.position = self.index(tk.END) # go to end (no selection)
-        if event.keysym == "Next":
-            self.autocomplete(1) # cycle to next hit
-        if event.keysym == "Prior":
-            self.autocomplete(-1) # cycle to previous hit
-        # perform normal autocomplete if event is a single key or an umlaut
-        if len(event.keysym) == 1 or event.keysym in tkinter_umlauts:
-            self.autocomplete()
+            self.status = 0
+        if event.keysym == "z" and ctrl:
+            # cycle 
+            self.autocomplete(self.status)
+            if self.status == 0:
+                self.status = 1
+            elif self.status == 1:
+                self.status = -1
+            elif self.status == -1:
+                self.status = 1
 
 
 class View(utils.SubjectMixin):
