@@ -167,7 +167,10 @@ class NotesDB(utils.SubjectMixin):
                 filtered_notes.sort(utils.sort_by_modify_date_pinned, reverse=True)
             
         return filtered_notes
-    
+
+    def get_note(self, key):
+        return self.notes[key]
+
     def get_note_content(self, key):
         return self.notes[key].get('content')
     

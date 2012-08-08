@@ -287,7 +287,7 @@ class Controller:
                 self.view.mute('change:text')
                 # in this case, we want to keep the user's undo buffer so that they
                 # can undo synced back changes if they would want to.
-                self.view.set_text(selected_note_o.note['content'], reset_undo=False)
+                self.view.set_note_data(selected_note_o.note, reset_undo=False)
                 self.view.unmute('change:text')
 
     def observer_view_click_notelink(self, view, evt_type, note_name):
@@ -434,8 +434,8 @@ class Controller:
             # this call will update our in-memory version if necessary
             ret = self.notes_db.sync_note_unthreaded(key)
             if ret and ret[1] == True:
-                self.view.update_selected_note_text(
-                        self.notes_db.notes[key]['content'])
+                self.view.update_selected_note_data(
+                        self.notes_db.notes[key])
                 self.view.set_status_text(
                 'Synced updated note from server.')
 
@@ -520,18 +520,18 @@ class Controller:
     def select_note(self, idx):
         if idx >= 0:
             key = self.notes_list_model.list[idx].key
-            c = self.notes_db.get_note_content(key)
+            note = self.notes_db.get_note(key)
 
         else:
             key = None
-            c = ''
+            note = None
             idx = -1
         
         self.selected_note_idx = idx
 
         # when we do this, we don't want the change:text event thanks
         self.view.mute('change:text')
-        self.view.set_text(c)
+        self.view.set_note_data(note)
         if key:
             self.view.set_note_status(self.notes_db.get_note_status(key))
         self.view.unmute('change:text')

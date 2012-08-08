@@ -978,7 +978,7 @@ class View(utils.SubjectMixin):
     def set_status_text(self, txt):
         self.statusbar.set_status(txt)
         
-    def set_text(self, note_content, reset_undo=True):
+    def set_note_data(self, note, reset_undo=True):
         """Replace text in editor with content.
         
         This is usually called when a new note is selected (case 1), or
@@ -989,7 +989,9 @@ class View(utils.SubjectMixin):
         """
         
         self.text_note.delete(1.0, tk.END) # clear all
-        self.text_note.insert(tk.END, note_content)
+
+        if note is not None:
+            self.text_note.insert(tk.END, note['content'])
         
         if reset_undo:
             # usually when a new note is selected, we want to reset the
@@ -1014,11 +1016,18 @@ class View(utils.SubjectMixin):
     def show_warning(self, title, msg):
         tkMessageBox.showwarning(title, msg)
 
-    def update_selected_note_text(self, content):
+    def update_selected_note_data(self, note):
+        """
+        Update currently selected note's data.
+
+        This is called only by the event handler for the per-note on-demand
+        syncing.
+        """
+
         # store cursor position
         cursor_pos = self.text_note.index(tk.INSERT)
         self.mute('change:text')
-        self.set_text(content)
+        self.set_note_data(note)
         self.text_note.mark_set(tk.INSERT, cursor_pos)
         self.unmute('change:text')
 
