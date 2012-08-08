@@ -394,6 +394,77 @@ class NotesList(tk.Frame):
         elif new_idx < 0:
             self.select(0, silent)
 
+tkinter_umlauts=['odiaeresis', 'adiaeresis', 'udiaeresis', 'Odiaeresis', 'Adiaeresis', 'Udiaeresis', 'ssharp']
+
+class AutocompleteEntry(tk.Entry):
+    """
+    Subclass of tk.Entry that features autocompletion.
+
+    To enable autocompletion use set_completion_list(list) to define 
+    a list of possible strings to hit.
+    To cycle through hits use down and up arrow keys.
+    """
+
+    def __init__(self, master, case_sensitive, **kw): 
+        tk.Entry.__init__(self, master, **kw)
+        self.case_sensitive = case_sensitive
+
+    def set_completion_list(self, completion_list):
+        self._completion_list = completion_list
+        self._hits = []
+        self._hit_index = 0
+        self.position = 0
+        self.bind('<KeyRelease>', self.handle_keyrelease)               
+
+    def autocomplete(self, delta=0):
+        """autocomplete the Entry, delta may be 0/1/-1 to cycle through possible hits"""
+        if delta: # need to delete selection otherwise we would fix the current position
+            self.delete(self.position, tk.END)
+        else: # set position to end so selection starts where textentry ended
+            self.position = len(self.get())
+        # collect hits
+        _hits = []
+        for element in self._completion_list:
+            if self.case_sensitive == 0: 
+                if element.lower().startswith(self.get().lower()):
+                     _hits.append(element)
+            else:
+                if element.startswith(self.get()):
+                     _hits.append(element)
+        # if we have a new hit list, keep this in mind
+        if _hits != self._hits:
+            self._hit_index = 0
+            self._hits=_hits
+        # only allow cycling if we are in a known hit list
+        if _hits == self._hits and self._hits:
+            self._hit_index = (self._hit_index + delta) % len(self._hits)
+        # now finally perform the auto completion
+        if self._hits:
+            self.delete(0,tk.END)
+            self.insert(0,self._hits[self._hit_index])
+            self.select_range(self.position,tk.END)
+
+    def handle_keyrelease(self, event):
+        """event handler for the keyrelease event on this widget"""
+        if event.keysym == "BackSpace":
+            self.delete(self.index(tk.INSERT), tk.END) 
+            self.position = self.index(tk.END)
+        if event.keysym == "Left":
+            if self.position < self.index(tk.END): # delete the selection
+                self.delete(self.position, tk.END)
+            else:
+                self.position = self.position-1 # delete one character
+                self.delete(self.position, tk.END)
+        if event.keysym == "Right":
+            self.position = self.index(tk.END) # go to end (no selection)
+        if event.keysym == "Next":
+            self.autocomplete(1) # cycle to next hit
+        if event.keysym == "Prior":
+            self.autocomplete(-1) # cycle to previous hit
+        # perform normal autocomplete if event is a single key or an umlaut
+        if len(event.keysym) == 1 or event.keysym in tkinter_umlauts:
+            self.autocomplete()
+
 
 class View(utils.SubjectMixin):
     """Main user interface class.
@@ -403,6 +474,7 @@ class View(utils.SubjectMixin):
         utils.SubjectMixin.__init__(self)
         
         self.config = config
+        self.taglist = []
         
         notes_list_model.add_observer('set:list', self.observer_notes_list)
         self.notes_list_model = notes_list_model
@@ -690,7 +762,9 @@ class View(utils.SubjectMixin):
         
         search_entry.make_style()
         self.search_entry_var = tk.StringVar()
-        self.search_entry = tk.Entry(search_frame, textvariable=self.search_entry_var, style="Search.entry")
+        #self.search_entry = tk.Entry(search_frame, textvariable=self.search_entry_var, style="Search.entry")
+        self.search_entry = AutocompleteEntry(search_frame, self.config.case_sensitive, textvariable=self.search_entry_var, style="Search.entry")
+        self.search_entry.set_completion_list(self.taglist)
         self.search_entry_var.trace('w', self.handler_search_entry)
         self.search_entry.pack(fill=tk.X,padx=5, pady=5)
         search_frame.pack(side=tk.TOP, fill=tk.X)
@@ -1005,8 +1079,12 @@ class View(utils.SubjectMixin):
     def set_notes(self, notes):
         # clear the notes list
         self.notes_list.clear()
-
+        del self.taglist[:]
+        
         for o in notes:
+            tags = o.note.get('tags', 0)
+            if tags:
+                self.taglist += tags
             self.notes_list.append(o.note, o.tagfound)
 
     def show_error(self, title, msg):
