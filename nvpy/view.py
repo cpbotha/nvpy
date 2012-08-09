@@ -1160,7 +1160,7 @@ class View(utils.SubjectMixin):
         del self.taglist[:]
         
         for o in notes:
-            tags = o.note.get('tags', 0)
+            tags=o.note['tags']
             if tags:
                 self.taglist += tags
             self.notes_list.append(o.note, utils.KeyValueObject(tagfound=o.tagfound))
