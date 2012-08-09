@@ -220,6 +220,8 @@ class Controller:
         self.view.add_observer('select:note', self.observer_view_select_note)
         self.view.add_observer('change:entry', self.observer_view_change_entry)
         self.view.add_observer('change:text', self.observer_view_change_text)
+        self.view.add_observer('change:tags', self.observer_view_change_tags)
+        self.view.add_observer('change:pinned', self.observer_view_change_pinned)
         self.view.add_observer('create:note', self.observer_view_create_note)
         self.view.add_observer('keep:house', self.observer_view_keep_house)
         self.view.add_observer('command:markdown',
@@ -287,11 +289,11 @@ class Controller:
         
         if selected_note_o.key == evt.lkey:
             if selected_note_o.note['content'] != evt.old_note['content']:
-                self.view.mute('change:text')
+                self.view.mute_note_data_changes()
                 # in this case, we want to keep the user's undo buffer so that they
                 # can undo synced back changes if they would want to.
-                self.view.set_text(selected_note_o.note['content'], reset_undo=False)
-                self.view.unmute('change:text')
+                self.view.set_note_data(selected_note_o.note, reset_undo=False)
+                self.view.unmute_note_data_changes()
 
     def observer_view_click_notelink(self, view, evt_type, note_name):
         # find note_name in titles, try to jump to that note
@@ -437,8 +439,8 @@ class Controller:
             # this call will update our in-memory version if necessary
             ret = self.notes_db.sync_note_unthreaded(key)
             if ret and ret[1] == True:
-                self.view.update_selected_note_text(
-                        self.notes_db.notes[key]['content'])
+                self.view.update_selected_note_data(
+                        self.notes_db.notes[key])
                 self.view.set_status_text(
                 'Synced updated note from server.')
 
@@ -487,7 +489,21 @@ class Controller:
             key = self.notes_list_model.list[self.selected_note_idx].key
             self.notes_db.set_note_content(key,
                                            self.view.get_text())
-            
+
+    def observer_view_change_tags(self, view, evt_type, evt):
+        # get new text and update our database
+        # need local key of currently selected note for this
+        if self.selected_note_idx >= 0:
+            key = self.notes_list_model.list[self.selected_note_idx].key
+            self.notes_db.set_note_tags(key, evt.value)
+
+    def observer_view_change_pinned(self, view, evt_type, evt):
+        # get new text and update our database
+        # need local key of currently selected note for this
+        if self.selected_note_idx >= 0:
+            key = self.notes_list_model.list[self.selected_note_idx].key
+            self.notes_db.set_note_pinned(key, evt.value)
+
     def observer_view_close(self, view, evt_type, evt):
         # check that everything has been saved and synced before exiting
         
@@ -523,21 +539,23 @@ class Controller:
     def select_note(self, idx):
         if idx >= 0:
             key = self.notes_list_model.list[idx].key
-            c = self.notes_db.get_note_content(key)
+            note = self.notes_db.get_note(key)
 
         else:
             key = None
-            c = ''
+            note = None
             idx = -1
         
         self.selected_note_idx = idx
 
-        # when we do this, we don't want the change:text event thanks
-        self.view.mute('change:text')
-        self.view.set_text(c)
+        # when we do this, we don't want the change:{text,tags,pinned} events
+        # because those should only fire when they are changed through the UI
+        self.view.mute_note_data_changes()
+        self.view.set_note_data(note)
         if key:
             self.view.set_note_status(self.notes_db.get_note_status(key))
-        self.view.unmute('change:text')
+
+        self.view.unmute_note_data_changes()
 
     def sync_full(self):
         try:

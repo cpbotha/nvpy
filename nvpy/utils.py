@@ -5,6 +5,7 @@
 import datetime
 import random
 import re
+import string
 import urllib2
 
 # first line with non-whitespace should be the title
@@ -64,7 +65,24 @@ def note_pinned(n):
     else:
         return 0
 
-    
+tags_illegal_chars = re.compile(r'[\s]')
+def sanitise_tags(tags):
+    """
+    Given a string containing comma-separated tags, sanitise and return a list of string tags.
+
+    The simplenote API doesn't allow for spaces, so we strip those out.
+
+    @param tags: Comma-separated tags, one string.
+    @returns: List of strings.
+    """
+
+    # hack out all kinds of whitespace, then split on ,
+    # if you run into more illegal characters (simplenote does not want to sync them)
+    # add them to the regular expression above.
+    return tags_illegal_chars.sub('', tags).split(',')
+
+
+
 def sort_by_title_pinned(a, b):
     if note_pinned(a.note) and not note_pinned(b.note):
         return -1
