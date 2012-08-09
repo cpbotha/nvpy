@@ -414,17 +414,18 @@ class AutocompleteEntry(tk.Entry):
         self._hits = []
         self._hit_index = 0
         self.position = 0               
-        self.status = 0
+        self.cycle = 0
         self.bind('<KeyRelease>', self.handle_keyrelease)               
 
-    def autocomplete(self, delta=0):
-        """autocomplete the Entry, delta may be 0/1/-1 to cycle through possible hits"""
-        if delta: # need to delete selection otherwise we would fix the current position
+    def autocomplete(self, cycle=0):
+        """autocomplete the Entry, delta may be 0/1 to cycle through possible hits"""
+        if cycle: # need to delete selection otherwise we would fix the current position
             self.delete(self.position, tk.END)
         else: # set position to end so selection starts where textentry ended
             self.position = len(self.get())
         # collect hits
         _hits = []
+        self._completion_list = list(set(self._completion_list))
         for element in self._completion_list:
             if self.case_sensitive == 0: 
                 if element.lower().startswith(self.get().lower()):
@@ -438,7 +439,10 @@ class AutocompleteEntry(tk.Entry):
             self._hits=_hits
         # only allow cycling if we are in a known hit list
         if _hits == self._hits and self._hits:
-            self._hit_index = (self._hit_index + delta) % len(self._hits)
+            if cycle:
+                self._hit_index += 1
+        if self._hit_index == len(self._hits):
+            self._hit_index = 0
         # now finally perform the auto completion
         if self._hits:
             self.delete(0,tk.END)
@@ -450,11 +454,11 @@ class AutocompleteEntry(tk.Entry):
         ctrl  = ((event.state & 0x0004) != 0)
 
         if event.keysym == "BackSpace":
-            self.status = 0
+            self.cycle = 0
             self.delete(self.index(tk.INSERT), tk.END) 
             self.position = self.index(tk.END)
         if event.keysym == "Left":
-            self.status = 0
+            self.cycle = 0
             if self.position < self.index(tk.END): # delete the selection
                 self.delete(self.position, tk.END)
             else:
@@ -462,16 +466,16 @@ class AutocompleteEntry(tk.Entry):
                 self.delete(self.position, tk.END)
         if event.keysym == "Right":
             self.position = self.index(tk.END) # go to end (no selection)
-            self.status = 0
-        if event.keysym == "z" and ctrl:
+            self.cycle = 0
+        if event.keysym == "space" and ctrl:
             # cycle 
-            self.autocomplete(self.status)
-            if self.status == 0:
-                self.status = 1
-            elif self.status == 1:
-                self.status = -1
-            elif self.status == -1:
-                self.status = 1
+            self.autocomplete(self.cycle)
+            if self.cycle == 0:
+                self.cycle = 1
+            #elif self.status == 1:
+            #    self.status = -1
+            #elif self.status == -1:
+            #    self.status = 1
 
 
 class View(utils.SubjectMixin):
@@ -1097,6 +1101,8 @@ class View(utils.SubjectMixin):
             if tags:
                 self.taglist += tags
             self.notes_list.append(o.note, utils.KeyValueObject(tagfound=o.tagfound))
+        self.taglist = list(set(self.taglist))
+        
 
     def show_error(self, title, msg):
         tkMessageBox.showerror(title, msg)
