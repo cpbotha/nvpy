@@ -407,18 +407,19 @@ class NotesList(tk.Frame):
 
 tkinter_umlauts=['odiaeresis', 'adiaeresis', 'udiaeresis', 'Odiaeresis', 'Adiaeresis', 'Udiaeresis', 'ssharp']
 
-class AutocompleteEntry(tk.Entry):
+class TriggeredcompleteEntry(tk.Entry):
     """
-    Subclass of tk.Entry that features autocompletion.
+    Subclass of tk.Entry that features triggeredcompletion.
 
-    To enable autocompletion use set_completion_list(list) to define 
+    To enable triggeredcompletion use set_completion_list(list) to define 
     a list of possible strings to hit.
-    To cycle through hits use down and up arrow keys.
+    To cycle through hits use CTRL <space> keys.
     """
 
     def __init__(self, master, case_sensitive, **kw): 
         tk.Entry.__init__(self, master, **kw)
         self.case_sensitive = case_sensitive
+        self.bind('<KeyRelease>', self.handle_keyrelease)               
 
     def set_completion_list(self, completion_list):
         self._completion_list = completion_list
@@ -426,35 +427,28 @@ class AutocompleteEntry(tk.Entry):
         self._hit_index = 0
         self.position = 0               
         self.cycle = 0
-        self.bind('<KeyRelease>', self.handle_keyrelease)               
 
-    def autocomplete(self, cycle=0):
-        """autocomplete the Entry, delta may be 0/1 to cycle through possible hits"""
-        if cycle: # need to delete selection otherwise we would fix the current position
+    def triggeredcomplete(self):
+        """triggeredcomplete the Entry, delta may be 0/1 to cycle through possible hits"""
+        if self.cycle: # need to delete selection otherwise we would fix the current position
             self.delete(self.position, tk.END)
+            self._hit_index += 1
+            if self._hit_index == len(self._hits):
+                self._hit_index = 0
         else: # set position to end so selection starts where textentry ended
             self.position = len(self.get())
-        # collect hits
-        _hits = []
-        self._completion_list = list(set(self._completion_list))
-        for element in self._completion_list:
-            if self.case_sensitive == 0: 
-                if element.lower().startswith(self.get().lower()):
-                     _hits.append(element)
-            else:
-                if element.startswith(self.get()):
-                     _hits.append(element)
-        # if we have a new hit list, keep this in mind
-        if _hits != self._hits:
+            # collect hits
+            _hits = []
+            for element in self._completion_list:
+                if self.case_sensitive == 0: 
+                    if element.lower().startswith(self.get().lower()):
+                         _hits.append(element)
+                else:
+                    if element.startswith(self.get()):
+                         _hits.append(element)
             self._hit_index = 0
             self._hits=_hits
-        # only allow cycling if we are in a known hit list
-        if _hits == self._hits and self._hits:
-            if cycle:
-                self._hit_index += 1
-        if self._hit_index == len(self._hits):
-            self._hit_index = 0
-        # now finally perform the auto completion
+        # now finally perform the triggered completion
         if self._hits:
             self.delete(0,tk.END)
             self.insert(0,self._hits[self._hit_index])
@@ -480,13 +474,9 @@ class AutocompleteEntry(tk.Entry):
             self.cycle = 0
         if event.keysym == "space" and ctrl:
             # cycle 
-            self.autocomplete(self.cycle)
+            self.triggeredcomplete()
             if self.cycle == 0:
                 self.cycle = 1
-            #elif self.status == 1:
-            #    self.status = -1
-            #elif self.status == -1:
-            #    self.status = 1
 
 
 class View(utils.SubjectMixin):
@@ -790,8 +780,8 @@ class View(utils.SubjectMixin):
         search_entry.make_style()
         self.search_entry_var = tk.StringVar()
         #self.search_entry = tk.Entry(search_frame, textvariable=self.search_entry_var, style="Search.entry")
-        self.search_entry = AutocompleteEntry(search_frame, self.config.case_sensitive, textvariable=self.search_entry_var, style="Search.entry")
-        self.search_entry.set_completion_list(self.taglist)
+        self.search_entry = TriggeredcompleteEntry(search_frame, self.config.case_sensitive, textvariable=self.search_entry_var, style="Search.entry")
+        #self.search_entry.set_completion_list(self.taglist)
         self.search_entry_var.trace('w', self.handler_search_entry)
         self.search_entry.pack(fill=tk.X,padx=5, pady=5)
         search_frame.pack(side=tk.TOP, fill=tk.X)
@@ -1144,7 +1134,9 @@ class View(utils.SubjectMixin):
 
         if note is not None:
             self.text_note.insert(tk.END, note['content'])
-            self.tags_entry_var.set(','.join(note['tags']))
+            tags=note.get('tags')
+            if tags:
+                self.tags_entry_var.set(','.join(note['tags']))
             self.pinned_checkbutton_var.set(utils.note_pinned(note))
 
         if reset_undo:
@@ -1157,15 +1149,18 @@ class View(utils.SubjectMixin):
     def set_notes(self, notes):
         # clear the notes list
         self.notes_list.clear()
-        del self.taglist[:]
+        taglist = []
         
         for o in notes:
-            tags=o.note['tags']
+            tags = o.note.get('tags')
             if tags:
-                self.taglist += tags
+                taglist += tags
             self.notes_list.append(o.note, utils.KeyValueObject(tagfound=o.tagfound))
-        self.taglist = list(set(self.taglist))
-        
+
+        taglist = list(set(self.taglist + taglist))
+        if len(taglist) > len(self.taglist):
+            self.taglist=taglist
+            self.search_entry.set_completion_list(self.taglist)
 
     def show_error(self, title, msg):
         tkMessageBox.showerror(title, msg)
