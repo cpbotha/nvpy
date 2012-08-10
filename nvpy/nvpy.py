@@ -85,6 +85,7 @@ class Config:
                     'font_size' : '12',
                     'list_font_family' : 'Helvetica', # sans on all platforms
                     'list_font_size' : '10',
+                    'background_color' : 'white',
                     'sn_username' : '',
                     'sn_password' : ''
                    }
@@ -127,6 +128,8 @@ class Config:
 
         self.list_font_family = cp.get(cfg_sec, 'list_font_family')
         self.list_font_size = cp.getint(cfg_sec, 'list_font_size')
+
+        self.background_color = cp.get(cfg_sec, 'background_color')
 
 
 class NotesListModel(SubjectMixin):
