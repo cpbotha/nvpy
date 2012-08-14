@@ -1137,9 +1137,9 @@ class View(utils.SubjectMixin):
 
         if note is not None:
             self.text_note.insert(tk.END, note['content'])
-            tags=note.get('tags')
-            if tags:
-                self.tags_entry_var.set(','.join(note['tags']))
+            # default to an empty array for tags
+            tags=note.get('tags', [])
+            self.tags_entry_var.set(','.join(tags))
             self.pinned_checkbutton_var.set(utils.note_pinned(note))
 
         if reset_undo:
