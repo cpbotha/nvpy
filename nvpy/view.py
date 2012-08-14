@@ -601,6 +601,8 @@ class View(utils.SubjectMixin):
     def _bind_events(self):
         # make sure window close also goes through our handler
         self.root.protocol('WM_DELETE_WINDOW', self.handler_close)
+
+        self.root.bind_all("<Control-g>", lambda e: self.tags_entry.focus())
         
         self.notes_list.bind("<<NotesListSelect>>", self.cmd_notes_list_select)
         # same behaviour as when the user presses enter on search entry:
@@ -635,6 +637,7 @@ class View(utils.SubjectMixin):
         self.text_note.bind("<Control-a>", self.cmd_select_all)
 
         self.tags_entry_var.trace('w', self.handler_tags_entry)
+        self.tags_entry.bind("<Escape>", lambda e: self.text_note.focus())
 
         self.pinned_checkbutton_var.trace('w', self.handler_pinned_checkbutton)
 
@@ -814,8 +817,8 @@ class View(utils.SubjectMixin):
         tags_label = tk.Label(note_meta_frame, text="Tags")
         tags_label.pack(side=tk.LEFT)
         self.tags_entry_var = tk.StringVar()
-        tags_entry = tk.Entry(note_meta_frame, textvariable=self.tags_entry_var)
-        tags_entry.pack(side=tk.LEFT, fill=tk.X, expand=1, pady=3, padx=3)
+        self.tags_entry = tk.Entry(note_meta_frame, textvariable=self.tags_entry_var)
+        self.tags_entry.pack(side=tk.LEFT, fill=tk.X, expand=1, pady=3, padx=3)
 
 
         # we'll use this method to create the different edit boxes
