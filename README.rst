@@ -122,6 +122,7 @@ Features
 * KickAss(tm) inter-note linking with [[note name]]. If note name is
   not found in current list of notes, assumes it's a regular expression
   and sets it in the search bar. See the `screencast <http://youtu.be/NXuVMZr31SI>`_.
+* Tag support.
 
 Planned features
 ================
@@ -131,7 +132,6 @@ Planned features
   at startup, which can take a while. nvpy already does background thread
   saving and syncing while you work, so everything you type is backed up
   within a few seconds of you typing it.
-* Tag support.
 
 Bugs and feedback
 =================
@@ -144,7 +144,7 @@ Bugs and feedback
 Credits
 =======
 
-* Sjaak Westdijk contributed a number of patches.
+* Sjaak Westdijk made significant contributions to the code starting after the 0.8.5 release.
 * nvpy uses the `fantastic simplenote.py library by mrtazz <https://github.com/mrtazz/simplenote.py>`_.
 * The brilliant application icon, a blue mini car (not as fast as the notational velocity rocket, get it?), is by `Cemagraphics <http://cemagraphics.deviantart.com/>`_.
 * stfa, thanks for the tip!
