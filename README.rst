@@ -69,7 +69,7 @@ the following::
 
 If you installed this via pip install, you should now be able to start
 the application by typing "nvpy". The first time you run it, it will take
-a while as it downloads all of your simplenote notes. Subsequest runs
+a while as it downloads all of your simplenote notes. Subsequent runs
 are much faster as it uses the database it stores in your home directory.
 
 If you prefer to run from your git clone, you can just invoke python on nvpy.py, or on the nvpy package directory.
@@ -104,6 +104,7 @@ Features
 ========
 
 * Syncs with simplenote.
+* Support for simplenote tags and note pinning.
 * Partial syncs (whilst notes are being edited) are done by a
   background thread so you can keep on working at light speed.
 * Can be used offline, also without simplenote account.
@@ -122,7 +123,6 @@ Features
 * KickAss(tm) inter-note linking with [[note name]]. If note name is
   not found in current list of notes, assumes it's a regular expression
   and sets it in the search bar. See the `screencast <http://youtu.be/NXuVMZr31SI>`_.
-* Tag support.
 
 Planned features
 ================
@@ -132,6 +132,7 @@ Planned features
   at startup, which can take a while. nvpy already does background thread
   saving and syncing while you work, so everything you type is backed up
   within a few seconds of you typing it.
+* Prettiness.
 
 Bugs and feedback
 =================
