@@ -1,3 +1,4 @@
+v0.9.0, 2012-08-15 -- Simplenote tag support.
 v0.8.5, 2012-07-03 -- Better config file handling. Bug fixes.
 v0.8, 2012-06-02 -- Save/sync check at exit. Listbox + statusbar improvements.
 v0.7.1, 2012-05-29 -- Removed pdb.set_trace() in notes_db.
