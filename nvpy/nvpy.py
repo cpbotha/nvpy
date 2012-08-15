@@ -58,6 +58,8 @@ except ImportError:
 else:
     HAVE_DOCUTILS = True
 
+VERSION = "0.9.0"
+
 class Config:
     """
     @ivar files_read: list of config files that were parsed.
@@ -177,7 +179,7 @@ class Controller:
         
         # should probably also look in $HOME
         self.config = Config(self.appdir)
-        self.config.app_version = self.get_version()
+        self.config.app_version = VERSION
 
         # configure logging module
         #############################
@@ -253,9 +255,6 @@ class Controller:
         else:
             return None
                 
-    def get_version(self):
-        return "0.8.5"
-    
     def main_loop(self):
         if not self.config.files_read:
             self.view.show_warning('No config file', 

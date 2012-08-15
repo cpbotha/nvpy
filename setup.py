@@ -1,5 +1,6 @@
 import os
 from setuptools import setup
+from nvpy import nvpy
 
 # Utility function to read the README file.
 # Used for the long_description.  It's nice, because now 1) we have a top level
@@ -10,7 +11,7 @@ def read(fname):
 
 setup(
     name = "nvpy",
-    version = "0.8.5",
+    version = nvpy.VERSION,
     author = "Charl P. Botha",
     author_email = "cpbotha@vxlabs.com",
     description = "A cross-platform simplenote-syncing note-taking app inspired by Notational Velocity.",
