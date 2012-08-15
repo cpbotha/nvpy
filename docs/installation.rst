@@ -32,7 +32,7 @@ Ubuntu / Mint / Debian step-by-step #1
 
 On Debian-flavoured systems with apt, this generally works::
 
-    sudo apt-get install python python-tk python-pip
+    sudo apt-get install python python-tk python-pip python-markdown
     sudo pip install nvpy
 
 Create a file in your home directory called .nvpy.cfg with just the following contents::
@@ -44,6 +44,11 @@ Create a file in your home directory called .nvpy.cfg with just the following co
 To start nvpy, just do::
 
     nvpy
+
+If the pip install does not upgrade to a newer version of nvpy, try::
+
+    sudo pip install --ignore-installed nvpy
+
 
 Advanced users
 ==============
