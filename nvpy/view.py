@@ -1106,7 +1106,24 @@ class View(utils.SubjectMixin):
         # single keystroke.
         self.activate_links()
         self.activate_search_string_highlights()
-                
+
+    def is_note_different(self, note):
+        """
+        Determine if note would cause a UI update.
+        """
+
+        if self.get_text() != note.get('content'):
+            return True
+
+        tags = note.get('tags', [])
+        # get list of string tags from ui
+        ui_tags = utils.sanitise_tags(self.tags_entry_var.get())
+        if ui_tags != tags:
+            return True
+
+        if bool(self.pinned_checkbutton_var.get()) != bool(utils.note_pinned(note)):
+            return True
+
     def observer_notes_list(self, notes_list_model, evt_type, evt):
         if evt_type == 'set:list':
             # re-render!
@@ -1185,15 +1202,19 @@ class View(utils.SubjectMixin):
         Update currently selected note's data.
 
         This is called only by the event handler for the per-note on-demand
-        syncing.
+        syncing, and when a full sync comes back that affects the currently
+        selected note.
         """
 
         # store cursor position
         cursor_pos = self.text_note.index(tk.INSERT)
         # the user is not changing anything, so we don't want the event to fire
         self.mute_note_data_changes()
-        self.set_note_data(note)
+        # we want to keep user's undo buffer
+        self.set_note_data(note, reset_undo=False)
         self.text_note.mark_set(tk.INSERT, cursor_pos)
+        self.activate_links()
+        self.activate_search_string_highlights()
         self.unmute_note_data_changes()
 
 

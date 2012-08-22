@@ -472,14 +472,33 @@ class Controller:
             self.view.see_first_search_instance()
             
         else:
-            # we don't want new text to be implanted so we keep this silent
+            # we don't want new text to be implanted (YET) so we keep this silent
+            # if it does turn out to be new note content, this will be handled
+            # a few lines down.
             self.view.select_note(idx, silent=True)
             # but of course we DO have to record the possibly new IDX!!
             self.selected_note_idx = idx
-            # we have a new search string, but did not make any text changes
-            # so we have to update the search highlighting here. (usually
-            # text changes trigger this)
-            self.view.activate_search_string_highlights()
+
+            # see if the note has been updated (content, tags, pin)
+            new_note = self.notes_db.get_note(k)
+
+            # check if the currently selected note is different from the one
+            # currently being displayed. this could happen if a sync gets
+            # a new note of the server to replace the currently displayed one.
+            if self.view.is_note_different(new_note):
+                logging.debug("Currently selected note %s replaced by newer from server." % (k,))
+                # carefully update currently selected note
+                # restore cursor position, search and link highlights
+                self.view.update_selected_note_data(new_note)
+
+            else:
+                # we have a new search string, but did not make any text changes
+                # so we have to update the search highlighting here. (usually
+                # text changes trigger this)
+                self.view.activate_search_string_highlights()
+
+
+
 
     def observer_view_change_text(self, view, evt_type, evt):
         # get new text and update our database
