@@ -529,7 +529,17 @@ class View(utils.SubjectMixin):
 
     def get_continuous_rendering(self):
         return self.continuous_rendering.get()
-        
+
+    def get_selected_text(self):
+        """
+        Return note text that has been selected by user.
+        """
+
+        try:
+            return self.text_note.selection_get()
+        except tk.TclError:
+            return ''
+
     def get_text(self):
         # err, you have to specify 1.0 to END, and NOT 0 to END like I thought.
         # also, see the comment by Bryan Oakley to
@@ -732,9 +742,17 @@ class View(utils.SubjectMixin):
         edit_menu.add_command(label="Find", accelerator="Ctrl+F",
                               underline=0, command=lambda: self.search_entry.focus())
         self.root.bind_all("<Control-f>", lambda e: self.search_entry.focus())
-        
-        
 
+        # TOOLS ########################################################
+        tools_menu = tk.Menu(menu, tearoff=False)
+        menu.add_cascade(label="Tools", underline=0, menu=tools_menu)
+
+        tools_menu.add_command(label="Word Count",
+            underline=0, command=self.word_count)
+
+        # the internet thinks that multiple modifiers should work, but this didn't
+        # want to.
+        #self.root.bind_all("<Control-Shift-c>", lambda e: self.word_count())
 
         # HELP ##########################################################
         help_menu = tk.Menu(menu, tearoff=False)
@@ -1246,4 +1264,15 @@ class View(utils.SubjectMixin):
         self.unmute_note_data_changes()
 
 
-        
+    def word_count(self):
+        """
+        Display count of total words and selected words in a dialog box.
+        """
+
+        sel = self.get_selected_text()
+        slen = len(sel.split())
+
+        txt = self.get_text()
+        tlen = len(txt.split())
+
+        self.show_info('Word Count', '%d words in total\n%d words in selection' % (tlen,slen))
