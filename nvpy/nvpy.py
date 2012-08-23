@@ -377,11 +377,14 @@ class Controller:
             # create filename based on key
             fn = os.path.join(self.config.db_path, key + '_rest.html')
             f = codecs.open(fn, mode='wb', encoding='utf-8')
-            # we keep this for later, in case we want to modify rest output
-            # or combine it with our own headers.
+
+            # explicit decode from utf8 into unicode object. If we don't
+            # specify utf8, python falls back to default ascii and then we get
+            # "'ascii' codec can't decode byte" error
             s = u"""
 %s
-            """ % (html,)
+            """ % (unicode(html, 'utf8'),)
+
             f.write(s)
             f.close()
             return fn
