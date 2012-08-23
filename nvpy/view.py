@@ -1140,7 +1140,7 @@ class View(utils.SubjectMixin):
     def set_status_text(self, txt):
         self.statusbar.set_status(txt)
         
-    def set_note_data(self, note, reset_undo=True):
+    def set_note_data(self, note, reset_undo=True, content_unchanged=False):
         """Replace text in editor with content.
         
         This is usually called when a new note is selected (case 1), or
@@ -1148,12 +1148,17 @@ class View(utils.SubjectMixin):
         
         @param reset_undo: Set to False if you don't want to have the undo
         buffer to reset.
+        @param content_unchanged: Set to True if you know that the content
+        has not changed, only the tags and pinned status.
         """
-        
-        self.text_note.delete(1.0, tk.END) # clear all
+
+        if not content_unchanged:
+            self.text_note.delete(1.0, tk.END) # clear all
 
         if note is not None:
-            self.text_note.insert(tk.END, note['content'])
+            if not content_unchanged:
+                self.text_note.insert(tk.END, note['content'])
+
             # default to an empty array for tags
             tags=note.get('tags', [])
             self.tags_entry_var.set(','.join(tags))
@@ -1201,20 +1206,43 @@ class View(utils.SubjectMixin):
         """
         Update currently selected note's data.
 
-        This is called only by the event handler for the per-note on-demand
-        syncing, and when a full sync comes back that affects the currently
-        selected note.
+        This is called when the user triggers a per-note sync and a newer
+        note comes back, but also when the search string changes, and the
+        currently selected note gets a newer version due to background or
+        foreground syncing.
+
+        We take care only to update the note content if it has actually
+        changed, to minimise visual glitches.
         """
 
-        # store cursor position
-        cursor_pos = self.text_note.index(tk.INSERT)
         # the user is not changing anything, so we don't want the event to fire
         self.mute_note_data_changes()
-        # we want to keep user's undo buffer
-        self.set_note_data(note, reset_undo=False)
-        self.text_note.mark_set(tk.INSERT, cursor_pos)
-        self.activate_links()
-        self.activate_search_string_highlights()
+
+        current_content = self.get_text()
+        new_content = note.get('content', '')
+
+        if new_content != current_content:
+            # store cursor position
+            cursor_pos = self.text_note.index(tk.INSERT)
+            # also store visible window
+            first, last = self.text_note.yview()
+
+            # set new note contents, pinned status and tags
+            # but keep user's undo buffer
+            self.set_note_data(note, reset_undo=False)
+
+            # restore visible window
+            self.text_note.yview('moveto', first)
+            self.text_note.mark_set(tk.INSERT, cursor_pos)
+            self.activate_links()
+            self.activate_search_string_highlights()
+
+        else:
+            # we know the content is the same, so we only set the rest
+            # obviously keep user's undo buffer.
+            self.set_note_data(note, reset_undo=False, content_unchanged=True)
+
+        # reactivate event handlers
         self.unmute_note_data_changes()
 
 
