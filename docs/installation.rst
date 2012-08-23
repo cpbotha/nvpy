@@ -27,6 +27,12 @@ Following this recipe, you'll first install Python for win32 (this also works on
 
 For curious users: The magic invocation in step 4 automatically downloads and installs both pip and nvpy. We could have skipped the pip installation, installing nvpy directly with easy_install, but having pip around is useful in the future.
 
+To upgrade an existing installation of nvpy, do the following::
+
+    sudo pip uninstall nvpy
+    sudo pip install --upgrade --ignore-installed --no-deps nvpy
+
+
 Ubuntu / Mint / Debian step-by-step #1
 ======================================
 
@@ -47,7 +53,8 @@ To start nvpy, just do::
 
 If the pip install does not upgrade to a newer version of nvpy, try::
 
-    sudo pip install --ignore-installed nvpy
+    sudo pip uninstall nvpy
+    sudo pip install --upgrade --ignore-installed --no-deps nvpy
 
 
 Advanced users

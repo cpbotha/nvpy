@@ -46,13 +46,18 @@ To install the latest development version from github, do::
 OR, to install the version currently on pypi, do::
 
     pip install nvpy
+    
+If already have nvpy installed, but you want to upgrade, try the following::
+
+    sudo pip uninstall nvpy
+    sudo pip install --upgrade --ignore-installed --no-deps nvpy
 
 OR, you can of course use easy\_install instead::
 
     easy_install nvpy
 
 github always has the latest development version, whereas I upload
-tagged snapshots (v0.3 for example) to pypi.
+tagged snapshots (v0.9 for example) to pypi.
 
 For more detailed installation recipes, also for beginners, see
 the `nvPY installation guide <https://github.com/cpbotha/nvpy/blob/master/docs/installation.rst>`_.
