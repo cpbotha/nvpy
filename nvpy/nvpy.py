@@ -58,7 +58,7 @@ except ImportError:
 else:
     HAVE_DOCUTILS = True
 
-VERSION = "0.9.0"
+VERSION = "0.9.1"
 
 class Config:
     """
@@ -468,7 +468,7 @@ class Controller:
             # not in the new filtered list. as a convenience, we move
             # the text in the text widget so it's on the first
             # occurrence of the search string, IF there's such an
-            # occurrenc.
+            # occurrence.
             self.view.see_first_search_instance()
             
         else:
