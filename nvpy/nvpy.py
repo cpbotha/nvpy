@@ -335,10 +335,14 @@ class Controller:
         if self.selected_note_idx >= 0:
             key = self.notes_list_model.list[self.selected_note_idx].key
             c = self.notes_db.get_note_content(key)
+            logging.debug("Trying to convert %s to html." % (key,))
             if HAVE_MARKDOWN:
+                logging.debug("Convert note %s to html." % (key,))
                 html = markdown.markdown(c)
+                logging.debug("Convert done.")
                 
             else:
+                logging.debug("Markdown not installed.")
                 html = "<p>python markdown not installed, required for rendering to HTML.</p>"
                 html += "<p>Please install with \"pip install markdown\".</p>"
                 
