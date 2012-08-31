@@ -25,6 +25,22 @@ def get_note_title(note):
     else:
         return ''
 
+def get_note_title_file(note):
+    mo = note_title_re.match(note.get('content', ''))
+    if mo:
+        fn = mo.groups()[0]
+        fn = fn.replace(' ', '_')
+        fn = fn.replace('/', '_')
+
+        if note_markdown(note):
+            fn += '.mkdn'
+        else:
+            fn += '.txt'
+
+        return fn
+    else:
+        return ''
+
 def human_date(timestamp):
     """
     Given a timestamp, return pretty human format representation.
@@ -61,6 +77,17 @@ def note_pinned(n):
         return 0
 
     if 'pinned' in asystags:
+        return 1
+    else:
+        return 0
+
+def note_markdown(n):
+    asystags = n.get('systemtags', 0)
+    # no systemtag at all
+    if not asystags:
+        return 0
+
+    if 'markdown' in asystags:
         return 1
     else:
         return 0

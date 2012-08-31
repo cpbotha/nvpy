@@ -198,7 +198,7 @@ class NotesDB(utils.SubjectMixin):
         return self.q_sync.qsize()
         
     def helper_key_to_fname(self, k):
-        return os.path.join(self.db_path, k) + '.json'
+            return os.path.join(self.db_path, k) + '.json'
     
     def helper_save_note(self, k, note):
         """Save a single note to disc.
@@ -207,6 +207,10 @@ class NotesDB(utils.SubjectMixin):
         
         fn = self.helper_key_to_fname(k)
         json.dump(note, open(fn, 'wb'), indent=2)
+        if self.config.notes_as_txt:
+            fn = os.path.join(self.db_path, utils.get_note_title_file(note))
+            with open(fn, 'w') as f:  
+                f.write(note.get('content'))
         # record that we saved this to disc.
         note['savedate'] = time.time()
         
