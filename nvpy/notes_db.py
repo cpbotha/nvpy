@@ -33,10 +33,14 @@ class NotesDB(utils.SubjectMixin):
         self.config = config
         
         # create db dir if it does not exist
-        if not os.path.exists(config.db_path):
+        if self.config.notes_as_txt and not os.path.exists(config.db_path):
             os.mkdir(config.db_path)
             
         self.db_path = config.db_path
+
+        # create txt Notes dir if it does not exist
+        if not os.path.exists(config.txt_path):
+            os.mkdir(config.txt_path)
         
         now = time.time()    
         # now read all .json files from disk
@@ -45,6 +49,14 @@ class NotesDB(utils.SubjectMixin):
         for fn in fnlist:
             try:
                 n = json.load(open(fn, 'rb'))
+                if self.config.notes_as_txt:
+                    fna = os.path.join(self.config.txt_path, utils.get_note_title_file(n))
+                    if os.path.getmtime(fna) > os.path.getmtime(fn):
+                        if os.path.isfile(fna):
+                            with open(fna, mode='r') as f:  
+                                c = f.read()
+                        n['content'] = c
+                        n['modifydate'] = os.path.getmtime(fna)
 
             except ValueError, e:
                 logging.error('Error parsing %s: %s' % (fn, str(e)))
@@ -204,13 +216,14 @@ class NotesDB(utils.SubjectMixin):
         """Save a single note to disc.
         
         """
+
+        if self.config.notes_as_txt:
+            fn = os.path.join(self.config.txt_path, utils.get_note_title_file(note))
+            with open(fn, mode='w') as f:  
+                f.write(note.get('content'))
         
         fn = self.helper_key_to_fname(k)
         json.dump(note, open(fn, 'wb'), indent=2)
-        if self.config.notes_as_txt:
-            fn = os.path.join(self.db_path, utils.get_note_title_file(note))
-            with open(fn, 'w') as f:  
-                f.write(note.get('content'))
         # record that we saved this to disc.
         note['savedate'] = time.time()
         
