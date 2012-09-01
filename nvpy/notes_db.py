@@ -2,6 +2,7 @@
 # copyright 2012 by Charl P. Botha <cpbotha@vxlabs.com>
 # new BSD license
 
+import codecs
 import copy
 import glob
 import os
@@ -33,13 +34,13 @@ class NotesDB(utils.SubjectMixin):
         self.config = config
         
         # create db dir if it does not exist
-        if self.config.notes_as_txt and not os.path.exists(config.db_path):
+        if not os.path.exists(config.db_path):
             os.mkdir(config.db_path)
             
         self.db_path = config.db_path
 
         # create txt Notes dir if it does not exist
-        if not os.path.exists(config.txt_path):
+        if self.config.notes_as_txt and not os.path.exists(config.txt_path):
             os.mkdir(config.txt_path)
         
         now = time.time()    
@@ -219,8 +220,14 @@ class NotesDB(utils.SubjectMixin):
 
         if self.config.notes_as_txt:
             fn = os.path.join(self.config.txt_path, utils.get_note_title_file(note))
-            with open(fn, mode='w') as f:  
-                f.write(note.get('content'))
+            with codecs.open(fn, mode='wb', encoding='utf-8') as f:  
+                c = note.get('content')
+                if isinstance(c, str):
+                    c = unicode(c, 'utf-8')
+                else:
+                    c = unicode(c)
+                
+                f.write(c)
         
         fn = self.helper_key_to_fname(k)
         json.dump(note, open(fn, 'wb'), indent=2)
@@ -518,6 +525,11 @@ class NotesDB(utils.SubjectMixin):
             self.helper_save_note(uk, self.notes[uk])
             
         for dk in local_deletes.keys():
+            #if self.config.notes_as_txt:
+            #    fna = os.path.join(self.config.txt_path, utils.get_note_title_file(self.notes[dk]))
+            #    if os.path.isfile(fna):
+            #        os.unlink(fna)
+
             fn = self.helper_key_to_fname(dk)
             if os.path.exists(fn):
                 os.unlink(fn)
