@@ -46,6 +46,17 @@ class NotesDB(utils.SubjectMixin):
         now = time.time()    
         # now read all .json files from disk
         fnlist = glob.glob(self.helper_key_to_fname('*'))
+        txtlist = glob.glob(self.config.txt_path + '/*.txt')
+        txtlist += glob.glob(self.config.txt_path + '/*.mkdn')
+
+        # removing json files and force full full sync if using text files
+        # and none exists and json files are there
+        if self.config.notes_as_txt and not txtlist and fnlist:
+            logging.debug('Forcing resync: using text notes, first usage')
+            for fn in fnlist:
+                os.unlink(fn)
+            fnlist = []
+
         self.notes = {}
         for fn in fnlist:
             try:
@@ -53,6 +64,7 @@ class NotesDB(utils.SubjectMixin):
                 if self.config.notes_as_txt:
                     fna = os.path.join(self.config.txt_path, utils.get_note_title_file(n))
                     if os.path.isfile(fna):
+                        txtlist.remove(fna)
                         if os.path.getmtime(fna) > os.path.getmtime(fn):
                             with open(fna, mode='r') as f:  
                                 c = f.read()
