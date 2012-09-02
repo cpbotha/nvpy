@@ -17,11 +17,17 @@ Following this recipe, you'll first install Python for win32 (this also works on
     \Python27\Scripts\easy_install pip
     \Python27\Scripts\pip install nvpy
 
-5. In c:\\users\\yourlogin\\ create a file called nvpy.cfg, using your favourite text editor, with the lines::
+5. In c:\\users\\yourlogin\\ (this is your user directory on Windows) create a file called nvpy.cfg, using your favourite text editor, with the lines::
 
     [nvpy]
     sn_username = your_simplenote_email
     sn_password = your_simplenote_password
+
+   If you're not sure how to do this, just type the following at the command shell prompt::
+
+    notepad %HOMEPATH%\nvpy.cfg
+
+   Then copy and paste the three lines above starting with [nvpy] into the editor window that appears, replace your_simplenote_email and your_simplenote_password with your simplenote login details, then select Save from the File menu.
 
 6. From now on, start nvpy by double-clicking on "nvpy.exe" in c:\\Python27\\Scripts\\ -- consider creating a shortcut to this on your desktop or in your start menu.
 
@@ -67,4 +73,3 @@ You can obviously run nvpy directly from a git repo. Start with::
     python nvpy
     
 Don't forget to create .nvpy.cfg in your home directory before you start nvpy.
-
