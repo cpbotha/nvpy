@@ -31,6 +31,8 @@ def get_note_title_file(note):
         fn = mo.groups()[0]
         fn = fn.replace(' ', '_')
         fn = fn.replace('/', '_')
+        if not fn:
+            return ''
 
         if note_markdown(note):
             fn += '.mkdn'

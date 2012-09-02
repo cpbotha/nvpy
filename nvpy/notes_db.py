@@ -219,15 +219,17 @@ class NotesDB(utils.SubjectMixin):
         """
 
         if self.config.notes_as_txt:
-            fn = os.path.join(self.config.txt_path, utils.get_note_title_file(note))
-            with codecs.open(fn, mode='wb', encoding='utf-8') as f:  
-                c = note.get('content')
-                if isinstance(c, str):
-                    c = unicode(c, 'utf-8')
-                else:
-                    c = unicode(c)
-                
-                f.write(c)
+            t = utils.get_note_title_file(note)
+            if t:
+                fn = os.path.join(self.config.txt_path, utils.get_note_title_file(note))
+                with codecs.open(fn, mode='wb', encoding='utf-8') as f:  
+                    c = note.get('content')
+                    if isinstance(c, str):
+                        c = unicode(c, 'utf-8')
+                    else:
+                        c = unicode(c)
+                    
+                    f.write(c)
         
         fn = self.helper_key_to_fname(k)
         json.dump(note, open(fn, 'wb'), indent=2)
@@ -517,6 +519,10 @@ class NotesDB(utils.SubjectMixin):
         # 3. for each local note not in server index, remove.     
         for lk in self.notes.keys():
             if lk not in server_keys:
+                if self.config.notes_as_txt:
+                    fna = os.path.join(self.config.txt_path, utils.get_note_title_file(self.notes[lk]))
+                    if os.path.isfile(fna):
+                        os.unlink(fna)
                 del self.notes[lk]
                 local_deletes[lk] = True
                 
@@ -525,11 +531,6 @@ class NotesDB(utils.SubjectMixin):
             self.helper_save_note(uk, self.notes[uk])
             
         for dk in local_deletes.keys():
-            #if self.config.notes_as_txt:
-            #    fna = os.path.join(self.config.txt_path, utils.get_note_title_file(self.notes[dk]))
-            #    if os.path.isfile(fna):
-            #        os.unlink(fna)
-
             fn = self.helper_key_to_fname(dk)
             if os.path.exists(fn):
                 os.unlink(fn)
