@@ -52,12 +52,15 @@ class NotesDB(utils.SubjectMixin):
                 n = json.load(open(fn, 'rb'))
                 if self.config.notes_as_txt:
                     fna = os.path.join(self.config.txt_path, utils.get_note_title_file(n))
-                    if os.path.getmtime(fna) > os.path.getmtime(fn):
-                        if os.path.isfile(fna):
+                    if os.path.isfile(fna):
+                        if os.path.getmtime(fna) > os.path.getmtime(fn):
                             with open(fna, mode='r') as f:  
                                 c = f.read()
-                        n['content'] = c
-                        n['modifydate'] = os.path.getmtime(fna)
+                            n['content'] = c
+                            n['modifydate'] = os.path.getmtime(fna)
+                    else:
+                        n['deleted'] = 1
+                        n['modifydate'] = now
 
             except ValueError, e:
                 logging.error('Error parsing %s: %s' % (fn, str(e)))
@@ -220,7 +223,7 @@ class NotesDB(utils.SubjectMixin):
 
         if self.config.notes_as_txt:
             t = utils.get_note_title_file(note)
-            if t:
+            if t and not note.get('deleted'):
                 fn = os.path.join(self.config.txt_path, utils.get_note_title_file(note))
                 with codecs.open(fn, mode='wb', encoding='utf-8') as f:  
                     c = note.get('content')
