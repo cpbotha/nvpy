@@ -58,19 +58,26 @@ class NotesDB(utils.SubjectMixin):
             fnlist = []
 
         self.notes = {}
+        if self.config.notes_as_txt:
+            self.titlelist = {}
+
         for fn in fnlist:
             try:
                 n = json.load(open(fn, 'rb'))
                 if self.config.notes_as_txt:
-                    fna = os.path.join(self.config.txt_path, utils.get_note_title_file(n))
+                    nt = utils.get_note_title_file(n)
+                    fna = os.path.join(self.config.txt_path, nt)
                     if os.path.isfile(fna):
+                        self.titlelist[n.get('key')] = nt
                         txtlist.remove(fna)
                         if os.path.getmtime(fna) > os.path.getmtime(fn):
+                            logging.debug('Text note was changed: %s' % (fn,))
                             with open(fna, mode='r') as f:  
                                 c = f.read()
                             n['content'] = c
                             n['modifydate'] = os.path.getmtime(fna)
                     else:
+                        logging.debug('Deleting note : %s' % (fn,))
                         n['deleted'] = 1
                         n['modifydate'] = now
 
@@ -86,6 +93,7 @@ class NotesDB(utils.SubjectMixin):
                 # they're in sync with the disc.
                 n['savedate'] = now
         
+        logging.error('New text files found : %s' % (str(txtlist)),)
         # initialise the simplenote instance we're going to use
         # this does not yet need network access
         self.simplenote = Simplenote(config.sn_username, config.sn_password)
@@ -236,7 +244,16 @@ class NotesDB(utils.SubjectMixin):
         if self.config.notes_as_txt:
             t = utils.get_note_title_file(note)
             if t and not note.get('deleted'):
-                fn = os.path.join(self.config.txt_path, utils.get_note_title_file(note))
+                if note.get('key') in self.titlelist:
+                    if self.titlelist[note.get('key')] != t:
+                        dfn = os.path.join(self.config.txt_path, self.titlelist[note.get('key')])
+                        if os.path.isfile(dfn):
+                            os.unlink(dfn)
+                        else:
+                            logging.debug('File not exits %s ' % (dfn, ))
+
+                self.titlelist[note.get('key')] = t
+                fn = os.path.join(self.config.txt_path, t)
                 with codecs.open(fn, mode='wb', encoding='utf-8') as f:  
                     c = note.get('content')
                     if isinstance(c, str):
