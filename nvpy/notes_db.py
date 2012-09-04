@@ -244,15 +244,19 @@ class NotesDB(utils.SubjectMixin):
         if self.config.notes_as_txt:
             t = utils.get_note_title_file(note)
             if t and not note.get('deleted'):
-                if note.get('key') in self.titlelist:
-                    if self.titlelist[note.get('key')] != t:
-                        dfn = os.path.join(self.config.txt_path, self.titlelist[note.get('key')])
+                if k in self.titlelist:
+                    logging.debug('Writing note : %s %s' % (t,self.titlelist[k] ))
+                    if self.titlelist[k] != t:
+                        dfn = os.path.join(self.config.txt_path, self.titlelist[k])
                         if os.path.isfile(dfn):
+                            logging.debug('Delete file %s ' % (dfn, ))
                             os.unlink(dfn)
                         else:
                             logging.debug('File not exits %s ' % (dfn, ))
+                else:
+                    logging.debug('Key not in list %s ' % (k, ))
 
-                self.titlelist[note.get('key')] = t
+                self.titlelist[k] = t
                 fn = os.path.join(self.config.txt_path, t)
                 with codecs.open(fn, mode='wb', encoding='utf-8') as f:  
                     c = note.get('content')
