@@ -66,16 +66,16 @@ class NotesDB(utils.SubjectMixin):
                 n = json.load(open(fn, 'rb'))
                 if self.config.notes_as_txt:
                     nt = utils.get_note_title_file(n)
-                    fna = os.path.join(self.config.txt_path, nt)
-                    if os.path.isfile(fna):
+                    tfn = os.path.join(self.config.txt_path, nt)
+                    if os.path.isfile(tfn):
                         self.titlelist[n.get('key')] = nt
-                        txtlist.remove(fna)
-                        if os.path.getmtime(fna) > os.path.getmtime(fn):
+                        txtlist.remove(tfn)
+                        if os.path.getmtime(tfn) > os.path.getmtime(fn):
                             logging.debug('Text note was changed: %s' % (fn,))
-                            with open(fna, mode='r') as f:  
+                            with open(tfn, mode='r') as f:  
                                 c = f.read()
                             n['content'] = c
-                            n['modifydate'] = os.path.getmtime(fna)
+                            n['modifydate'] = os.path.getmtime(tfn)
                     else:
                         logging.debug('Deleting note : %s' % (fn,))
                         n['deleted'] = 1
@@ -93,7 +93,16 @@ class NotesDB(utils.SubjectMixin):
                 # they're in sync with the disc.
                 n['savedate'] = now
         
-        logging.error('New text files found : %s' % (str(txtlist)),)
+        if self.config.notes_as_txt:
+            for fn in txtlist:
+                logging.debug('New text note found : %s' % (fn),)
+                tfn = os.path.join(self.config.txt_path, fn)
+                with open(tfn, mode='r') as f:  
+                    c = f.read()
+
+                nk = self.create_note(c)
+                os.unlink(tfn)
+
         # initialise the simplenote instance we're going to use
         # this does not yet need network access
         self.simplenote = Simplenote(config.sn_username, config.sn_password)
@@ -328,6 +337,7 @@ class NotesDB(utils.SubjectMixin):
 
             else:
                 return None
+
         
     def save_threaded(self):
         for k,n in self.notes.items():
@@ -556,9 +566,9 @@ class NotesDB(utils.SubjectMixin):
         for lk in self.notes.keys():
             if lk not in server_keys:
                 if self.config.notes_as_txt:
-                    fna = os.path.join(self.config.txt_path, utils.get_note_title_file(self.notes[lk]))
-                    if os.path.isfile(fna):
-                        os.unlink(fna)
+                    tfn = os.path.join(self.config.txt_path, utils.get_note_title_file(self.notes[lk]))
+                    if os.path.isfile(tfn):
+                        os.unlink(tfn)
                 del self.notes[lk]
                 local_deletes[lk] = True
                 
