@@ -78,8 +78,12 @@ class NotesDB(utils.SubjectMixin):
                             n['modifydate'] = os.path.getmtime(tfn)
                     else:
                         logging.debug('Deleting note : %s' % (fn,))
-                        n['deleted'] = 1
-                        n['modifydate'] = now
+                        if not self.config.simplenote_sync:
+                            os.unlink(fn)
+                            continue
+                        else:
+                            n['deleted'] = 1
+                            n['modifydate'] = now
 
             except ValueError, e:
                 logging.error('Error parsing %s: %s' % (fn, str(e)))
@@ -103,20 +107,7 @@ class NotesDB(utils.SubjectMixin):
                 nk = self.create_note(c)
                 os.unlink(tfn)
 
-        # initialise the simplenote instance we're going to use
-        # this does not yet need network access
-        self.simplenote = Simplenote(config.sn_username, config.sn_password)
-        
-        # we'll use this to store which notes are currently being synced by
-        # the background thread, so we don't add them anew if they're still
-        # in progress. This variable is only used by the background thread.
-        self.threaded_syncing_keys = {}
-        
-        # reading a variable or setting this variable is atomic
-        # so sync thread will write to it, main thread will only
-        # check it sometimes.
-        self.waiting_for_simplenote = False
-        
+
         # save and sync queue
         self.q_save = Queue()
         self.q_save_res = Queue()
@@ -124,13 +115,28 @@ class NotesDB(utils.SubjectMixin):
         thread_save = Thread(target=self.worker_save)
         thread_save.setDaemon(True)
         thread_save.start()
-        
+
         self.q_sync = Queue()
         self.q_sync_res = Queue()
+
+        # initialise the simplenote instance we're going to use
+        # this does not yet need network access
+        if self.config.simplenote_sync:
+            self.simplenote = Simplenote(config.sn_username, config.sn_password)
         
-        thread_sync = Thread(target=self.worker_sync)
-        thread_sync.setDaemon(True)
-        thread_sync.start()
+        # we'll use this to store which notes are currently being synced by
+        # the background thread, so we don't add them anew if they're still
+        # in progress. This variable is only used by the background thread.
+            self.threaded_syncing_keys = {}
+        
+        # reading a variable or setting this variable is atomic
+        # so sync thread will write to it, main thread will only
+        # check it sometimes.
+            self.waiting_for_simplenote = False
+        
+            thread_sync = Thread(target=self.worker_sync)
+            thread_sync.setDaemon(True)
+            thread_sync.start()
         
     def create_note(self, title):
         # need to get a key unique to this database. not really important
@@ -147,7 +153,8 @@ class NotesDB(utils.SubjectMixin):
                     'modifydate' : timestamp,
                     'createdate' : timestamp,
                     'savedate' : 0, # never been written to disc
-                    'syncdate' : 0 # never been synced with server
+                    'syncdate' : 0, # never been synced with server
+                    'tags' : []
                     }
         
         self.notes[new_key] = new_note
@@ -275,9 +282,19 @@ class NotesDB(utils.SubjectMixin):
                         c = unicode(c)
                     
                     f.write(c)
+            elif t and note.get('deleted') and k in self.titlelist:
+                dfn = os.path.join(self.config.txt_path, self.titlelist[k])
+                if os.path.isfile(dfn):
+                    logging.debug('Delete file %s ' % (dfn, ))
+                    os.unlink(dfn)
         
         fn = self.helper_key_to_fname(k)
-        json.dump(note, open(fn, 'wb'), indent=2)
+        if not self.config.simplenote_sync and note.get('deleted'):
+            if os.path.isfile(fn):
+                os.unlink(fn)
+        else:
+            json.dump(note, open(fn, 'wb'), indent=2)
+
         # record that we saved this to disc.
         note['savedate'] = time.time()
         
