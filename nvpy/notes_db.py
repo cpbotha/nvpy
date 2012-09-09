@@ -116,23 +116,23 @@ class NotesDB(utils.SubjectMixin):
         thread_save.setDaemon(True)
         thread_save.start()
 
-        self.q_sync = Queue()
-        self.q_sync_res = Queue()
-
         # initialise the simplenote instance we're going to use
         # this does not yet need network access
         if self.config.simplenote_sync:
             self.simplenote = Simplenote(config.sn_username, config.sn_password)
         
-        # we'll use this to store which notes are currently being synced by
-        # the background thread, so we don't add them anew if they're still
-        # in progress. This variable is only used by the background thread.
+            # we'll use this to store which notes are currently being synced by
+            # the background thread, so we don't add them anew if they're still
+            # in progress. This variable is only used by the background thread.
             self.threaded_syncing_keys = {}
         
-        # reading a variable or setting this variable is atomic
-        # so sync thread will write to it, main thread will only
-        # check it sometimes.
+            # reading a variable or setting this variable is atomic
+            # so sync thread will write to it, main thread will only
+            # check it sometimes.
             self.waiting_for_simplenote = False
+
+            self.q_sync = Queue()
+            self.q_sync_res = Queue()
         
             thread_sync = Thread(target=self.worker_sync)
             thread_sync.setDaemon(True)
