@@ -72,8 +72,10 @@ class NotesDB(utils.SubjectMixin):
                         txtlist.remove(tfn)
                         if os.path.getmtime(tfn) > os.path.getmtime(fn):
                             logging.debug('Text note was changed: %s' % (fn,))
-                            with open(tfn, mode='r') as f:  
+                            #with open(tfn, mode='r') as f:  
+                            with codecs.open(tfn, mode='rb', encoding='utf-8') as f:  
                                 c = f.read()
+
                             n['content'] = c
                             n['modifydate'] = os.path.getmtime(tfn)
                     else:
@@ -101,7 +103,8 @@ class NotesDB(utils.SubjectMixin):
             for fn in txtlist:
                 logging.debug('New text note found : %s' % (fn),)
                 tfn = os.path.join(self.config.txt_path, fn)
-                with open(tfn, mode='r') as f:  
+                #with open(tfn, mode='r') as f:  
+                with codecs.open(tfn, mode='rb', encoding='utf-8') as f:  
                     c = f.read()
 
                 nk = self.create_note(c)
