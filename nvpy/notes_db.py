@@ -105,6 +105,10 @@ class NotesDB(utils.SubjectMixin):
                     c = f.read()
 
                 nk = self.create_note(c)
+                nn = os.path.splitext(os.path.basename(fn))[0]
+                if nn != utils.get_note_title(self.notes[nk]):
+                    self.notes[nk]['content'] = nn + "\n\n" + c
+
                 os.unlink(tfn)
 
 
