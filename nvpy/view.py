@@ -522,6 +522,30 @@ class View(utils.SubjectMixin):
         # the note will be created synchronously, so we can focus the text area already
         self.text_note.focus()
 
+    def cmd_root_new_clip(self, evt=None):
+        try:
+            while not self.root.selection_get(selection = "CLIPBOARD", type='UTF8_STRING'):
+                sleep(0.1)
+
+            result = self.root.selection_get(selection = "CLIPBOARD", type='UTF8_STRING')
+
+        except tk.TclError:
+            self.statusbar.set_note_status('Nothing on the clipboard')
+            return
+
+        # this'll get caught by a controller event handler
+        self.notify_observers('create:note', utils.KeyValueObject(title=self.get_search_entry_text()))
+
+        if result:
+            title = result[0:30]
+            result = title + '\n\n' + result
+            self.root.clipboard_clear()
+            self.text_note.insert(tk.END, result)
+
+        # the note will be created synchronously, so we can focus the text area already
+        self.text_note.focus()
+       
+
     def cmd_select_all(self, evt=None):
         self.text_note.tag_add("sel", "1.0", "end-1c")
         # we don't want the text bind_class() handler for Ctrl-A to be fired.
@@ -674,6 +698,7 @@ class View(utils.SubjectMixin):
         file_menu.add_command(label = "New note", underline=0,
                               command=self.cmd_root_new, accelerator="Ctrl+N")
         self.root.bind_all("<Control-n>", self.cmd_root_new)
+        self.root.bind_all("<Control-p>", self.cmd_root_new_clip)
 
         file_menu.add_command(label = "Delete note", underline=0,
                               command=self.cmd_root_delete, accelerator="Ctrl+D")        
