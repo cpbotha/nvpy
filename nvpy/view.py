@@ -524,14 +524,30 @@ class View(utils.SubjectMixin):
 
     def cmd_root_new_clip(self, evt=None):
         try:
-            while not self.root.selection_get(selection = "CLIPBOARD", type='UTF8_STRING'):
+            while not self.root.selection_get(selection = "PRIMARY", type='UTF8_STRING'):
                 sleep(0.1)
 
-            result = self.root.selection_get(selection = "CLIPBOARD", type='UTF8_STRING')
+            result = self.root.selection_get(selection = "PRIMARY", type='UTF8_STRING')
 
         except tk.TclError:
-            self.statusbar.set_note_status('Nothing on the clipboard')
-            return
+            try:
+                logging.debug('nothing selected primary clipboard')
+                while not self.root.selection_get(selection = "CLIPBOARD", type='UTF8_STRING'):
+                    sleep(0.1)
+
+                result = self.root.selection_get(selection = "CLIPBOARD", type='UTF8_STRING')
+
+            except tk.TclError:
+                try:
+                    logging.debug('nothing selected clipboard')
+                    while not self.root.selection_get(selection = "CLIPBOARD"):
+                        sleep(0.1)
+
+                    result = self.root.selection_get(selection = "CLIPBOARD")
+
+                except tk.TclError:
+                    self.statusbar.set_note_status('Nothing on the clipboard')
+                    return
 
         # this'll get caught by a controller event handler
         self.notify_observers('create:note', utils.KeyValueObject(title=self.get_search_entry_text()))
@@ -698,6 +714,9 @@ class View(utils.SubjectMixin):
         file_menu.add_command(label = "New note", underline=0,
                               command=self.cmd_root_new, accelerator="Ctrl+N")
         self.root.bind_all("<Control-n>", self.cmd_root_new)
+
+        file_menu.add_command(label = "New note from clipboard", underline=0,
+                              command=self.cmd_root_new_clip, accelerator="Ctrl+P")
         self.root.bind_all("<Control-p>", self.cmd_root_new_clip)
 
         file_menu.add_command(label = "Delete note", underline=0,
