@@ -123,7 +123,16 @@ class Simplenote(object):
             note["content"] = unicode(note["content"], 'utf-8')
 
         if note.has_key("tags"):
-            note["tags"] = [unicode(t, 'utf-8') for t in note["tags"] if isinstance(t, str)]
+            #note["tags"] = [unicode(t, 'utf-8') for t in note["tags"] if isinstance(t, str)]
+            tags = []
+            for t in note["tags"]:
+                if isinstance(t, str):
+                    tags.append(unicode(t, 'utf-8'))
+                else:
+                    tags.append(unicode(t))
+
+            note["tags"] = tags
+
 
         # determine whether to create a new note or updated an existing one
         if note.has_key("key"):
@@ -137,6 +146,7 @@ class Simplenote(object):
             response = urllib2.urlopen(request).read()
         except IOError, e:
             return e, -1
+
         return json.loads(response), 0
 
     def add_note(self, note):
