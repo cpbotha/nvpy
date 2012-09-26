@@ -108,7 +108,14 @@ def sanitise_tags(tags):
     # hack out all kinds of whitespace, then split on ,
     # if you run into more illegal characters (simplenote does not want to sync them)
     # add them to the regular expression above.
-    return tags_illegal_chars.sub('', tags).split(',')
+    illegals_removed = tags_illegal_chars.sub('', tags)
+    if len(illegals_removed) == 0:
+        # special case for empty string ''
+        # split turns that into [''], which is not valid
+        return []
+
+    else:
+        return illegals_removed.split(',')
 
 
 
