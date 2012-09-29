@@ -39,6 +39,8 @@ Screenshots and screencasts
 Installation
 ============
 
+nvPY works best on Python 2.7.x. It does not work on Python 3.x yet.
+
 To install the latest development version from github, do::
 
     pip install git+https://github.com/cpbotha/nvpy.git#egg=nvpy
@@ -80,7 +82,7 @@ are much faster as it uses the database it stores in your home directory.
 If you prefer to run from your git clone, you can just invoke python on nvpy.py, or on the nvpy package directory.
 
 The `example nvpy.cfg <https://github.com/cpbotha/nvpy/blob/master/nvpy/nvpy-example.cfg>`_ shows how you can configure the font 
-family and size.
+family and size, configure nvpy to save and load notes as clear text, disable simplenote syncing, and so forth.
 
 Keyboard handling
 =================
