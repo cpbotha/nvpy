@@ -77,19 +77,22 @@ class Config:
         defaults = {'app_dir' : app_dir,
                     'appdir' : app_dir,
                     'home' : home,
+                    'notes_as_txt' : '0',
                     'housekeeping_interval' : '2',
                     'case_sensitive' : '0',
                     'search_tags' : '1',
                     'sort_mode' : '1',
                     'pinned_ontop' : '1',
                     'db_path' : os.path.join(home, '.nvpy'),
+                    'txt_path' : os.path.join(home, '.nvpy'),
                     'font_family' : 'Courier', # monospaced on all platforms
                     'font_size' : '12',
                     'list_font_family' : 'Helvetica', # sans on all platforms
                     'list_font_size' : '10',
                     'background_color' : 'white',
                     'sn_username' : '',
-                    'sn_password' : ''
+                    'sn_password' : '',
+                    'simplenote_sync' : '1'
                    }
         
         cp = ConfigParser.SafeConfigParser(defaults)
@@ -115,9 +118,12 @@ class Config:
         # https://github.com/cpbotha/nvpy/issues/9
         self.sn_username = cp.get(cfg_sec, 'sn_username', raw=True)
         self.sn_password = cp.get(cfg_sec, 'sn_password', raw=True)
+        self.simplenote_sync = cp.getint(cfg_sec, 'simplenote_sync')
         # make logic to find in $HOME if not set
         self.db_path = cp.get(cfg_sec, 'db_path')
         #  0 = alpha sort, 1 = last modified first
+        self.notes_as_txt = cp.getint(cfg_sec, 'notes_as_txt')
+        self.txt_path = os.path.join(home, cp.get(cfg_sec, 'txt_path'))
         self.case_sensitive = cp.getint(cfg_sec, 'case_sensitive')
         self.search_tags = cp.getint(cfg_sec, 'search_tags')
         self.sort_mode = cp.getint(cfg_sec, 'sort_mode')
@@ -201,15 +207,19 @@ class Controller:
         logging.debug('nvpy logging initialized')
         
         logging.debug('config read from %s' % (str(self.config.files_read),))
+
+        if self.config.sn_username == '':
+            self.config.simplenote_sync = 0
                 
         # read our database of notes into memory
         # and sync with simplenote.
         c = self.config
-        notes_db_config = KeyValueObject(db_path=c.db_path, sn_username=c.sn_username, sn_password=c.sn_password, sort_mode=c.sort_mode, pinned_ontop=c.pinned_ontop, case_sensitive=c.case_sensitive, search_tags=c.search_tags)
+        notes_db_config = KeyValueObject(db_path=c.db_path, sn_username=c.sn_username, sn_password=c.sn_password, sort_mode=c.sort_mode, pinned_ontop=c.pinned_ontop, case_sensitive=c.case_sensitive, search_tags=c.search_tags, notes_as_txt=c.notes_as_txt, txt_path=c.txt_path, simplenote_sync=c.simplenote_sync)
         self.notes_db = NotesDB(notes_db_config)
         self.notes_db.add_observer('synced:note', self.observer_notes_db_synced_note)
         self.notes_db.add_observer('change:note-status', self.observer_notes_db_change_note_status)
-        self.notes_db.add_observer('progress:sync_full', self.observer_notes_db_sync_full)
+        if self.config.simplenote_sync:
+            self.notes_db.add_observer('progress:sync_full', self.observer_notes_db_sync_full)
 
         self.notes_list_model = NotesListModel()
         
@@ -230,9 +240,10 @@ class Controller:
                 self.observer_view_markdown)
         self.view.add_observer('command:rest',
                 self.observer_view_rest)
-        self.view.add_observer('command:sync_full', lambda v, et, e: self.sync_full())
-        self.view.add_observer('command:sync_current_note',
-                self.observer_view_sync_current_note)
+
+        if self.config.simplenote_sync:
+            self.view.add_observer('command:sync_full', lambda v, et, e: self.sync_full())
+            self.view.add_observer('command:sync_current_note', self.observer_view_sync_current_note)
         
         self.view.add_observer('close', self.observer_view_close)
         
@@ -247,7 +258,8 @@ class Controller:
         self.view.select_note(0)
 
         # perform full sync with server, and refresh notes list if successful
-        self.sync_full()
+        if self.config.simplenote_sync:
+            self.sync_full()
 
     def get_selected_note_key(self):
         if self.selected_note_idx >= 0:
@@ -335,10 +347,14 @@ class Controller:
         if self.selected_note_idx >= 0:
             key = self.notes_list_model.list[self.selected_note_idx].key
             c = self.notes_db.get_note_content(key)
+            logging.debug("Trying to convert %s to html." % (key,))
             if HAVE_MARKDOWN:
+                logging.debug("Convert note %s to html." % (key,))
                 html = markdown.markdown(c)
+                logging.debug("Convert done.")
                 
             else:
+                logging.debug("Markdown not installed.")
                 html = "<p>python markdown not installed, required for rendering to HTML.</p>"
                 html += "<p>Please install with \"pip install markdown\".</p>"
                 
@@ -402,12 +418,17 @@ class Controller:
         webbrowser.open(fn_uri)
         
     def helper_save_sync_msg(self):
+
         # Saving 2 notes. Syncing 3 notes, waiting for simplenote server.
         # All notes saved. All notes synced.
         
         saven = self.notes_db.get_save_queue_len()
-        syncn = self.notes_db.get_sync_queue_len()
-        wfsn = self.notes_db.waiting_for_simplenote
+        
+        if self.config.simplenote_sync:
+            syncn = self.notes_db.get_sync_queue_len()
+            wfsn = self.notes_db.waiting_for_simplenote
+        else:
+            syncn = wfsn = 0
         
         savet = 'Saving %d notes.' % (saven,) if saven > 0 else '';
         synct = 'Waiting to sync %d notes.' % (syncn,) if syncn > 0 else '';
@@ -419,12 +440,12 @@ class Controller:
     def observer_view_keep_house(self, view, evt_type, evt):
         # queue up all notes that need to be saved
         nsaved = self.notes_db.save_threaded()
-        nsynced, sync_errors = self.notes_db.sync_to_server_threaded()
-        
         msg = self.helper_save_sync_msg()
 
-        if sync_errors:
-            msg = ' '.join([i for i in [msg, 'Could not connect to simplenote server.'] if i])
+        if self.config.simplenote_sync:
+            nsynced, sync_errors = self.notes_db.sync_to_server_threaded()
+            if sync_errors:
+                msg = ' '.join([i for i in [msg, 'Could not connect to simplenote server.'] if i])
             
         self.view.set_status_text(msg)
 
@@ -531,12 +552,15 @@ class Controller:
         
         # first make sure all our queues are up to date
         self.notes_db.save_threaded()
-        self.notes_db.sync_to_server_threaded(wait_for_idle=False)        
+        if self.config.simplenote_sync:
+            self.notes_db.sync_to_server_threaded(wait_for_idle=False)        
+            syncn = self.notes_db.get_sync_queue_len()
+            wfsn = self.notes_db.waiting_for_simplenote
+        else:
+            syncn = wfsn = 0
         
         # then check all queues
         saven = self.notes_db.get_save_queue_len()
-        syncn = self.notes_db.get_sync_queue_len()
-        wfsn = self.notes_db.waiting_for_simplenote
         
         # if there's still something to do, warn the user.
         if saven or syncn or wfsn:
