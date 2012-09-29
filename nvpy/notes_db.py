@@ -197,12 +197,22 @@ class NotesDB(utils.SubjectMixin):
             if self.config.search_tags == 1:
                 t = n.get('tags')
                 if not n.get('deleted') and sspat:
-                   if filter(sspat.search, t):
-                       # we have to store our local key also
-                       filtered_notes.append(utils.KeyValueObject(key=k, note=n, tagfound=1))
-                   elif sspat.search(c):
-                       # we have to store our local key also
-                       filtered_notes.append(utils.KeyValueObject(key=k, note=n, tagfound=0))
+                    # this used to use a filter(), but that would by definition
+                    # test all elements, whereas we can stop when the first
+                    # matching element is found
+                    # now I'm using this awesome trick by Alex Martelli on
+                    # http://stackoverflow.com/a/2748753/532513
+                    # first parameter of next is a generator
+                    # next() executes one step, but due to the if, this will
+                    # either be first matching element or None (second param)
+                    if next((ti for ti in t if sspat.search(ti)), None) is not None:
+                        # we have to store our local key also
+                        filtered_notes.append(utils.KeyValueObject(key=k, note=n, tagfound=1))
+
+                    elif sspat.search(c):
+                        # we have to store our local key also
+                        filtered_notes.append(utils.KeyValueObject(key=k, note=n, tagfound=0))
+
                 elif not n.get('deleted') and not sspat:
                     # we have to store our local key also
                     filtered_notes.append(utils.KeyValueObject(key=k, note=n, tagfound=0))
