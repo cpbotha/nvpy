@@ -8,8 +8,7 @@ Windows. It is significantly uglier, but it is cross-platform.  Yes,
 you heard right, you can run this on Linux (tested), Windows (tested)
 and OS X (lightly tested).
 
-It was written by Charl Botha, who needed a simplenote client on
-Linux and doesn't mind ugliness (that much).
+It was written by Charl Botha, who needed a simplenote client on Linux and doesn't mind ugliness (that much). Sjaak Westdijk has contributed significantly to the codebase since right after the 0.8.5 release.
 
 * nvpy lives happily at https://github.com/cpbotha/nvpy
 * For news and discussion, join the `public nvpy google group <https://groups.google.com/d/forum/nvpy>`_ or subscribe to its `RSS topic feed <https://groups.google.com/group/nvpy/feed/rss_v2_0_topics.xml>`_.
@@ -35,9 +34,19 @@ Screenshots and screencasts
 
 * Screencast of nvpy's inter-note linking: http://youtu.be/NXuVMZr31SI
 
+A note on automatic syncing
+===========================
+
+* When nvPY starts up, it automatically performs a full sync. When you start it up for the first time, this can take quite a while. On subsquent startups, it's much faster, as it maintains its own database on disk.
+* While running, nvPY automatically and continuously saves and syncs any changes to disk and to simplenote. You don't have to do anything besides typing your notes.
+* If you edit the same note simultaneously in nvPY and for example the web interface, these changes will be merged as you work.
+* If you add or delete notes from a completely different location, nvPY will not pick this up until your next full sync. In the future, this will also happen automatically.
+* In short: You usually don't have to worry about syncing and saving, simplenote takes care of this. If you have any more questions, please post them in the `nvpy google group <https://groups.google.com/d/forum/nvpy>`_.
 
 Installation
 ============
+
+nvPY works best on Python 2.7.x. It does not work on Python 3.x yet.
 
 To install the latest development version from github, do::
 
@@ -80,7 +89,7 @@ are much faster as it uses the database it stores in your home directory.
 If you prefer to run from your git clone, you can just invoke python on nvpy.py, or on the nvpy package directory.
 
 The `example nvpy.cfg <https://github.com/cpbotha/nvpy/blob/master/nvpy/nvpy-example.cfg>`_ shows how you can configure the font 
-family and size.
+family and size, configure nvpy to save and load notes as clear text, disable simplenote syncing, and so forth.
 
 Keyboard handling
 =================
