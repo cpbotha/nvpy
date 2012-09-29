@@ -1017,7 +1017,7 @@ class View(utils.SubjectMixin):
             self.text_note.focus()
         
     def handler_search_entry(self, *args):
-        self.notify_observers('change:entry', 
+        self.notify_observers('change:entry',
                               utils.KeyValueObject(value=self.search_entry_var.get()))
 
     def handler_tags_entry(self, *args):

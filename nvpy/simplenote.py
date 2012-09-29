@@ -115,7 +115,7 @@ class Simplenote(object):
             - status (int): 0 on sucesss and -1 otherwise
 
         """
-        # use UTF-8 encoding
+
         # use UTF-8 encoding
         # cpbotha: in both cases check if it's not unicode already
         # otherwise you get "TypeError: decoding Unicode is not supported"
@@ -123,7 +123,10 @@ class Simplenote(object):
             note["content"] = unicode(note["content"], 'utf-8')
 
         if note.has_key("tags"):
-            note["tags"] = [unicode(t, 'utf-8') for t in note["tags"] if isinstance(t, str)]
+            # if a tag is a string, unicode it, otherwise pass it through
+            # unchanged (it's unicode already)
+            # using the ternary operator, because I like it: a if test else b
+            note["tags"] = [unicode(t, 'utf-8') if isinstance(t, str) else t for t in note["tags"]]
 
         # determine whether to create a new note or updated an existing one
         if note.has_key("key"):
