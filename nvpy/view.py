@@ -768,8 +768,11 @@ class View(utils.SubjectMixin):
         # these two variables determine the final dimensions of our interface
         #FRAME_HEIGHT=400
         TEXT_WIDTH=80
-        
-        self.root = tk.Tk()
+
+        # set the correct class name. this helps your desktop environment
+        # to identify the nvPY window.
+        self.root = tk.Tk(className="nvPY")
+
         self.root.title("nvPY")
         #self.root.configure(background="#b2b2b2")
 
