@@ -9,9 +9,10 @@
 Version=1.0
 Type=Application
 Name=nvPY
+Comment=Cross-platform simplenote-syncing note-taking tool
 Exec=nvpy
 Icon=/usr/local/lib/python2.7/dist-packages/nvpy/icons/nvpy.gif
-Categories=Notes;
+Categories=Utility;
 Terminal=false
 StartupNotify=true
 StartupWMClass=nvPY
