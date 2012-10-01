@@ -62,6 +62,14 @@ If the pip install does not upgrade to a newer version of nvpy, try::
     sudo pip uninstall nvpy
     sudo pip install --upgrade --ignore-installed --no-deps nvpy
 
+Integrating with your Linux desktop environment
+===============================================
+
+nvPY ships with a `.desktop file <https://github.com/cpbotha/nvpy/blob/master/nvpy/vxlabs-nvpy.desktop>`_, so that you can easily integrate it with your Linux desktop environment. This has been tested on Ubuntu Unity, but should work on KDE, Gnome3 and other environments as well.
+
+First edit the file to check and optionally customize the Exec and Icon entries, then install it with::
+
+    xdg-desktop-menu install vxlabs-nvpy.desktop
 
 Advanced users
 ==============

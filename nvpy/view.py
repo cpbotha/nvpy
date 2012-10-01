@@ -411,9 +411,18 @@ class TriggeredcompleteEntry(tk.Entry):
     """
     Subclass of tk.Entry that features triggeredcompletion.
 
+    How this works: User types first part of tag, then triggers complete with
+    ctrl-space. The first matching tag is shown. The user can either continue
+    pressing ctrl-space to see more matching tags, or right arrow to select
+    the current suggestion and continue typing. Backspace will delete the
+    suggested part. Left arrow will delete the last character with the cursor
+    at the end of the line, or the suggested part if not.
+
     To enable triggeredcompletion use set_completion_list(list) to define 
     a list of possible strings to hit.
     To cycle through hits use CTRL <space> keys.
+
+    @ivar cycle: if 1, then we're cycling through alternative completions.
     """
 
     def __init__(self, master, case_sensitive, **kw): 
@@ -425,16 +434,18 @@ class TriggeredcompleteEntry(tk.Entry):
         self._completion_list = completion_list
         self._hits = []
         self._hit_index = 0
-        self.position = 0               
+        self.position = 0
         self.cycle = 0
 
     def triggeredcomplete(self):
         """triggeredcomplete the Entry, delta may be 0/1 to cycle through possible hits"""
+
         if self.cycle: # need to delete selection otherwise we would fix the current position
             self.delete(self.position, tk.END)
             self._hit_index += 1
             if self._hit_index == len(self._hits):
                 self._hit_index = 0
+
         else: # set position to end so selection starts where textentry ended
             self.position = len(self.get())
             # collect hits
@@ -446,8 +457,10 @@ class TriggeredcompleteEntry(tk.Entry):
                 else:
                     if element.startswith(self.get()):
                          _hits.append(element)
+
             self._hit_index = 0
             self._hits=_hits
+
         # now finally perform the triggered completion
         if self._hits:
             self.delete(0,tk.END)
@@ -458,20 +471,26 @@ class TriggeredcompleteEntry(tk.Entry):
         """event handler for the keyrelease event on this widget"""
         ctrl  = ((event.state & 0x0004) != 0)
 
-        if event.keysym == "BackSpace":
-            self.cycle = 0
-            self.delete(self.index(tk.INSERT), tk.END) 
-            self.position = self.index(tk.END)
-        if event.keysym == "Left":
-            self.cycle = 0
-            if self.position < self.index(tk.END): # delete the selection
-                self.delete(self.position, tk.END)
-            else:
-                self.position = self.position-1 # delete one character
-                self.delete(self.position, tk.END)
-        if event.keysym == "Right":
-            self.position = self.index(tk.END) # go to end (no selection)
-            self.cycle = 0
+        # special case handling below only if we are in cycle mode.
+        if self.cycle:
+            if event.keysym == "BackSpace":
+                self.cycle = 0
+                self.delete(self.index(tk.INSERT), tk.END)
+                self.position = self.index(tk.END)
+
+            if event.keysym == "Left":
+                self.cycle = 0
+                if self.position < self.index(tk.END): # delete the selection
+                    self.delete(self.position, tk.END)
+
+                else:
+                    self.position = self.position-1 # delete one character
+                    self.delete(self.position, tk.END)
+
+            if event.keysym == "Right":
+                self.position = self.index(tk.END) # go to end (no selection)
+                self.cycle = 0
+
         if event.keysym == "space" and ctrl:
             # cycle 
             self.triggeredcomplete()
@@ -677,7 +696,6 @@ class View(utils.SubjectMixin):
         self.search_entry.bind("<Next>", lambda e:
             self.notes_list.select_next(silent=False, delta=10))
 
-
         self.text_note.bind("<<Change>>", self.handler_text_change)
         
         # user presses escape in text area, they go back to notes list
@@ -812,8 +830,11 @@ class View(utils.SubjectMixin):
         # these two variables determine the final dimensions of our interface
         #FRAME_HEIGHT=400
         TEXT_WIDTH=80
-        
-        self.root = tk.Tk()
+
+        # set the correct class name. this helps your desktop environment
+        # to identify the nvPY window.
+        self.root = tk.Tk(className="nvPY")
+
         self.root.title("nvPY")
         #self.root.configure(background="#b2b2b2")
 

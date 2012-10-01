@@ -172,7 +172,7 @@ class NotesDB(utils.SubjectMixin):
         n = self.notes[key]
         n['deleted'] = 1
         n['modifydate'] = time.time()
-        
+
     def filter_notes(self, search_string=None):
         """Return list of notes filtered with search_string, 
         a regular expression, each a tuple with (local_key, note). 

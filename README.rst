@@ -68,8 +68,7 @@ OR, you can of course use easy\_install instead::
 github always has the latest development version, whereas I upload
 tagged snapshots (v0.9 for example) to pypi.
 
-For more detailed installation recipes, also for beginners, see
-the `nvPY installation guide <https://github.com/cpbotha/nvpy/blob/master/docs/installation.rst>`_.
+For more detailed installation recipes, also for beginners, and for instructions on how to integrate nvPY with your Linux desktop environment, see the `nvPY installation guide <https://github.com/cpbotha/nvpy/blob/master/docs/installation.rst>`_.
 
 How to run for the first time
 =============================
@@ -110,6 +109,7 @@ Ctrl-R     Render reStructuredText (reST) note to HTML and open browser window.
 Ctrl-S     Force sync of current note with simplenote server. Saving to disc and syncing to server also happen continuously in the background.
 Ctrl-Y     Redo note edits.
 Ctrl-Z     Undo note edits.
+Ctrl-SPACE In search box, autocomplete tag under cursor. Keep on pressing for more alternatives.
 ESC        Go from edit mode to notes list.
 ENTER      Start editing currently selected note. If there's a search string but no notes in the list, ENTER creates a new note with that search string as its title.
 ========== ==========
