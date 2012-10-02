@@ -478,6 +478,15 @@ class TriggeredcompleteEntry(tk.Entry):
                 self.delete(self.index(tk.INSERT), tk.END)
                 self.position = self.index(tk.END)
 
+            if event.keysym == "Left":
+                self.cycle = 0
+                if self.position < self.index(tk.END): # delete the selection
+                    self.delete(self.position, tk.END)
+
+                else:
+                    self.position = self.position-1 # delete one character
+                    self.delete(self.position, tk.END)
+
             if event.keysym == "Right":
                 self.position = self.index(tk.END) # go to end (no selection)
                 self.cycle = 0
@@ -531,46 +540,6 @@ class View(utils.SubjectMixin):
         self.notify_observers('create:note', utils.KeyValueObject(title=self.get_search_entry_text()))
         # the note will be created synchronously, so we can focus the text area already
         self.text_note.focus()
-
-    def cmd_root_new_clip(self, evt=None):
-        try:
-            while not self.root.selection_get(selection = "PRIMARY", type='UTF8_STRING'):
-                sleep(0.1)
-
-            result = self.root.selection_get(selection = "PRIMARY", type='UTF8_STRING')
-
-        except tk.TclError:
-            try:
-                logging.debug('nothing selected primary clipboard')
-                while not self.root.selection_get(selection = "CLIPBOARD", type='UTF8_STRING'):
-                    sleep(0.1)
-
-                result = self.root.selection_get(selection = "CLIPBOARD", type='UTF8_STRING')
-
-            except tk.TclError:
-                try:
-                    logging.debug('nothing selected clipboard')
-                    while not self.root.selection_get(selection = "CLIPBOARD"):
-                        sleep(0.1)
-
-                    result = self.root.selection_get(selection = "CLIPBOARD")
-
-                except tk.TclError:
-                    self.statusbar.set_note_status('Nothing on the clipboard')
-                    return
-
-        # this'll get caught by a controller event handler
-        self.notify_observers('create:note', utils.KeyValueObject(title=self.get_search_entry_text()))
-
-        if result:
-            title = result[0:30]
-            result = title + '\n\n' + result
-            self.root.clipboard_clear()
-            self.text_note.insert(tk.END, result)
-
-        # the note will be created synchronously, so we can focus the text area already
-        self.text_note.focus()
-       
 
     def cmd_select_all(self, evt=None):
         self.text_note.tag_add("sel", "1.0", "end-1c")
@@ -723,10 +692,6 @@ class View(utils.SubjectMixin):
         file_menu.add_command(label = "New note", underline=0,
                               command=self.cmd_root_new, accelerator="Ctrl+N")
         self.root.bind_all("<Control-n>", self.cmd_root_new)
-
-        file_menu.add_command(label = "New note from clipboard", underline=0,
-                              command=self.cmd_root_new_clip, accelerator="Ctrl+P")
-        self.root.bind_all("<Control-p>", self.cmd_root_new_clip)
 
         file_menu.add_command(label = "Delete note", underline=0,
                               command=self.cmd_root_delete, accelerator="Ctrl+D")        
