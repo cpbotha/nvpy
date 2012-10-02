@@ -35,8 +35,8 @@ For curious users: The magic invocation in step 4 automatically downloads and in
 
 To upgrade an existing installation of nvpy, do the following::
 
-    sudo pip uninstall nvpy
-    sudo pip install --upgrade --ignore-installed --no-deps nvpy
+    pip uninstall nvpy
+    pip install --upgrade --ignore-installed --no-deps nvpy
 
 
 Ubuntu / Mint / Debian step-by-step #1
