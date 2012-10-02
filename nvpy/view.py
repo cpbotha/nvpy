@@ -478,15 +478,6 @@ class TriggeredcompleteEntry(tk.Entry):
                 self.delete(self.index(tk.INSERT), tk.END)
                 self.position = self.index(tk.END)
 
-            if event.keysym == "Left":
-                self.cycle = 0
-                if self.position < self.index(tk.END): # delete the selection
-                    self.delete(self.position, tk.END)
-
-                else:
-                    self.position = self.position-1 # delete one character
-                    self.delete(self.position, tk.END)
-
             if event.keysym == "Right":
                 self.position = self.index(tk.END) # go to end (no selection)
                 self.cycle = 0
