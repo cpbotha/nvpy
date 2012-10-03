@@ -140,6 +140,7 @@ class Simplenote(object):
             response = urllib2.urlopen(request).read()
         except IOError, e:
             return e, -1
+
         return json.loads(response), 0
 
     def add_note(self, note):

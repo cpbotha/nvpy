@@ -682,7 +682,7 @@ class NotesDB(utils.SubjectMixin):
 
                 else:
                     logging.debug('Sending new note (local key %s) to server.' % (o.key,))
-                    
+
                 uret = self.simplenote.update_note(o.note)
                 self.waiting_for_simplenote = False
                 
