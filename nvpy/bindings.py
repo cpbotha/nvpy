@@ -19,6 +19,7 @@ Ctrl-S     Force sync of current note with simplenote server. Saving to disc
            and syncing to server also happen continuously in the background.
 Ctrl-Y     Redo note edits.
 Ctrl-Z     Undo note edits.
+Ctrl-+/-   Increase or decrease the font size.
 ESC        Go from edit mode to notes list.
 ENTER      Start editing currently selected note. If there's a search string but
            no notes in the list, ENTER creates a new note with that search
