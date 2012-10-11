@@ -84,7 +84,7 @@ class Config:
                     'sort_mode' : '1',
                     'pinned_ontop' : '1',
                     'db_path' : os.path.join(home, '.nvpy'),
-                    'txt_path' : os.path.join(home, '.nvpy/Notes'),
+                    'txt_path' : os.path.join(home, '.nvpy/notes'),
                     'font_family' : 'Courier', # monospaced on all platforms
                     'font_size' : '12',
                     'list_font_family' : 'Helvetica', # sans on all platforms

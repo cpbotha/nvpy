@@ -114,6 +114,23 @@ class RedirectedText(tk.Text):
         self.orig_delete(*args)
         self.event_generate('<<Change>>')
 
+
+class HelpBindings(tk.Toplevel):
+    def __init__(self, parent=None):
+        tk.Toplevel.__init__(self, parent)
+        self.title("Help | Bindings")
+
+        import bindings
+
+        msg = tk.Text(self, width=80, wrap=tk.NONE)
+        msg.insert(tk.END, bindings.description)
+        msg.config(state=tk.DISABLED)
+        msg.pack()
+
+        button = tk.Button(self, text="Dismiss", command=self.destroy)
+        button.pack()
+
+
 #########################################################################
 class StatusBar(tk.Frame):
     """Adapted from the tkinterbook.
@@ -623,7 +640,8 @@ class View(utils.SubjectMixin):
         self.root.protocol('WM_DELETE_WINDOW', self.handler_close)
 
         self.root.bind_all("<Control-g>", lambda e: self.tags_entry.focus())
-        
+        self.root.bind_all("<Control-question>", lambda e: self.cmd_help_bindings())
+
         self.notes_list.bind("<<NotesListSelect>>", self.cmd_notes_list_select)
         # same behaviour as when the user presses enter on search entry:
         # if something is selected, focus the text area
@@ -769,6 +787,10 @@ class View(utils.SubjectMixin):
 
         help_menu.add_command(label = "About", underline = 0,
                               command = self.cmd_help_about)
+        help_menu.add_command(label = "Bindings", underline = 0,
+                              command = self.cmd_help_bindings,
+                              accelerator="Ctrl+?")
+
 
         # END MENU ######################################################
 
@@ -924,6 +946,10 @@ class View(utils.SubjectMixin):
             '<http://charlbotha.com/>\n\n'
             'A rather ugly but cross-platform simplenote client.' % (self.config.app_version,),
             parent = self.root)
+
+    def cmd_help_bindings(self):
+        h = HelpBindings()
+        self.root.wait_window(h)
 
     def cmd_rest(self, event=None):
         self.notify_observers('command:rest', None)
