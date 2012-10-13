@@ -34,6 +34,11 @@ def get_note_title_file(note):
         if not fn:
             return ''
 
+        if isinstance(fn, str):
+            fn = unicode(fn, 'utf-8')
+        else:
+            fn = unicode(fn)
+
         if note_markdown(note):
             fn += '.mkdn'
         else:
