@@ -46,8 +46,8 @@ class NotesDB(utils.SubjectMixin):
         now = time.time()    
         # now read all .json files from disk
         fnlist = glob.glob(self.helper_key_to_fname('*'))
-        txtlist = glob.glob(self.config.txt_path + '/*.txt')
-        txtlist += glob.glob(self.config.txt_path + '/*.mkdn')
+        txtlist = glob.glob(unicode(self.config.txt_path + '/*.txt', 'utf-8'))
+        txtlist += glob.glob(unicode(self.config.txt_path + '/*.mkdn', 'utf-8'))
 
         # removing json files and force full full sync if using text files
         # and none exists and json files are there
@@ -72,7 +72,6 @@ class NotesDB(utils.SubjectMixin):
                         txtlist.remove(tfn)
                         if os.path.getmtime(tfn) > os.path.getmtime(fn):
                             logging.debug('Text note was changed: %s' % (fn,))
-                            #with open(tfn, mode='r') as f:  
                             with codecs.open(tfn, mode='rb', encoding='utf-8') as f:  
                                 c = f.read()
 
@@ -278,7 +277,7 @@ class NotesDB(utils.SubjectMixin):
             t = utils.get_note_title_file(note)
             if t and not note.get('deleted'):
                 if k in self.titlelist:
-                    logging.debug('Writing note : %s %s' % (t,self.titlelist[k] ))
+                    logging.debug('Writing note : %s %s' % (t,self.titlelist[k]))
                     if self.titlelist[k] != t:
                         dfn = os.path.join(self.config.txt_path, self.titlelist[k])
                         if os.path.isfile(dfn):
