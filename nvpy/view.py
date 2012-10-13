@@ -105,6 +105,7 @@ class RedirectedText(tk.Text):
         self.redir = WidgetRedirector(self)
         self.orig_insert = self.redir.register("insert", self.new_insert)
         self.orig_delete = self.redir.register("delete", self.new_delete)
+        self.fonts = [kw['font']]
 
     def new_insert(self, *args):
         self.orig_insert(*args)
@@ -225,6 +226,8 @@ class NotesList(tk.Frame):
         self.selected_idx = -1
         # list containing tuples with each note's title, tags,
         self.note_headers = []
+
+        self.fonts = [f, italic_font, bold_font]
 
     def append(self, note, config):
         """
@@ -641,6 +644,8 @@ class View(utils.SubjectMixin):
 
         self.root.bind_all("<Control-g>", lambda e: self.tags_entry.focus())
         self.root.bind_all("<Control-question>", lambda e: self.cmd_help_bindings())
+        self.root.bind_all("<Control-plus>", lambda e: self.cmd_font_size(+1))
+        self.root.bind_all("<Control-minus>", lambda e: self.cmd_font_size(-1))
 
         self.notes_list.bind("<<NotesListSelect>>", self.cmd_notes_list_select)
         # same behaviour as when the user presses enter on search entry:
@@ -879,7 +884,8 @@ class View(utils.SubjectMixin):
             yscrollbar.pack(side=tk.RIGHT, fill=tk.Y)
 
             #f = tkFont.nametofont('TkFixedFont')
-            f = tkFont.Font(family=self.config.font_family, size=-self.config.font_size)
+            f = tkFont.Font(family=self.config.font_family,
+                            size=self.config.font_size)
             # tkFont.families(root) returns list of available font family names
             # this determines the width of the complete interface (yes)
             text = RedirectedText(master, height=25, width=TEXT_WIDTH,
@@ -901,7 +907,7 @@ class View(utils.SubjectMixin):
 
         # setup user_text ###############################################
         self.text_note = create_scrolled_text(right_frame)
-
+        self.fonts = self.notes_list.fonts + self.text_note.fonts
 
         # finish UI creation ###########################################
 
@@ -959,7 +965,11 @@ class View(utils.SubjectMixin):
         
     def cmd_sync_full(self, event=None):
         self.notify_observers('command:sync_full', None)
-        
+
+    def cmd_font_size(self, inc_size):
+        for f in self.fonts:
+            f.configure(size=f['size'] + inc_size)
+
     def handler_housekeeper(self):
         # nvPY will do saving and syncing!
         self.notify_observers('keep:house', None)

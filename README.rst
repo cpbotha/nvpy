@@ -111,6 +111,7 @@ Ctrl-S     Force sync of current note with simplenote server. Saving to disc and
 Ctrl-Y     Redo note edits.
 Ctrl-Z     Undo note edits.
 Ctrl-SPACE In search box, autocomplete tag under cursor. Keep on pressing for more alternatives.
+Ctrl-+/-   Increase or decrease the font size.
 ESC        Go from edit mode to notes list.
 ENTER      Start editing currently selected note. If there's a search string but no notes in the list, ENTER creates a new note with that search string as its title.
 ========== ==========
