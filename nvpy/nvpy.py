@@ -49,7 +49,7 @@ except ImportError:
     HAVE_MARKDOWN = False
 else:
     HAVE_MARKDOWN = True
-    
+
 try:
     import docutils
     import docutils.core
@@ -67,9 +67,9 @@ class Config:
     """
     def __init__(self, app_dir):
         """
-        @param app_dir: the directory containing nvPY.py
+        @param app_dir: the directory containing nvpy.py
         """
-       
+
         self.app_dir = app_dir
         # cross-platform way of getting home dir!
         # http://stackoverflow.com/a/4028943/532513
@@ -92,24 +92,27 @@ class Config:
                     'background_color' : 'white',
                     'sn_username' : '',
                     'sn_password' : '',
-                    'simplenote_sync' : '1'
+                    'simplenote_sync' : '1',
+                    # Filename or filepath to a css file used style the rendered
+                    # output; e.g. nvpy.css or /path/to/my.css
+                    'rest_css_path': None,
                    }
-        
+
         cp = ConfigParser.SafeConfigParser(defaults)
         # later config files overwrite earlier files
         # try a number of alternatives
-        self.files_read = cp.read([os.path.join(app_dir, 'nvpy.cfg'), 
-                                   os.path.join(home, 'nvpy.cfg'), 
+        self.files_read = cp.read([os.path.join(app_dir, 'nvpy.cfg'),
+                                   os.path.join(home, 'nvpy.cfg'),
                                    os.path.join(home, '.nvpy.cfg'),
                                    os.path.join(home, '.nvpy'),
                                    os.path.join(home, '.nvpyrc')])
-        
+
         cfg_sec = 'nvpy'
-        
+
         if not cp.has_section(cfg_sec):
             cp.add_section(cfg_sec)
             self.ok = False
-            
+
         else:
             self.ok = True
 
@@ -130,7 +133,7 @@ class Config:
         self.pinned_ontop = cp.getint(cfg_sec, 'pinned_ontop')
         self.housekeeping_interval = cp.getint(cfg_sec, 'housekeeping_interval')
         self.housekeeping_interval_ms = self.housekeeping_interval * 1000
-        
+
         self.font_family = cp.get(cfg_sec, 'font_family')
         self.font_size = cp.getint(cfg_sec, 'font_size')
 
@@ -138,6 +141,8 @@ class Config:
         self.list_font_size = cp.getint(cfg_sec, 'list_font_size')
 
         self.background_color = cp.get(cfg_sec, 'background_color')
+
+        self.rest_css_path = cp.get(cfg_sec, 'rest_css_path')
 
 
 class NotesListModel(SubjectMixin):
@@ -147,32 +152,32 @@ class NotesListModel(SubjectMixin):
     def __init__(self):
         # call mixin ctor
         SubjectMixin.__init__(self)
-        
+
         self.list = []
-        
+
     def set_list(self, alist):
         self.list = alist
         self.notify_observers('set:list', None)
-        
+
     def get_idx(self, key):
-        """Find idx for passed LOCAL key. 
+        """Find idx for passed LOCAL key.
         """
         found = [i for i,e in enumerate(self.list) if e.key == key]
         if found:
             return found[0]
-        
+
         else:
             return -1
-    
+
 class Controller:
     """Main application class.
     """
-    
+
     def __init__(self):
         # setup appdir
         if hasattr(sys, 'frozen') and sys.frozen:
             self.appdir, _ = os.path.split(sys.executable)
-            
+
         else:
             dirname = os.path.dirname(__file__)
             if dirname and dirname != os.curdir:
@@ -182,7 +187,7 @@ class Controller:
 
         # make sure it's the full path
         self.appdir = os.path.abspath(self.appdir)
-        
+
         # should probably also look in $HOME
         self.config = Config(self.appdir)
         self.config.app_version = VERSION
@@ -205,12 +210,23 @@ class Controller:
         logger.addHandler(lhandler)
         # this will go to the root logger
         logging.debug('nvpy logging initialized')
-        
+
         logging.debug('config read from %s' % (str(self.config.files_read),))
 
         if self.config.sn_username == '':
             self.config.simplenote_sync = 0
-                
+
+        css = self.config.rest_css_path
+        if css:
+            if css.startswith("~/"):
+                # On Mac, paths that start with '~/' aren't found by path.exists
+                css = css.replace(
+                    "~", os.path.abspath(os.path.expanduser('~')), 1)
+                self.config.rest_css_path = css
+            if not os.path.exists(css):
+                # Couldn't find the user-defined css file. Use docutils css instead.
+                self.config.rest_css_path = None
+
         # read our database of notes into memory
         # and sync with simplenote.
         c = self.config
@@ -222,7 +238,7 @@ class Controller:
             self.notes_db.add_observer('progress:sync_full', self.observer_notes_db_sync_full)
 
         self.notes_list_model = NotesListModel()
-        
+
         # create the interface
         self.view = view.View(self.config, self.notes_list_model)
         # we want to be notified when the user does stuff
@@ -244,9 +260,9 @@ class Controller:
         if self.config.simplenote_sync:
             self.view.add_observer('command:sync_full', lambda v, et, e: self.sync_full())
             self.view.add_observer('command:sync_current_note', self.observer_view_sync_current_note)
-        
+
         self.view.add_observer('close', self.observer_view_close)
-        
+
         # nn is a list of (key, note) objects
         nn = self.notes_db.filter_notes()
         # this will trigger the list_change event
@@ -266,10 +282,10 @@ class Controller:
             return self.notes_list_model.list[self.selected_note_idx].key
         else:
             return None
-                
+
     def main_loop(self):
         if not self.config.files_read:
-            self.view.show_warning('No config file', 
+            self.view.show_warning('No config file',
                                   'Could not read any configuration files. See https://github.com/cpbotha/nvpy for details.')
 
         elif not self.config.ok:
@@ -277,27 +293,27 @@ class Controller:
                     'Config file format changed after nvPY 0.8.') % \
             (str(self.config.files_read),)
             self.view.show_warning('Rename config section', wmsg)
-            
+
         self.view.main_loop()
-        
+
     def observer_notes_db_change_note_status(self, notes_db, evt_type, evt):
         skey = self.get_selected_note_key()
         if skey == evt.key:
             self.view.set_note_status(self.notes_db.get_note_status(skey))
-            
+
     def observer_notes_db_sync_full(self, notes_db, evt_type, evt):
         logging.debug(evt.msg)
         self.view.set_status_text(evt.msg)
-        
+
     def observer_notes_db_synced_note(self, notes_db, evt_type, evt):
         """This observer gets called only when a note returns from
         a sync that's more recent than our most recent mod to that note.
         """
-        
+
         selected_note_o = self.notes_list_model.list[self.selected_note_idx]
         # if the note synced back matches our currently selected note,
         # we overwrite.
-        
+
         if selected_note_o.key == evt.lkey:
             if selected_note_o.note['content'] != evt.old_note['content']:
                 self.view.mute_note_data_changes()
@@ -308,21 +324,21 @@ class Controller:
 
     def observer_view_click_notelink(self, view, evt_type, note_name):
         # find note_name in titles, try to jump to that note
-        # if not in current list, change search string in case 
+        # if not in current list, change search string in case
         # it's somewhere else
         # FIXME: implement find_note_by_name
         idx = self.view.select_note_by_name(note_name)
-        
+
         if idx < 0:
             # this means a note with that name was not found
             # because nvpy kicks ass, it then assumes the contents of [[]]
             # to be a new regular expression to search for in the notes db.
             self.view.set_search_entry_text(note_name)
-        
+
     def observer_view_delete_note(self, view, evt_type, evt):
         # delete note from notes_db
         # remove the note from the notes_list_model.list
-        
+
         # if these two are not equal, something is not kosher.
         assert(evt.sel == self.selected_note_idx)
 
@@ -336,7 +352,7 @@ class Controller:
 
         # finally delete the note
         self.notes_db.delete_note(key)
-        
+
         # easiest now is just to regenerate the list by resetting search string
         # if the note after the deleted one is already selected, this will
         # simply keep that selection!
@@ -352,12 +368,12 @@ class Controller:
                 logging.debug("Convert note %s to html." % (key,))
                 html = markdown.markdown(c)
                 logging.debug("Convert done.")
-                
+
             else:
                 logging.debug("Markdown not installed.")
                 html = "<p>python markdown not installed, required for rendering to HTML.</p>"
                 html += "<p>Please install with \"pip install markdown\".</p>"
-                
+
             # create filename based on key
             fn = os.path.join(self.config.db_path, key + '.html')
             f = codecs.open(fn, mode='wb', encoding='utf-8')
@@ -375,21 +391,25 @@ class Controller:
             f.write(s)
             f.close()
             return fn
-        
+
     def helper_rest_to_html(self):
         if self.selected_note_idx >= 0:
             key = self.notes_list_model.list[self.selected_note_idx].key
             c = self.notes_db.get_note_content(key)
             if HAVE_DOCUTILS:
+                settings = {}
+                if self.config.rest_css_path:
+                    settings['stylesheet_path'] = self.config.rest_css_path
                 # this gives the whole document
-                html = docutils.core.publish_string(c, writer_name='html')
+                html = docutils.core.publish_string(
+                    c, writer_name='html', settings_overrides=settings)
                 # publish_parts("*anurag*",writer_name='html')['body']
                 # gives just the desired part of the tree
-                
+
             else:
                 html = "<p>python docutils not installed, required for rendering reST to HTML.</p>"
                 html += "<p>Please install with \"pip install docutils\".</p>"
-                
+
             # create filename based on key
             fn = os.path.join(self.config.db_path, key + '_rest.html')
             f = codecs.open(fn, mode='wb', encoding='utf-8')
@@ -410,33 +430,33 @@ class Controller:
         # turn filename into URI (mac wants this)
         fn_uri = 'file://' + os.path.abspath(fn)
         webbrowser.open(fn_uri)
-        
+
     def observer_view_rest(self, view, evt_type, evt):
         fn = self.helper_rest_to_html()
         # turn filename into URI (mac wants this)
         fn_uri = 'file://' + os.path.abspath(fn)
         webbrowser.open(fn_uri)
-        
+
     def helper_save_sync_msg(self):
 
         # Saving 2 notes. Syncing 3 notes, waiting for simplenote server.
         # All notes saved. All notes synced.
-        
+
         saven = self.notes_db.get_save_queue_len()
-        
+
         if self.config.simplenote_sync:
             syncn = self.notes_db.get_sync_queue_len()
             wfsn = self.notes_db.waiting_for_simplenote
         else:
             syncn = wfsn = 0
-        
+
         savet = 'Saving %d notes.' % (saven,) if saven > 0 else '';
         synct = 'Waiting to sync %d notes.' % (syncn,) if syncn > 0 else '';
         wfsnt = 'Syncing with simplenote server.' if wfsn else '';
-        
+
         return ' '.join([i for i in [savet, synct, wfsnt] if i])
-        
-        
+
+
     def observer_view_keep_house(self, view, evt_type, evt):
         # queue up all notes that need to be saved
         nsaved = self.notes_db.save_threaded()
@@ -446,14 +466,14 @@ class Controller:
             nsynced, sync_errors = self.notes_db.sync_to_server_threaded()
             if sync_errors:
                 msg = ' '.join([i for i in [msg, 'Could not connect to simplenote server.'] if i])
-            
+
         self.view.set_status_text(msg)
 
         # in continous rendering mode, we also generate a new HTML
         # the browser, if open, will refresh!
         if self.view.get_continuous_rendering():
             self.helper_markdown_to_html()
-        
+
     def observer_view_select_note(self, view, evt_type, evt):
         self.select_note(evt.sel)
 
@@ -476,7 +496,7 @@ class Controller:
                 self.view.set_status_text(
                         'Unable to sync with server. Offline?')
 
-            
+
     def observer_view_change_entry(self, view, evt_type, evt):
         # store the currently selected note key
         k = self.get_selected_note_key()
@@ -495,7 +515,7 @@ class Controller:
             # occurrence of the search string, IF there's such an
             # occurrence.
             self.view.see_first_search_instance()
-            
+
         else:
             # we don't want new text to be implanted (YET) so we keep this silent
             # if it does turn out to be new note content, this will be handled
@@ -549,30 +569,30 @@ class Controller:
 
     def observer_view_close(self, view, evt_type, evt):
         # check that everything has been saved and synced before exiting
-        
+
         # first make sure all our queues are up to date
         self.notes_db.save_threaded()
         if self.config.simplenote_sync:
-            self.notes_db.sync_to_server_threaded(wait_for_idle=False)        
+            self.notes_db.sync_to_server_threaded(wait_for_idle=False)
             syncn = self.notes_db.get_sync_queue_len()
             wfsn = self.notes_db.waiting_for_simplenote
         else:
             syncn = wfsn = 0
-        
+
         # then check all queues
         saven = self.notes_db.get_save_queue_len()
-        
+
         # if there's still something to do, warn the user.
         if saven or syncn or wfsn:
             msg = "Are you sure you want to exit? I'm still busy: " + self.helper_save_sync_msg()
             really_want_to_exit = self.view.askyesno("Confirm exit", msg)
-            
+
             if really_want_to_exit:
                 self.view.close()
-                
+
         else:
             self.view.close()
-        
+
     def observer_view_create_note(self, view, evt_type, evt):
         # create the note
         new_key = self.notes_db.create_note(evt.title)
@@ -581,7 +601,7 @@ class Controller:
         # we should focus on our thingy
         idx = self.notes_list_model.get_idx(new_key)
         self.view.select_note(idx)
-    
+
     def select_note(self, idx):
         if idx >= 0:
             key = self.notes_list_model.list[idx].key
@@ -591,7 +611,7 @@ class Controller:
             key = None
             note = None
             idx = -1
-        
+
         self.selected_note_idx = idx
 
         # when we do this, we don't want the change:{text,tags,pinned} events
@@ -609,7 +629,7 @@ class Controller:
 
         except SyncError as e:
             self.view.show_error('Sync error', e.message)
-        
+
         else:
             # regenerate display list
             # reselect old selection
@@ -618,12 +638,12 @@ class Controller:
 
             if sync_from_server_errors > 0:
                 self.view.show_error('Error syncing notes from server', 'Error syncing %d notes from server. Please check nvpy.log for details.' % (sync_from_server_errors,))
-        
+
 
 def main():
     controller = Controller()
     controller.main_loop()
-    
+
 
 if __name__ == '__main__':
     main()
