@@ -205,7 +205,7 @@ class NotesDB(utils.SubjectMixin):
                     # first parameter of next is a generator
                     # next() executes one step, but due to the if, this will
                     # either be first matching element or None (second param)
-                    if next((ti for ti in t if sspat.search(ti)), None) is not None:
+                    if t and next((ti for ti in t if sspat.search(ti)), None) is not None:
                         # we have to store our local key also
                         filtered_notes.append(utils.KeyValueObject(key=k, note=n, tagfound=1))
 
