@@ -1095,7 +1095,7 @@ class View(utils.SubjectMixin):
         
         # take care of invalid regular expressions...
         try:
-            if self.config.case_sensitive == 0: 
+            if self.config.case_sensitive == 0:
                 pat = re.compile(st, re.I)
             else:
                 pat = re.compile(st)

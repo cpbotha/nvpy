@@ -299,8 +299,14 @@ class NotesDB(utils.SubjectMixin):
             if not n.get('deleted'):
                 c = n.get('content')
 
+                # case insensitive mode: WARNING - SLOW!
+                if not self.config.case_sensitive and c:
+                    c = c.lower()
+
                 tagmatch = self._helper_gstyle_tagmatch(tms_pats[0], n)
-                if tagmatch and self._helper_gstyle_mswordmatch(tms_pats[1] + tms_pats[2], c):
+                # case insensitive mode: WARNING - SLOW!
+                msword_pats = tms_pats[1] + tms_pats[2] if self.config.case_sensitive else [p.lower() for p in tms_pats[1] + tms_pats[2]]
+                if tagmatch and self._helper_gstyle_mswordmatch(msword_pats, c):
                     # we have a note that can go through!
 
                     # tagmatch == 1 if a tag was specced and found
