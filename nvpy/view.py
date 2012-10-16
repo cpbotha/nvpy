@@ -839,11 +839,28 @@ class View(utils.SubjectMixin):
         
         search_entry.make_style()
         self.search_entry_var = tk.StringVar()
-        #self.search_entry = tk.Entry(search_frame, textvariable=self.search_entry_var, style="Search.entry")
         self.search_entry = TriggeredcompleteEntry(search_frame, self.config.case_sensitive, textvariable=self.search_entry_var, style="Search.entry")
         #self.search_entry.set_completion_list(self.taglist)
         self.search_entry_var.trace('w', self.handler_search_entry)
+
+        cs_label = tk.Label(search_frame,text="CS ")
+        self.cs_checkbutton_var = tk.IntVar()
+        cs_checkbutton = tk.Checkbutton(search_frame, variable=self.cs_checkbutton_var)
+        self.cs_checkbutton_var.trace('w', self.handler_cs_checkbutton)
+
+        self.search_mode_options = ("gstyle", "regexp")
+        self.search_mode_var = tk.StringVar()
+        # I'm working with ttk.OptionVar, which has that extra default param!
+        self.search_mode_cb = tk.OptionMenu(search_frame, self.search_mode_var,
+            self.search_mode_options[0], *self.search_mode_options)
+        self.search_mode_var.trace('w', self.handler_search_mode)
+
+        self.search_mode_cb.pack(side=tk.RIGHT, padx=5)
+        cs_checkbutton.pack(side=tk.RIGHT)
+        cs_label.pack(side=tk.RIGHT)
         self.search_entry.pack(fill=tk.X,padx=5, pady=5)
+
+
         search_frame.pack(side=tk.TOP, fill=tk.X)
         
         
@@ -970,6 +987,10 @@ class View(utils.SubjectMixin):
         for f in self.fonts:
             f.configure(size=f['size'] + inc_size)
 
+    def handler_cs_checkbutton(self, *args):
+        self.notify_observers('change:cs',
+            utils.KeyValueObject(value=self.cs_checkbutton_var.get()))
+
     def handler_housekeeper(self):
         # nvPY will do saving and syncing!
         self.notify_observers('keep:house', None)
@@ -1067,6 +1088,20 @@ class View(utils.SubjectMixin):
     def handler_search_entry(self, *args):
         self.notify_observers('change:entry',
                               utils.KeyValueObject(value=self.search_entry_var.get()))
+
+    def handler_search_mode(self, *args):
+        """
+        Called when the user changes the search mode via the OptionMenu.
+
+        This will also be called even if the user reselects the same option.
+
+        @param args:
+        @return:
+        """
+
+        self.notify_observers('change:search_mode',
+            utils.KeyValueObject(value=self.search_mode_var.get()))
+
 
     def handler_tags_entry(self, *args):
         self.notify_observers('change:tags',
@@ -1203,6 +1238,30 @@ class View(utils.SubjectMixin):
         self.mute('change:text')
         self.mute('change:tags')
         self.mute('change:pinned')
+
+
+    def set_cs(self, cs, silent=False):
+        if silent:
+            self.mute('change:cs')
+
+        self.cs_checkbutton_var.set(cs)
+
+        self.unmute('change:cs')
+
+    def set_search_mode(self, search_mode, silent=False):
+        """
+
+        @param search_mode: the search mode, "gstyle" or "regexp"
+        @param silent: Specify True if you don't want the view to trigger any events.
+        @return:
+        """
+
+        if silent:
+            self.mute('change:search_mode')
+
+        self.search_mode_var.set(search_mode)
+
+        self.unmute('change:search_mode')
         
     def set_status_text(self, txt):
         self.statusbar.set_status(txt)
