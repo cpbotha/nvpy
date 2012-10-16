@@ -186,8 +186,10 @@ class NotesDB(utils.SubjectMixin):
         to configuration.
         """
 
-        #filtered_notes, match_regexp = self.filter_notes_regexp(search_string)
-        filtered_notes, match_regexp = self.filter_notes_gstyle(search_string)
+        if self.config.search_mode == 'regexp':
+            filtered_notes, match_regexp = self.filter_notes_regexp(search_string)
+        else:
+            filtered_notes, match_regexp = self.filter_notes_gstyle(search_string)
 
         if self.config.sort_mode == 0:
             if self.config.pinned_ontop == 0:

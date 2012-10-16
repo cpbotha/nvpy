@@ -79,7 +79,8 @@ class Config:
                     'home' : home,
                     'notes_as_txt' : '0',
                     'housekeeping_interval' : '2',
-                    'case_sensitive' : '0',
+                    'search_mode' : 'gstyle',
+                    'case_sensitive' : '1',
                     'search_tags' : '1',
                     'sort_mode' : '1',
                     'pinned_ontop' : '1',
@@ -127,6 +128,7 @@ class Config:
         #  0 = alpha sort, 1 = last modified first
         self.notes_as_txt = cp.getint(cfg_sec, 'notes_as_txt')
         self.txt_path = os.path.join(home, cp.get(cfg_sec, 'txt_path'))
+        self.search_mode = cp.get(cfg_sec, 'search_mode')
         self.case_sensitive = cp.getint(cfg_sec, 'case_sensitive')
         self.search_tags = cp.getint(cfg_sec, 'search_tags')
         self.sort_mode = cp.getint(cfg_sec, 'sort_mode')
@@ -230,9 +232,7 @@ class Controller:
 
         # read our database of notes into memory
         # and sync with simplenote.
-        c = self.config
-        notes_db_config = KeyValueObject(db_path=c.db_path, sn_username=c.sn_username, sn_password=c.sn_password, sort_mode=c.sort_mode, pinned_ontop=c.pinned_ontop, case_sensitive=c.case_sensitive, search_tags=c.search_tags, notes_as_txt=c.notes_as_txt, txt_path=c.txt_path, simplenote_sync=c.simplenote_sync)
-        self.notes_db = NotesDB(notes_db_config)
+        self.notes_db = NotesDB(self.config)
         self.notes_db.add_observer('synced:note', self.observer_notes_db_synced_note)
         self.notes_db.add_observer('change:note-status', self.observer_notes_db_change_note_status)
         if self.config.simplenote_sync:
