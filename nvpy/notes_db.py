@@ -174,6 +174,143 @@ class NotesDB(utils.SubjectMixin):
         n['modifydate'] = time.time()
 
     def filter_notes(self, search_string=None):
+        """Return list of notes filtered with search string.
+
+        Based on the search mode that has been selected in self.config,
+        this method will call the appropriate helper method to do the
+        actual work of filtering the notes.
+
+        @param search_string: String that will be used for searching.
+         Different meaning depending on the search mode.
+        @return: notes filtered with selected search mode and sorted according
+        to configuration.
+        """
+
+        #filtered_notes = self.filter_notes_regexp(search_string)
+        filtered_notes = self.filter_notes_gstyle(search_string)
+
+        if self.config.sort_mode == 0:
+            if self.config.pinned_ontop == 0:
+                # sort alphabetically on title
+                filtered_notes.sort(key=lambda o: utils.get_note_title(o.note))
+            else:
+                filtered_notes.sort(utils.sort_by_title_pinned)
+
+        else:
+            if self.config.pinned_ontop == 0:
+                # last modified on top
+                filtered_notes.sort(key=lambda o: -float(o.note.get('modifydate', 0)))
+            else:
+                filtered_notes.sort(utils.sort_by_modify_date_pinned, reverse=True)
+
+        return filtered_notes
+
+    def _helper_gstyle_tagmatch(self, tag_pats, note):
+        if tag_pats:
+            tags = note.get('tags')
+
+            # tag: patterns specified, but note has no tags, so no match
+            if not tags:
+                return 0
+
+            # for each tag_pat, we have to find a matching tag
+            for tp in tag_pats:
+                # at the first match between tp and a tag:
+                if next((tag for tag in tags if tag.startswith(tp)), None) is not None:
+                    # we found a tag that matches current tagpat, so we move to the next tagpat
+                    continue
+
+                else:
+                    # we found no tag that matches current tagpat, so we break out of for loop
+                    break
+
+            else:
+                # for loop never broke out due to no match for tagpat, so:
+                # all tag_pats could be matched, so note is a go.
+                return 1
+
+
+            # break out of for loop will have us end up here
+            # for one of the tag_pats we found no matching tag
+            return 0
+
+
+        else:
+            # match because no tag: patterns were specified
+            return 2
+
+    def _helper_gstyle_mswordmatch(self, msword_pats, content):
+        """If all words / multi-words in msword_pats are found in the content,
+        the note goes through, otherwise not.
+
+        @param msword_pats:
+        @param content:
+        @return:
+        """
+
+        # no search patterns, so note goes through
+        if not msword_pats:
+            return True
+
+        # search for the first p that does NOT occur in content
+        if next((p for p in msword_pats if p not in content), None) is None:
+            # we only found pats that DO occur in content so note goes through
+            return True
+
+        else:
+            # we found the first p that does not occur in content
+            return False
+
+
+
+    def filter_notes_gstyle(self, search_string=None):
+
+        filtered_notes = []
+
+        if not search_string:
+            for k in self.notes:
+                n = self.notes[k]
+                if not n.get('deleted'):
+                    filtered_notes.append(utils.KeyValueObject(key=k, note=n, tagfound=0))
+
+            return filtered_notes
+
+        # group0: ag - not used
+        # group1: t(ag)?:([^\s]+)
+        # group2: multiple words in quotes
+        # group3: single words
+        # example result for 't:tag1 t:tag2 word1 "word2 word3" tag:tag3' ==
+        # [('', 'tag1', '', ''), ('', 'tag2', '', ''), ('', '', '', 'word1'), ('', '', 'word2 word3', ''), ('ag', 'tag3', '', '')]
+
+        groups = re.findall('t(ag)?:([^\s]+)|"([^"]+)"|([^\s]+)', search_string)
+        tms_pats = [[] for _ in range(3)]
+
+        # we end up with [[tag_pats],[multi_word_pats],[single_word_pats]]
+        for gi in groups:
+            for mi in range(1,4):
+                if gi[mi]:
+                    tms_pats[mi-1].append(gi[mi])
+
+        for k in self.notes:
+            n = self.notes[k]
+
+            if not n.get('deleted'):
+                c = n.get('content')
+
+                tagmatch = self._helper_gstyle_tagmatch(tms_pats[0], n)
+                if tagmatch and self._helper_gstyle_mswordmatch(tms_pats[1] + tms_pats[2], c):
+                    # we have a note that can go through!
+
+                    # tagmatch == 1 if a tag was specced and found
+                    # tagmatch == 2 if no tag was specced (so all notes go through)
+                    tagfound = 1 if tagmatch == 1 else 0
+                    # we have to store our local key also
+                    filtered_notes.append(utils.KeyValueObject(key=k, note=n, tagfound=tagfound))
+
+        return filtered_notes
+
+
+    def filter_notes_regexp(self, search_string=None):
         """Return list of notes filtered with search_string, 
         a regular expression, each a tuple with (local_key, note). 
         """
@@ -220,21 +357,7 @@ class NotesDB(utils.SubjectMixin):
                 if not n.get('deleted') and (not sspat or sspat.search(c)):
                     # we have to store our local key also
                     filtered_notes.append(utils.KeyValueObject(key=k, note=n, tagfound=0))
-            
-        if self.config.sort_mode == 0:
-            if self.config.pinned_ontop == 0:
-                # sort alphabetically on title
-                filtered_notes.sort(key=lambda o: utils.get_note_title(o.note))
-            else:
-                filtered_notes.sort(utils.sort_by_title_pinned)
-            
-        else:
-            if self.config.pinned_ontop == 0:
-                # last modified on top
-                filtered_notes.sort(key=lambda o: -float(o.note.get('modifydate', 0)))
-            else:
-                filtered_notes.sort(utils.sort_by_modify_date_pinned, reverse=True)
-            
+
         return filtered_notes
 
     def get_note(self, key):
