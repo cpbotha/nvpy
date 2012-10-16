@@ -86,7 +86,7 @@ class Config:
                     'db_path' : os.path.join(home, '.nvpy'),
                     'txt_path' : os.path.join(home, '.nvpy/notes'),
                     'font_family' : 'Courier', # monospaced on all platforms
-                    'font_size' : '12',
+                    'font_size' : '10',
                     'list_font_family' : 'Helvetica', # sans on all platforms
                     'list_font_size' : '10',
                     'background_color' : 'white',
