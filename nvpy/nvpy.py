@@ -154,6 +154,7 @@ class NotesListModel(SubjectMixin):
         SubjectMixin.__init__(self)
 
         self.list = []
+        self.match_regexps = []
 
     def set_list(self, alist):
         self.list = alist
@@ -264,9 +265,10 @@ class Controller:
         self.view.add_observer('close', self.observer_view_close)
 
         # nn is a list of (key, note) objects
-        nn = self.notes_db.filter_notes()
+        nn, match_regexp = self.notes_db.filter_notes()
         # this will trigger the list_change event
         self.notes_list_model.set_list(nn)
+        self.notes_list_model.match_regexp = match_regexp
 
         # we'll use this to keep track of the currently selected note
         # we only use idx, because key could change from right under us.
@@ -502,8 +504,9 @@ class Controller:
         k = self.get_selected_note_key()
         # for each new evt.value coming in, get a new list from the notes_db
         # and set it in the notes_list_model
-        nn = self.notes_db.filter_notes(evt.value)
+        nn, match_regexp = self.notes_db.filter_notes(evt.value)
         self.notes_list_model.set_list(nn)
+        self.notes_list_model.match_regexp = match_regexp
 
         idx = self.notes_list_model.get_idx(k)
 

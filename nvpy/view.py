@@ -1089,7 +1089,7 @@ class View(utils.SubjectMixin):
         
         del self.text_tags_search[:]
         
-        st = self.get_search_entry_text()
+        st = self.notes_list_model.match_regexp
         if not st:
             return
         
@@ -1099,6 +1099,7 @@ class View(utils.SubjectMixin):
                 pat = re.compile(st, re.I)
             else:
                 pat = re.compile(st)
+
         except re.error:
             return
         

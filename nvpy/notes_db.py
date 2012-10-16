@@ -186,8 +186,8 @@ class NotesDB(utils.SubjectMixin):
         to configuration.
         """
 
-        #filtered_notes = self.filter_notes_regexp(search_string)
-        filtered_notes = self.filter_notes_gstyle(search_string)
+        #filtered_notes, match_regexp = self.filter_notes_regexp(search_string)
+        filtered_notes, match_regexp = self.filter_notes_gstyle(search_string)
 
         if self.config.sort_mode == 0:
             if self.config.pinned_ontop == 0:
@@ -203,7 +203,7 @@ class NotesDB(utils.SubjectMixin):
             else:
                 filtered_notes.sort(utils.sort_by_modify_date_pinned, reverse=True)
 
-        return filtered_notes
+        return filtered_notes, match_regexp
 
     def _helper_gstyle_tagmatch(self, tag_pats, note):
         if tag_pats:
@@ -273,7 +273,7 @@ class NotesDB(utils.SubjectMixin):
                 if not n.get('deleted'):
                     filtered_notes.append(utils.KeyValueObject(key=k, note=n, tagfound=0))
 
-            return filtered_notes
+            return filtered_notes, []
 
         # group0: ag - not used
         # group1: t(ag)?:([^\s]+)
@@ -307,7 +307,7 @@ class NotesDB(utils.SubjectMixin):
                     # we have to store our local key also
                     filtered_notes.append(utils.KeyValueObject(key=k, note=n, tagfound=tagfound))
 
-        return filtered_notes
+        return filtered_notes, '|'.join(tms_pats[1] + tms_pats[2])
 
 
     def filter_notes_regexp(self, search_string=None):
@@ -358,7 +358,9 @@ class NotesDB(utils.SubjectMixin):
                     # we have to store our local key also
                     filtered_notes.append(utils.KeyValueObject(key=k, note=n, tagfound=0))
 
-        return filtered_notes
+        match_regexp = search_string if sspat else ''
+
+        return filtered_notes, match_regexp
 
     def get_note(self, key):
         return self.notes[key]
