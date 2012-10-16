@@ -1,8 +1,0 @@
-syntax: glob
-*.pyc
-.project
-.pydevproject
-dist
-build
-.idea
-nvpy.egg-info
