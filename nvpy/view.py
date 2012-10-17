@@ -435,8 +435,7 @@ class TriggeredcompleteEntry(tk.Entry):
     ctrl-space. The first matching tag is shown. The user can either continue
     pressing ctrl-space to see more matching tags, or right arrow to select
     the current suggestion and continue typing. Backspace will delete the
-    suggested part. Left arrow will delete the last character with the cursor
-    at the end of the line, or the suggested part if not.
+    suggested part. 
 
     To enable triggeredcompletion use set_completion_list(list) to define 
     a list of possible strings to hit.
@@ -454,6 +453,7 @@ class TriggeredcompleteEntry(tk.Entry):
         self._completion_list = completion_list
         self._hits = []
         self._hit_index = 0
+        self.wstart = 0
         self.position = 0
         self.cycle = 0
 
@@ -468,14 +468,23 @@ class TriggeredcompleteEntry(tk.Entry):
 
         else: # set position to end so selection starts where textentry ended
             self.position = len(self.get())
+            wstartsc = self.get().rfind(':')
+            wstartsp = self.get().rfind(' ')
+            if wstartsc < 0 and wstartsp < 0:
+                self.wstart = 0
+            elif wstartsc > wstartsp:
+                self.wstart = wstartsc + 1
+            else:
+                self.wstart = wstartsp + 1
+
             # collect hits
             _hits = []
             for element in self._completion_list:
                 if self.case_sensitive == 0: 
-                    if element.lower().startswith(self.get().lower()):
+                    if element.lower().startswith(self.get()[self.wstart:].lower()):
                          _hits.append(element)
                 else:
-                    if element.startswith(self.get()):
+                    if element.startswith(self.get()[self.wstart:]):
                          _hits.append(element)
 
             self._hit_index = 0
@@ -483,8 +492,8 @@ class TriggeredcompleteEntry(tk.Entry):
 
         # now finally perform the triggered completion
         if self._hits:
-            self.delete(0,tk.END)
-            self.insert(0,self._hits[self._hit_index])
+            self.delete(self.wstart,tk.END)
+            self.insert(self.wstart,self._hits[self._hit_index])
             self.select_range(self.position,tk.END)
 
     def handle_keyrelease(self, event):
@@ -500,6 +509,9 @@ class TriggeredcompleteEntry(tk.Entry):
 
             if event.keysym == "Right":
                 self.position = self.index(tk.END) # go to end (no selection)
+                self.cycle = 0
+
+            if event.keysym == "Left":
                 self.cycle = 0
 
         if event.keysym == "space" and ctrl:
@@ -840,7 +852,6 @@ class View(utils.SubjectMixin):
         search_entry.make_style()
         self.search_entry_var = tk.StringVar()
         self.search_entry = TriggeredcompleteEntry(search_frame, self.config.case_sensitive, textvariable=self.search_entry_var, style="Search.entry")
-        #self.search_entry.set_completion_list(self.taglist)
         self.search_entry_var.trace('w', self.handler_search_entry)
 
         cs_label = tk.Label(search_frame,text="CS ")
@@ -853,6 +864,7 @@ class View(utils.SubjectMixin):
         # I'm working with ttk.OptionVar, which has that extra default param!
         self.search_mode_cb = tk.OptionMenu(search_frame, self.search_mode_var,
             self.search_mode_options[0], *self.search_mode_options)
+        self.search_mode_cb.config(width=6)
         self.search_mode_var.trace('w', self.handler_search_mode)
 
         self.search_mode_cb.pack(side=tk.RIGHT, padx=5)
