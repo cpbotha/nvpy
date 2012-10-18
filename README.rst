@@ -33,6 +33,7 @@ Screenshots and screencasts
 * This is what nvpy looked like on Windows on May 23, 2012. Search bar at the top showing a regular expression, notes are sorted last modified first, continuously updated markdown preview in chrome behind the nvpy window: `nvpy_screenshot_20120523.jpg <https://github.com/cpbotha/nvpy/raw/master/images/nvpy_screenshot_20120523.jpg>`_.
 
 * Screencast of nvpy's inter-note linking: http://youtu.be/NXuVMZr31SI
+* Screencast of nvpy's gstyle search mode (October 18, 2012): http://youtu.be/dzILoLC5vRM
 
 A note on automatic syncing
 ===========================
@@ -93,7 +94,25 @@ family and size, configure nvpy to save and load notes as clear text, disable si
 Keyboard handling
 =================
 
-nvPY was designed for lightning-speed note-taking and management with the keyboard. Here's a summary of the different shortcut keys:
+nvPY was designed for lightning-speed note-taking and management with
+the keyboard. As you type words in the search bar, the list of notes
+found will be refined. In the default search mode ("gstyle"), it finds
+notes that contain all the words you enter. For example::
+
+    t:work t:leads python imaging "exact phrase"
+
+Will find all notes tagged with both "work" and "leads" containing the
+words "python" and "imaging" (anywhere, and in any order) and the exact
+phrase "exact phrase". The default is to search with case-sensitivity.
+This can be changed with the CS checkbox. Remember though that
+case-sensitivity has a significant effect on search speed.
+
+By editing the config file, or by toggling the search mode option menu,
+you can use regular expression search mode. This is of course much more
+powerful, but is much slower than gstyle. The difference is noticeable
+on large note collections.
+
+Here's a summary of the different shortcut keys that you can use in nvPY:
 
 ========== ==========
 Key combo  Action
@@ -124,8 +143,8 @@ Features
 * Partial syncs (whilst notes are being edited) are done by a
   background thread so you can keep on working at light speed.
 * Can be used offline, also without simplenote account.
-* Search box does realtime regular expression searching in all your
-  notes. All occurrences of that regular expression are also
+* Search box does realtime gstyle or regular expression searching in all your
+  notes. All occurrences of the search string are also
   highlighted in currently active note.
 * Markdown rendering to browser.
 * Continuous rendering mode: If you activate this before
