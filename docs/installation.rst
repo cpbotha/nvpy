@@ -45,6 +45,7 @@ Ubuntu / Mint / Debian step-by-step #1
 On Debian-flavoured systems with apt, this generally works::
 
     sudo apt-get install python python-tk python-pip python-markdown
+    # on crunchbang linux, you also need: sudo apt-get install python-ttk
     sudo pip install nvpy
 
 Create a file in your home directory called .nvpy.cfg with just the following contents::
