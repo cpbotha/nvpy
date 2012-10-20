@@ -141,16 +141,29 @@ class StatusBar(tk.Frame):
     # global status
     # note status
 
+    # http://colorbrewer2.org/index.php?type=sequential&scheme=OrRd&n=3
+    # from light to dark orange; colorblind-safe scheme
+    #NOTE_STATUS_COLORS = ["#FEE8C8", "#FDBB84", "#E34A33"]
+
+    # http://colorbrewer2.org/index.php?type=diverging&scheme=RdYlBu&n=5
+    # diverging red to blue; colorblind-safe scheme
+    # red, lighter red, light yellow, light blue, dark blue
+    NOTE_STATUS_COLORS = ["#D7191C", "#FDAE61", "#FFFFBF", "#ABD9E9", "#2C7BB6"]
+    # 0 - saved and synced - light blue - 3
+    # 1 - saved - light yellow - 2
+    # 2 - modified - lighter red - 1
+    NOTE_STATUS_LUT = {0 : 3, 1 : 2, 2 : 1}
+
     def __init__(self, master):
         tk.Frame.__init__(self, master)
 
         self.status = tk.Label(self, relief=tk.SUNKEN, anchor=tk.W)
         self.status.pack(side=tk.LEFT, fill=tk.X, expand=1)
 
-        self.centre_status = tk.Label(self, relief=tk.SUNKEN, anchor=tk.W)
+        self.centre_status = tk.Label(self, relief=tk.SUNKEN, anchor=tk.W, width=35)
         self.centre_status.pack(side=tk.LEFT, fill=tk.X, padx=5)
 
-        self.note_status = tk.Label(self, relief=tk.SUNKEN, anchor=tk.W)
+        self.note_status = tk.Label(self, relief=tk.SUNKEN, anchor=tk.W, width=23)
         self.note_status.pack(side=tk.LEFT, fill=tk.X)
 
     def set_centre_status(self, fmt, *args):
@@ -162,6 +175,14 @@ class StatusBar(tk.Frame):
         """ 
         self.note_status.config(text=fmt % args)
         self.note_status.update_idletasks()
+
+    def set_note_status_color(self, status_idx):
+        """
+        @param status_idx: 0 - saved and synced; 1 - saved; 2 - modified
+        """
+
+        color_idx = self.NOTE_STATUS_LUT[status_idx]
+        self.note_status.config(background=self.NOTE_STATUS_COLORS[color_idx])
 
     def set_status(self, fmt, *args):
         self.status.config(text=fmt % args)
@@ -659,12 +680,16 @@ class View(utils.SubjectMixin):
         
         if status.modified:
             s = 'modified'
+            self.statusbar.set_note_status_color(2)
         elif status.saved and status.synced:
-            s = 'saved and synced'
+            s = 'saved + synced'
+            self.statusbar.set_note_status_color(0)
         elif status.saved:
             s = 'saved'
+            self.statusbar.set_note_status_color(1)
         else:
             s = 'synced'
+            self.statusbar.set_note_status_color(0)
         
         self.statusbar.set_note_status('Current note %s' % (s,))
 
