@@ -624,14 +624,31 @@ class Controller:
         self.view.select_note(idx)
 
     def select_note(self, idx):
+        """Called whenever user selects a different note via the UI.
+
+        This sets all machinery in motion to put the now note's data in all
+        the right places.
+
+        @param idx:
+        @return:
+        """
+
         if idx >= 0:
             key = self.notes_list_model.list[idx].key
             note = self.notes_db.get_note(key)
+            # valid note, so note editing should be enabled
+            self.view.set_note_editing(True)
 
         else:
             key = None
             note = None
             idx = -1
+            # no note selected, so we clear the UI (and display a clear
+            # message that no note is selected) and we disable note
+            # editing controls.
+            self.view.clear_note_ui()
+            self.view.set_note_editing(False)
+
 
         self.selected_note_idx = idx
 

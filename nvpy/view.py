@@ -569,6 +569,21 @@ class View(utils.SubjectMixin):
         # we don't want the text bind_class() handler for Ctrl-A to be fired.
         return "break"
 
+    def set_note_editing(self, enable=True):
+        """Enable or disable note editing controls.
+
+        This is used to disable the controls when no note has been selected.
+        Disables note text widget, tag entry and pinned checkbutton.
+
+        @param enable: enable controls if True, else disable.
+        @return: Nothing.
+        """
+
+        state = tk.NORMAL if enable else tk.DISABLED
+        self.text_note.config(state=state)
+        self.tags_entry.config(state=state)
+        self.pinned_checkbutton.config(state=state)
+
     def get_continuous_rendering(self):
         return self.continuous_rendering.get()
 
@@ -897,8 +912,8 @@ class View(utils.SubjectMixin):
         pinned_label = tk.Label(note_meta_frame,text="Pinned")
         pinned_label.pack(side=tk.LEFT)
         self.pinned_checkbutton_var = tk.IntVar()
-        pinned_checkbutton = tk.Checkbutton(note_meta_frame, variable=self.pinned_checkbutton_var)
-        pinned_checkbutton.pack(side=tk.LEFT)
+        self.pinned_checkbutton = tk.Checkbutton(note_meta_frame, variable=self.pinned_checkbutton_var)
+        self.pinned_checkbutton.pack(side=tk.LEFT)
 
         tags_label = tk.Label(note_meta_frame, text="Tags")
         tags_label.pack(side=tk.LEFT)
@@ -953,6 +968,48 @@ class View(utils.SubjectMixin):
         """Handler for exit menu command and close window event.
         """
         self.notify_observers('close', None)
+
+    def clear_note_ui(self, silent=True):
+        """Called when no note has been selected.
+
+        Should give the user clear indication that no note has been selected,
+        hence no note editing actions can be taken.
+
+        @param silent: The default is not to fire any event handlers when
+        clearing the note.
+        @return:
+        """
+
+        # ascii art created with: http://patorjk.com/software/taag/
+
+        msg = """
+        No note currently selected.
+
+        Either select a note, or press Ctrl-N to create
+        a new note titled with the current search string,
+        or modify the search string.
+
+        .__   __. ____    ____ .______   ____    ____
+        |  \ |  | \   \  /   / |   _  \  \   \  /   /
+        |   \|  |  \   \/   /  |  |_)  |  \   \/   /
+        |  . `  |   \      /   |   ___/    \_    _/
+        |  |\   |    \    /    |  |          |  |
+        |__| \__|     \__/     | _|          |__|
+
+
+        """
+
+        if silent:
+            self.mute_note_data_changes()
+
+        self.text_note.delete(1.0, tk.END) # clear all
+        self.text_note.insert(1.0, msg)
+        self.tags_entry_var.set('')
+
+        self.statusbar.set_note_status('No note selected.')
+
+        if silent:
+            self.unmute_note_data_changes()
         
     def close(self):
         """Programmatically close application windows.
@@ -1128,6 +1185,10 @@ class View(utils.SubjectMixin):
             webbrowser.open(link)
             
     def activate_search_string_highlights(self):
+        # no note selected, so no highlights.
+        if self.notes_list.selected_idx < 0:
+            return
+
         t = self.text_note
         
         # remove all existing tags
