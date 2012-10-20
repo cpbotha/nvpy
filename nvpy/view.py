@@ -143,14 +143,20 @@ class StatusBar(tk.Frame):
 
     def __init__(self, master):
         tk.Frame.__init__(self, master)
-        
+
         self.status = tk.Label(self, relief=tk.SUNKEN, anchor=tk.W)
-        #self.label.pack(fill=tk.X)
         self.status.pack(side=tk.LEFT, fill=tk.X, expand=1)
-        
+
+        self.centre_status = tk.Label(self, relief=tk.SUNKEN, anchor=tk.W)
+        self.centre_status.pack(side=tk.LEFT, fill=tk.X, padx=5)
+
         self.note_status = tk.Label(self, relief=tk.SUNKEN, anchor=tk.W)
         self.note_status.pack(side=tk.LEFT, fill=tk.X)
-        
+
+    def set_centre_status(self, fmt, *args):
+        self.centre_status.config(text=fmt % args)
+        self.centre_status.update_idletasks()
+
     def set_note_status(self, fmt, *args):
         """ *.. .s. .sS
         """ 
@@ -660,7 +666,10 @@ class View(utils.SubjectMixin):
         else:
             s = 'synced'
         
-        self.statusbar.set_note_status('Note is %s' % (s,))
+        self.statusbar.set_note_status('Current note %s' % (s,))
+
+    def set_note_tally(self, filtered_notes, active_notes, total_notes):
+        self.statusbar.set_centre_status('Listing %d / %d active notes (%d total)' % (filtered_notes, active_notes, total_notes))
             
     def set_search_entry_text(self, text):
         self.search_entry_var.set(text)
@@ -860,7 +869,7 @@ class View(utils.SubjectMixin):
         # during sash moving and resizing
         self.statusbar = StatusBar(self.root)
         self.statusbar.set_status('%s', 'Welcome to nvPY!')
-        self.statusbar.pack(fill=tk.X, side=tk.BOTTOM)
+        self.statusbar.pack(fill=tk.X, side=tk.BOTTOM, padx=3, pady=3)
 
         search_frame = tk.Frame(self.root)
         

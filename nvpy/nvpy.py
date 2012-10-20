@@ -272,10 +272,11 @@ class Controller:
         self.view.add_observer('change:search_mode', self.observer_view_change_search_mode)
 
         # nn is a list of (key, note) objects
-        nn, match_regexp = self.notes_db.filter_notes()
+        nn, match_regexp, active_notes = self.notes_db.filter_notes()
         # this will trigger the list_change event
         self.notes_list_model.set_list(nn)
         self.notes_list_model.match_regexp = match_regexp
+        self.view.set_note_tally(len(nn), active_notes, len(self.notes_db.notes))
 
         # we'll use this to keep track of the currently selected note
         # we only use idx, because key could change from right under us.
@@ -522,9 +523,10 @@ class Controller:
         k = self.get_selected_note_key()
         # for each new evt.value coming in, get a new list from the notes_db
         # and set it in the notes_list_model
-        nn, match_regexp = self.notes_db.filter_notes(evt.value)
+        nn, match_regexp, active_notes = self.notes_db.filter_notes(evt.value)
         self.notes_list_model.set_list(nn)
         self.notes_list_model.match_regexp = match_regexp
+        self.view.set_note_tally(len(nn), active_notes, len(self.notes_db.notes))
 
         idx = self.notes_list_model.get_idx(k)
 

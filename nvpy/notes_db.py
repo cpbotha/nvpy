@@ -183,13 +183,15 @@ class NotesDB(utils.SubjectMixin):
         @param search_string: String that will be used for searching.
          Different meaning depending on the search mode.
         @return: notes filtered with selected search mode and sorted according
-        to configuration.
+        to configuration. Two more elements in tuple: a regular expression
+        that can be used for highlighting strings in the text widget; the
+        total number of notes in memory.
         """
 
         if self.config.search_mode == 'regexp':
-            filtered_notes, match_regexp = self.filter_notes_regexp(search_string)
+            filtered_notes, match_regexp, active_notes = self.filter_notes_regexp(search_string)
         else:
-            filtered_notes, match_regexp = self.filter_notes_gstyle(search_string)
+            filtered_notes, match_regexp, active_notes = self.filter_notes_gstyle(search_string)
 
         if self.config.sort_mode == 0:
             if self.config.pinned_ontop == 0:
@@ -205,7 +207,7 @@ class NotesDB(utils.SubjectMixin):
             else:
                 filtered_notes.sort(utils.sort_by_modify_date_pinned, reverse=True)
 
-        return filtered_notes, match_regexp
+        return filtered_notes, match_regexp, active_notes
 
     def _helper_gstyle_tagmatch(self, tag_pats, note):
         if tag_pats:
@@ -268,14 +270,17 @@ class NotesDB(utils.SubjectMixin):
     def filter_notes_gstyle(self, search_string=None):
 
         filtered_notes = []
+        # total number of notes, excluding deleted
+        active_notes = 0
 
         if not search_string:
             for k in self.notes:
                 n = self.notes[k]
                 if not n.get('deleted'):
+                    active_notes += 1
                     filtered_notes.append(utils.KeyValueObject(key=k, note=n, tagfound=0))
 
-            return filtered_notes, []
+            return filtered_notes, [], active_notes
 
         # group0: ag - not used
         # group1: t(ag)?:([^\s]+)
@@ -297,6 +302,7 @@ class NotesDB(utils.SubjectMixin):
             n = self.notes[k]
 
             if not n.get('deleted'):
+                active_notes += 1
                 c = n.get('content')
 
                 # case insensitive mode: WARNING - SLOW!
@@ -315,7 +321,7 @@ class NotesDB(utils.SubjectMixin):
                     # we have to store our local key also
                     filtered_notes.append(utils.KeyValueObject(key=k, note=n, tagfound=tagfound))
 
-        return filtered_notes, '|'.join(tms_pats[1] + tms_pats[2])
+        return filtered_notes, '|'.join(tms_pats[1] + tms_pats[2]), active_notes
 
 
     def filter_notes_regexp(self, search_string=None):
@@ -336,12 +342,20 @@ class NotesDB(utils.SubjectMixin):
             sspat = None
 
         filtered_notes = []
+        # total number of notes, excluding deleted ones
+        active_notes = 0
         for k in self.notes:
             n = self.notes[k]
+            # we don't do anything with deleted notes (yet)
+            if n.get('deleted'):
+                continue
+
+            active_notes += 1
+
             c = n.get('content')
             if self.config.search_tags == 1:
                 t = n.get('tags')
-                if not n.get('deleted') and sspat:
+                if sspat:
                     # this used to use a filter(), but that would by definition
                     # test all elements, whereas we can stop when the first
                     # matching element is found
@@ -358,17 +372,17 @@ class NotesDB(utils.SubjectMixin):
                         # we have to store our local key also
                         filtered_notes.append(utils.KeyValueObject(key=k, note=n, tagfound=0))
 
-                elif not n.get('deleted') and not sspat:
+                else:
                     # we have to store our local key also
                     filtered_notes.append(utils.KeyValueObject(key=k, note=n, tagfound=0))
             else:
-                if not n.get('deleted') and (not sspat or sspat.search(c)):
+                if (not sspat or sspat.search(c)):
                     # we have to store our local key also
                     filtered_notes.append(utils.KeyValueObject(key=k, note=n, tagfound=0))
 
         match_regexp = search_string if sspat else ''
 
-        return filtered_notes, match_regexp
+        return filtered_notes, match_regexp, active_notes
 
     def get_note(self, key):
         return self.notes[key]
