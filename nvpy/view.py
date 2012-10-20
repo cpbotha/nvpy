@@ -565,6 +565,10 @@ class View(utils.SubjectMixin):
 
         self._create_ui()
         self._bind_events()
+
+        # set default font for dialog boxes on Linux
+        # on Windows, tkinter uses system dialogs in any case
+        self.root.option_add('*Dialog.msg.font', 'Helvetica 12')
         
         self.text_tags_links = []
         self.text_tags_search = []
@@ -1066,6 +1070,7 @@ class View(utils.SubjectMixin):
 
 
     def cmd_help_about(self):
+
         tkMessageBox.showinfo(
             'Help | About',
             'nvPY %s is copyright 2012 by Charl P. Botha '
