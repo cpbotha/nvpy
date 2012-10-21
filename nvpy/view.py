@@ -971,6 +971,7 @@ class View(utils.SubjectMixin):
             self.notes_list.pack(fill=tk.BOTH, expand=1)
 
             note_frame = tk.Frame(paned_window, width=400)
+
         else:
             paned_window = tk.PanedWindow(self.root, orient=tk.VERTICAL)
             paned_window.pack(fill=tk.BOTH, expand=1)
@@ -981,6 +982,7 @@ class View(utils.SubjectMixin):
 
             if self.config.print_columns == 1:
                 font_family=self.config.list_font_family_fixed
+
             else:
                 font_family=self.config.list_font_family
 
@@ -1032,8 +1034,9 @@ class View(utils.SubjectMixin):
             # change default font at runtime with:
             text.config(font=f)
 
-            #text.pack(fill=tk.BOTH, expand=1)
-            text.pack(fill=tk.X)
+            # need expand=1 so that when user resizes window, text widget gets the extra space
+            text.pack(fill=tk.BOTH, expand=1)
+
 
             #xscrollbar.config(command=text.xview)
             yscrollbar.config(command=text.yview)
