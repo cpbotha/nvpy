@@ -89,7 +89,7 @@ class Config:
                     'font_family' : 'Courier', # monospaced on all platforms
                     'font_size' : '10',
                     'list_font_family' : 'Helvetica', # sans on all platforms
-                    'list_font_family_fixed' : 'systemfixed', # should be on all platforms
+                    'list_font_family_fixed' : 'Courier', # monospace on all platforms
                     'list_font_size' : '10',
                     'layout' : 'horizontal',
                     'print_columns' : '0',
