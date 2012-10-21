@@ -203,7 +203,7 @@ class NotesList(tk.Frame):
     MODIFYDATE_COL = 2
     PINNED_COL = 3
 
-    def __init__(self, master, font_family, font_size, background_color):
+    def __init__(self, master, font_family, font_size, config):
         tk.Frame.__init__(self, master)
 
         yscrollbar = tk.Scrollbar(self)
@@ -218,7 +218,7 @@ class NotesList(tk.Frame):
             font=f,
             yscrollcommand=yscrollbar.set,
             undo=True,
-            background = background_color)
+            background = config.background_color)
         # change default font at runtime with:
         #text.config(font=f)
 
@@ -254,13 +254,18 @@ class NotesList(tk.Frame):
         # list containing tuples with each note's title, tags,
         self.note_headers = []
 
+        self.layout=config.layout
+        self.print_columns=config.print_columns
+        if bold_font.measure(' ') > f.measure(' '):
+            self.cwidth = bold_font.measure(' ')
+        else:
+            self.cwidth = f.measure(' ')
         self.fonts = [f, italic_font, bold_font]
 
     def append(self, note, config):
         """
         @param note: The complete note dictionary.
         """
-
 
         title = utils.get_note_title(note)
         tags = note.get('tags')
@@ -270,25 +275,43 @@ class NotesList(tk.Frame):
 
         self.enable_text()
 
+        if self.layout == "vertical" and self.print_columns == 1:
+            nrchars, rem = divmod((self.text.winfo_width()), self.cwidth)
+            cellwidth = (int(nrchars) - 8)/2
+            
+            if pinned:
+                title += ' *'
 
-        self.text.insert(tk.END, title, ("title,"))
+            self.text.insert(tk.END, '{0:<{w}}'.format(title, w=cellwidth), ("title,"))
 
-        if pinned:
-            self.text.insert(tk.END, ' *', ("pinned",))
+            if tags > 0:
+                if config.tagfound:
+                    self.text.insert(tk.END, '{0:<{w}}'.format(','.join(tags), w=cellwidth), ("found",))
+                else:
+                    self.text.insert(tk.END, '{0:<{w}}'.format(','.join(tags), w=cellwidth), ("tags",))
 
-        self.text.insert(tk.END, ' ' + utils.human_date(modifydate), ("modifydate",))
+            self.text.insert(tk.END, ' ' + utils.human_date(modifydate), ("modifydate",))
 
-        # tags can be None (newly created note) or [] or ['tag1', 'tag2']
-        if tags > 0:
-            if config.tagfound:
-                self.text.insert(tk.END, ' ' + ','.join(tags), ("found",))
-            else:
-                self.text.insert(tk.END, ' ' + ','.join(tags), ("tags",))
+            # tags can be None (newly created note) or [] or ['tag1', 'tag2']
+        else:
+            self.text.insert(tk.END, title, ("title,"))
 
+            if pinned:
+                self.text.insert(tk.END, ' *', ("pinned",))
+
+            self.text.insert(tk.END, ' ' + utils.human_date(modifydate), ("modifydate",))
+
+            # tags can be None (newly created note) or [] or ['tag1', 'tag2']
+            if tags > 0:
+                if config.tagfound:
+                    self.text.insert(tk.END, ' ' + ','.join(tags), ("found",))
+                else:
+                    self.text.insert(tk.END, ' ' + ','.join(tags), ("tags",))
 
         self.text.insert(tk.END, '\n')
 
         self.disable_text()
+
 
     def _bind_events(self):
         # Text widget events ##########################################
@@ -930,21 +953,51 @@ class View(utils.SubjectMixin):
         
         
         # the paned window ##############################################
-        paned_window = tk.PanedWindow(self.root, orient=tk.HORIZONTAL)
-        paned_window.pack(fill=tk.BOTH, expand=1)
         
-        left_frame = tk.Frame(paned_window, width=100)
-        paned_window.add(left_frame)
+        if self.config.layout == "horizontal":
+            paned_window = tk.PanedWindow(self.root, orient=tk.HORIZONTAL)
+            paned_window.pack(fill=tk.BOTH, expand=1)
+            
+            list_frame = tk.Frame(paned_window, width=100)
+            paned_window.add(list_frame)
 
-        self.notes_list = NotesList(
-            left_frame,
-            self.config.list_font_family, self.config.list_font_size, self.config.background_color)
-        self.notes_list.pack(fill=tk.BOTH, expand=1)
+            self.notes_list = NotesList(
+                list_frame,
+                self.config.list_font_family,
+                self.config.list_font_size,
+                utils.KeyValueObject(background_color=self.config.background_color,
+                    layout=self.config.layout,
+                    print_columns=self.config.print_columns))
+            self.notes_list.pack(fill=tk.BOTH, expand=1)
 
-        right_frame = tk.Frame(paned_window, width=400)
-        paned_window.add(right_frame)
+            note_frame = tk.Frame(paned_window, width=400)
+        else:
+            paned_window = tk.PanedWindow(self.root, orient=tk.VERTICAL)
+            paned_window.pack(fill=tk.BOTH, expand=1)
+            
+            list_frame = tk.Frame(paned_window, height=150)
+            list_frame.pack_propagate(0)
+            paned_window.add(list_frame)
 
-        note_meta_frame = tk.Frame(right_frame)
+            if self.config.print_columns == 1:
+                font_family=self.config.list_font_family_fixed
+            else:
+                font_family=self.config.list_font_family
+
+            self.notes_list = NotesList(
+                list_frame,
+                font_family,
+                self.config.list_font_size,
+                utils.KeyValueObject(background_color=self.config.background_color,
+                    layout=self.config.layout,
+                    print_columns=self.config.print_columns))
+            self.notes_list.pack(fill=tk.X, expand=1)
+
+            note_frame = tk.Frame(paned_window)
+
+        paned_window.add(note_frame)
+
+        note_meta_frame = tk.Frame(note_frame)
         note_meta_frame.pack(side=tk.BOTTOM, fill=tk.X)
 
         pinned_label = tk.Label(note_meta_frame,text="Pinned")
@@ -979,7 +1032,8 @@ class View(utils.SubjectMixin):
             # change default font at runtime with:
             text.config(font=f)
 
-            text.pack(fill=tk.BOTH, expand=1)
+            #text.pack(fill=tk.BOTH, expand=1)
+            text.pack(fill=tk.X)
 
             #xscrollbar.config(command=text.xview)
             yscrollbar.config(command=text.yview)
@@ -988,7 +1042,7 @@ class View(utils.SubjectMixin):
 
 
         # setup user_text ###############################################
-        self.text_note = create_scrolled_text(right_frame)
+        self.text_note = create_scrolled_text(note_frame)
         self.fonts = self.notes_list.fonts + self.text_note.fonts
 
         # finish UI creation ###########################################
