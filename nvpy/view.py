@@ -163,7 +163,7 @@ class StatusBar(tk.Frame):
         self.centre_status = tk.Label(self, relief=tk.SUNKEN, anchor=tk.W, width=35)
         self.centre_status.pack(side=tk.LEFT, fill=tk.X, padx=5)
 
-        self.note_status = tk.Label(self, relief=tk.SUNKEN, anchor=tk.W, width=23)
+        self.note_status = tk.Label(self, relief=tk.SUNKEN, anchor=tk.W, width=25)
         self.note_status.pack(side=tk.LEFT, fill=tk.X)
 
     def set_centre_status(self, fmt, *args):
