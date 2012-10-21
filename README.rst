@@ -25,15 +25,13 @@ and it hasn't disappointed me (yet).
 Screenshots and screencasts
 ===========================
 
-* Automatic hyperlinking on Linux (post 0.8.5):
+* Screenshot taken shortly after 0.9.3 release:
 
-.. image:: https://github.com/cpbotha/nvpy/raw/master/images/nvpy_post0.8.5_screenshot.png
-
-
-* This is what nvpy looked like on Windows on May 23, 2012. Search bar at the top showing a regular expression, notes are sorted last modified first, continuously updated markdown preview in chrome behind the nvpy window: `nvpy_screenshot_20120523.jpg <https://github.com/cpbotha/nvpy/raw/master/images/nvpy_screenshot_20120523.jpg>`_.
+.. image:: https://lh4.googleusercontent.com/-ASCgH2VhYmc/UIOlIWLvYVI/AAAAAAAAQ8s/0ccEQLHXKIg/s800/nvpy_post_0.9.2_screenshot.png
 
 * Screencast of nvpy's inter-note linking: http://youtu.be/NXuVMZr31SI
 * Screencast of nvpy's gstyle search mode (October 18, 2012): http://youtu.be/dzILoLC5vRM
+* `Picasa Web album containing various screenshots over time <https://picasaweb.google.com/102438662851504788261/NvpyPublic?authuser=0&feat=directlink>`_.
 
 A note on automatic syncing
 ===========================
