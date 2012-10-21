@@ -29,7 +29,7 @@ Screenshots and screencasts
 
 .. image:: https://lh4.googleusercontent.com/-ASCgH2VhYmc/UIOlIWLvYVI/AAAAAAAAQ8s/0ccEQLHXKIg/s800/nvpy_post_0.9.2_screenshot.png
 
-* Screencast of nvpy's inter-note linking: http://youtu.be/NXuVMZr31SI
+* Screencast of nvpy's inter-note linking (May 27, 2012): http://youtu.be/NXuVMZr31SI
 * Screencast of nvpy's gstyle search mode (October 18, 2012): http://youtu.be/dzILoLC5vRM
 * `Picasa Web album containing various screenshots over time <https://picasaweb.google.com/102438662851504788261/NvpyPublic?authuser=0&feat=directlink>`_.
 
