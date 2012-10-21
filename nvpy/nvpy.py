@@ -89,7 +89,10 @@ class Config:
                     'font_family' : 'Courier', # monospaced on all platforms
                     'font_size' : '10',
                     'list_font_family' : 'Helvetica', # sans on all platforms
+                    'list_font_family_fixed' : 'systemfixed', # should be on all platforms
                     'list_font_size' : '10',
+                    'layout' : 'horizontal',
+                    'print_columns' : '0',
                     'background_color' : 'white',
                     'sn_username' : '',
                     'sn_password' : '',
@@ -140,7 +143,11 @@ class Config:
         self.font_size = cp.getint(cfg_sec, 'font_size')
 
         self.list_font_family = cp.get(cfg_sec, 'list_font_family')
+        self.list_font_family_fixed = cp.get(cfg_sec, 'list_font_family_fixed')
         self.list_font_size = cp.getint(cfg_sec, 'list_font_size')
+
+        self.layout = cp.get(cfg_sec, 'layout')
+        self.print_columns = cp.getint(cfg_sec, 'print_columns')
 
         self.background_color = cp.get(cfg_sec, 'background_color')
 
