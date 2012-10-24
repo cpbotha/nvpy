@@ -58,7 +58,7 @@ except ImportError:
 else:
     HAVE_DOCUTILS = True
 
-VERSION = "0.9.3-dev"
+VERSION = "0.9.4"
 
 class Config:
     """
