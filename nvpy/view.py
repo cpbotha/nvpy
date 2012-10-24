@@ -157,7 +157,7 @@ class StatusBar(tk.Frame):
     def __init__(self, master):
         tk.Frame.__init__(self, master)
 
-        self.status = tk.Label(self, relief=tk.SUNKEN, anchor=tk.W)
+        self.status = tk.Label(self, relief=tk.SUNKEN, anchor=tk.W, width=40)
         self.status.pack(side=tk.LEFT, fill=tk.X, expand=1)
 
         self.centre_status = tk.Label(self, relief=tk.SUNKEN, anchor=tk.W, width=35)
