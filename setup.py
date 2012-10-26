@@ -20,7 +20,7 @@ setup(
     url = "https://github.com/cpbotha/nvpy",
     packages=['nvpy'],
     long_description=read('README.rst'),
-    install_requires = ['Markdown'],
+    install_requires = ['Markdown', 'docutils'],
     entry_points = {
         'gui_scripts' : ['nvpy = nvpy.nvpy:main']
     },
