@@ -282,13 +282,13 @@ class NotesList(tk.Frame):
             if pinned:
                 title += ' *'
 
-            self.text.insert(tk.END, '{0:<{w}}'.format(title[:cellwidth-1], w=cellwidth), ("title,"))
+            self.text.insert(tk.END, u'{0:<{w}}'.format(title[:cellwidth-1], w=cellwidth), ("title,"))
 
             if tags > 0:
                 if config.tagfound:
-                    self.text.insert(tk.END, '{0:<{w}}'.format(','.join(tags)[:cellwidth-1], w=cellwidth), ("found",))
+                    self.text.insert(tk.END, u'{0:<{w}}'.format(','.join(tags)[:cellwidth-1], w=cellwidth), ("found",))
                 else:
-                    self.text.insert(tk.END, '{0:<{w}}'.format(','.join(tags)[:cellwidth-1], w=cellwidth), ("tags",))
+                    self.text.insert(tk.END, u'{0:<{w}}'.format(','.join(tags)[:cellwidth-1], w=cellwidth), ("tags",))
 
             self.text.insert(tk.END, ' ' + utils.human_date(modifydate), ("modifydate",))
 
