@@ -32,6 +32,7 @@ class NotesDB(utils.SubjectMixin):
         utils.SubjectMixin.__init__(self)
         
         self.config = config
+        self.error = ""
         
         # create db dir if it does not exist
         if not os.path.exists(config.db_path):
@@ -72,7 +73,6 @@ class NotesDB(utils.SubjectMixin):
                         txtlist.remove(tfn)
                         if os.path.getmtime(tfn) > os.path.getmtime(fn):
                             logging.debug('Text note was changed: %s' % (fn,))
-                            #with open(tfn, mode='r') as f:  
                             with codecs.open(tfn, mode='rb', encoding='utf-8') as f:  
                                 c = f.read()
 
@@ -88,7 +88,8 @@ class NotesDB(utils.SubjectMixin):
                             n['modifydate'] = now
 
             except ValueError, e:
-                logging.error('Error parsing %s: %s' % (fn, str(e)))
+                self.error = "Error reading note: " + fn
+                logging.error('Error reading %s: %s' % (fn, str(e)))
 
             else:
                 # we always have a localkey, also when we don't have a note['key'] yet (no sync)
@@ -103,16 +104,21 @@ class NotesDB(utils.SubjectMixin):
             for fn in txtlist:
                 logging.debug('New text note found : %s' % (fn),)
                 tfn = os.path.join(self.config.txt_path, fn)
-                #with open(tfn, mode='r') as f:  
-                with codecs.open(tfn, mode='rb', encoding='utf-8') as f:  
-                    c = f.read()
+                try:
+                    with codecs.open(tfn, mode='rb', encoding='utf-8') as f:  
+                        c = f.read()
 
-                nk = self.create_note(c)
-                nn = os.path.splitext(os.path.basename(fn))[0]
-                if nn != utils.get_note_title(self.notes[nk]):
-                    self.notes[nk]['content'] = nn + "\n\n" + c
+                except ValueError, e:
+                    self.error = "Error reading note: " + fn
+                    logging.error('Error reading %s: %s' % (fn, str(e)))
 
-                os.unlink(tfn)
+                else:
+                    nk = self.create_note(c)
+                    nn = os.path.splitext(os.path.basename(fn))[0]
+                    if nn != utils.get_note_title(self.notes[nk]):
+                        self.notes[nk]['content'] = nn + "\n\n" + c
+
+                    os.unlink(tfn)
 
 
         # save and sync queue
@@ -438,14 +444,18 @@ class NotesDB(utils.SubjectMixin):
 
                 self.titlelist[k] = t
                 fn = os.path.join(self.config.txt_path, t)
-                with codecs.open(fn, mode='wb', encoding='utf-8') as f:  
-                    c = note.get('content')
-                    if isinstance(c, str):
-                        c = unicode(c, 'utf-8')
-                    else:
-                        c = unicode(c)
-                    
-                    f.write(c)
+                try:
+                    with codecs.open(fn, mode='wb', encoding='utf-8') as f:  
+                        c = note.get('content')
+                        if isinstance(c, str):
+                            c = unicode(c, 'utf-8')
+                        else:
+                            c = unicode(c)
+                        
+                        f.write(c)
+                except ValueError, e:
+                    logging.error('Error writing %s: %s' % (fn, str(e)))
+
             elif t and note.get('deleted') and k in self.titlelist:
                 dfn = os.path.join(self.config.txt_path, self.titlelist[k])
                 if os.path.isfile(dfn):

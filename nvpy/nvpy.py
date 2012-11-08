@@ -311,6 +311,11 @@ class Controller:
             (str(self.config.files_read),)
             self.view.show_warning('Rename config section', wmsg)
 
+        elif self.notes_db.error:
+            wmsg = ('Please check nvpy.log.\n' + self.notes_db.error)
+            self.view.show_warning('Note read error', wmsg)
+            self.notes_db.error=""
+
         self.view.main_loop()
 
     def observer_notes_db_change_note_status(self, notes_db, evt_type, evt):
