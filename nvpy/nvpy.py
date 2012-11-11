@@ -34,7 +34,7 @@ import codecs
 import ConfigParser
 import logging
 from logging.handlers import RotatingFileHandler
-from notes_db import NotesDB, SyncError
+from notes_db import NotesDB, SyncError, ReadError, WriteError
 import os
 import sys
 import time
@@ -237,18 +237,28 @@ class Controller:
                 # Couldn't find the user-defined css file. Use docutils css instead.
                 self.config.rest_css_path = None
 
-        # read our database of notes into memory
-        # and sync with simplenote.
-        self.notes_db = NotesDB(self.config)
-        self.notes_db.add_observer('synced:note', self.observer_notes_db_synced_note)
-        self.notes_db.add_observer('change:note-status', self.observer_notes_db_change_note_status)
-        if self.config.simplenote_sync:
-            self.notes_db.add_observer('progress:sync_full', self.observer_notes_db_sync_full)
-
         self.notes_list_model = NotesListModel()
-
         # create the interface
         self.view = view.View(self.config, self.notes_list_model)
+
+        # read our database of notes into memory
+        # and sync with simplenote.
+        try:
+           self.notes_db = NotesDB(self.config)
+
+        except ReadError, e:
+            emsg = "Please check nvpy.log.\n" + str(e)
+            self.view.show_error('Sync error', emsg)
+            exit(1)
+
+
+        self.notes_db.add_observer('synced:note', self.observer_notes_db_synced_note)
+        self.notes_db.add_observer('change:note-status', self.observer_notes_db_change_note_status)
+
+        if self.config.simplenote_sync:
+            self.notes_db.add_observer('progress:sync_full', self.observer_notes_db_sync_full)
+            self.sync_full()
+
         # we want to be notified when the user does stuff
         self.view.add_observer('click:notelink',
                 self.observer_view_click_notelink)
@@ -290,10 +300,6 @@ class Controller:
         self.selected_note_idx = -1
         self.view.select_note(0)
 
-        # perform full sync with server, and refresh notes list if successful
-        if self.config.simplenote_sync:
-            self.sync_full()
-
     def get_selected_note_key(self):
         if self.selected_note_idx >= 0:
             return self.notes_list_model.list[self.selected_note_idx].key
@@ -310,11 +316,6 @@ class Controller:
                     'Config file format changed after nvPY 0.8.') % \
             (str(self.config.files_read),)
             self.view.show_warning('Rename config section', wmsg)
-
-        elif self.notes_db.error:
-            wmsg = ('Please check nvpy.log.\n' + self.notes_db.error)
-            self.view.show_warning('Note read error', wmsg)
-            self.notes_db.error=""
 
         self.view.main_loop()
 
@@ -679,8 +680,12 @@ class Controller:
         try:
             sync_from_server_errors = self.notes_db.sync_full()
 
-        except SyncError as e:
-            self.view.show_error('Sync error', e.message)
+        except SyncError, e:
+            self.view.show_error('Sync error', e)
+        except WriteError, e:
+            emsg = "Please check nvpy.log.\n" + str(e)
+            self.view.show_error('Sync error', emsg)
+            exit(1)
 
         else:
             # regenerate display list
