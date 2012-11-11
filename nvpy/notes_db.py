@@ -25,6 +25,12 @@ ACTION_SYNC_PARTIAL_FROM_SERVER = 2 # UNUSED.
 class SyncError(RuntimeError):
     pass
 
+class ReadError(RuntimeError):
+    pass
+
+class WriteError(RuntimeError):
+    pass
+
 class NotesDB(utils.SubjectMixin):
     """NotesDB will take care of the local notes database and syncing with SN.
     """
@@ -72,7 +78,6 @@ class NotesDB(utils.SubjectMixin):
                         txtlist.remove(tfn)
                         if os.path.getmtime(tfn) > os.path.getmtime(fn):
                             logging.debug('Text note was changed: %s' % (fn,))
-                            #with open(tfn, mode='r') as f:  
                             with codecs.open(tfn, mode='rb', encoding='utf-8') as f:  
                                 c = f.read()
 
@@ -87,8 +92,13 @@ class NotesDB(utils.SubjectMixin):
                             n['deleted'] = 1
                             n['modifydate'] = now
 
+            except IOError, e:
+                logging.error('NotesDB_init: Error opening %s: %s' % (fn, str(e)))
+                raise ReadError ('Error opening note file')
+
             except ValueError, e:
-                logging.error('Error parsing %s: %s' % (fn, str(e)))
+                logging.error('NotesDB_init: Error reading %s: %s' % (fn, str(e)))
+                raise ReadError ('Error reading note file')
 
             else:
                 # we always have a localkey, also when we don't have a note['key'] yet (no sync)
@@ -103,16 +113,25 @@ class NotesDB(utils.SubjectMixin):
             for fn in txtlist:
                 logging.debug('New text note found : %s' % (fn),)
                 tfn = os.path.join(self.config.txt_path, fn)
-                #with open(tfn, mode='r') as f:  
-                with codecs.open(tfn, mode='rb', encoding='utf-8') as f:  
-                    c = f.read()
+                try:
+                    with codecs.open(tfn, mode='rb', encoding='utf-8') as f:  
+                        c = f.read()
 
-                nk = self.create_note(c)
-                nn = os.path.splitext(os.path.basename(fn))[0]
-                if nn != utils.get_note_title(self.notes[nk]):
-                    self.notes[nk]['content'] = nn + "\n\n" + c
+                except IOError, e:
+                    logging.error('NotesDB_init: Error opening %s: %s' % (fn, str(e)))
+                    raise ReadError ('Error opening note file')
 
-                os.unlink(tfn)
+                except ValueError, e:
+                    logging.error('NotesDB_init: Error reading %s: %s' % (fn, str(e)))
+                    raise ReadError ('Error reading note file')
+
+                else:
+                    nk = self.create_note(c)
+                    nn = os.path.splitext(os.path.basename(fn))[0]
+                    if nn != utils.get_note_title(self.notes[nk]):
+                        self.notes[nk]['content'] = nn + "\n\n" + c
+
+                    os.unlink(tfn)
 
 
         # save and sync queue
@@ -438,14 +457,23 @@ class NotesDB(utils.SubjectMixin):
 
                 self.titlelist[k] = t
                 fn = os.path.join(self.config.txt_path, t)
-                with codecs.open(fn, mode='wb', encoding='utf-8') as f:  
-                    c = note.get('content')
-                    if isinstance(c, str):
-                        c = unicode(c, 'utf-8')
-                    else:
-                        c = unicode(c)
-                    
-                    f.write(c)
+                try:
+                    with codecs.open(fn, mode='wb', encoding='utf-8') as f:  
+                        c = note.get('content')
+                        if isinstance(c, str):
+                            c = unicode(c, 'utf-8')
+                        else:
+                            c = unicode(c)
+                        
+                        f.write(c)
+                except IOError, e:
+                    logging.error('NotesDB_save: Error opening %s: %s' % (fn, str(e)))
+                    raise WriteError ('Error opening note file')
+
+                except ValueError, e:
+                    logging.error('NotesDB_save: Error writing %s: %s' % (fn, str(e)))
+                    raise WriteError ('Error writing note file')
+
             elif t and note.get('deleted') and k in self.titlelist:
                 dfn = os.path.join(self.config.txt_path, self.titlelist[k])
                 if os.path.isfile(dfn):
@@ -755,7 +783,11 @@ class NotesDB(utils.SubjectMixin):
                 
         # sync done, now write changes to db_path
         for uk in local_updates.keys():
-            self.helper_save_note(uk, self.notes[uk])
+            try:
+                self.helper_save_note(uk, self.notes[uk])
+
+            except WriteError, e:
+                raise WriteError(e)
             
         for dk in local_deletes.keys():
             fn = self.helper_key_to_fname(dk)
@@ -806,17 +838,24 @@ class NotesDB(utils.SubjectMixin):
     def worker_save(self):
         while True:
             o = self.q_save.get()
-            
+
             if o.action == ACTION_SAVE:
                 # this will write the savedate into o.note
                 # with filename o.key.json
-                self.helper_save_note(o.key, o.note)
-                
-                # put the whole thing back into the result q
-                # now we don't have to copy, because this thread
-                # is never going to use o again.
-                # somebody has to read out the queue...
-                self.q_save_res.put(o)
+                try:
+                    self.helper_save_note(o.key, o.note)
+
+                except WriteError, e:
+                    logging.error('FATAL ERROR in access to file system')
+                    print "FATAL ERROR: Check the nvpy.log"
+                    os._exit(1) 
+
+                else:
+                    # put the whole thing back into the result q
+                    # now we don't have to copy, because this thread
+                    # is never going to use o again.
+                    # somebody has to read out the queue...
+                    self.q_save_res.put(o)
                 
     def worker_sync(self):
         while True:

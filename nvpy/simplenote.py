@@ -96,9 +96,13 @@ class Simplenote(object):
         except IOError, e:
             return e, -1
         note = json.loads(response.read())
-        # use UTF-8 encoding
-        note["content"] = note["content"].encode('utf-8')
-        note["tags"] = [t.encode('utf-8') for t in note["tags"]]
+        #use UTF-8 encoding
+        if isinstance(note["content"], str):
+            note["content"] = note["content"].encode('utf-8')
+
+        if note.has_key("tags"):
+            note["tags"] = [t.encode('utf-8') if isinstance(t,str) else t for t in note["tags"]]
+
         return note, 0
 
     def update_note(self, note):
