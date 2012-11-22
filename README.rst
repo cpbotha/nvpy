@@ -181,5 +181,5 @@ Credits
 * Sjaak Westdijk made significant contributions to the code starting after the 0.8.5 release.
 * nvpy uses the `fantastic simplenote.py library by mrtazz <https://github.com/mrtazz/simplenote.py>`_.
 * The brilliant application icon, a blue mini car (not as fast as the notational velocity rocket, get it?), is by `Cemagraphics <http://cemagraphics.deviantart.com/>`_.
-* stfa, thanks for the tip!
+* Thanks for the tips! stfa and https://github.com/gudnm
 
