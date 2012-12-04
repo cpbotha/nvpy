@@ -579,7 +579,7 @@ class View(utils.SubjectMixin):
         utils.SubjectMixin.__init__(self)
         
         self.config = config
-        self.taglist = []
+        self.taglist = None
         
         notes_list_model.add_observer('set:list', self.observer_notes_list)
         self.notes_list_model = notes_list_model
@@ -1467,20 +1467,31 @@ class View(utils.SubjectMixin):
         
         
     def set_notes(self, notes):
+        # this method is called by View.observer_notes_list()
+
         # clear the notes list
         self.notes_list.clear()
         taglist = []
-        
+
         for o in notes:
             tags = o.note.get('tags')
             if tags:
                 taglist += tags
+
             self.notes_list.append(o.note, utils.KeyValueObject(tagfound=o.tagfound))
 
-        taglist = list(set(self.taglist + taglist))
-        if len(taglist) > len(self.taglist):
-            self.taglist=taglist
+        if self.taglist is None:
+            # first time we get called, so we need to initialise
+            self.taglist = taglist
             self.search_entry.set_completion_list(self.taglist)
+
+        else:
+            # only set completion list if the new combined taglist is larger.
+            taglist = list(set(self.taglist + taglist))
+            if len(taglist) > len(self.taglist):
+                self.taglist=taglist
+                self.search_entry.set_completion_list(self.taglist)
+
 
     def show_error(self, title, msg):
         tkMessageBox.showerror(title, msg)
