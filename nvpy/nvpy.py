@@ -69,7 +69,6 @@ class Config:
         """
         @param app_dir: the directory containing nvpy.py
         """
-
         self.app_dir = app_dir
         # cross-platform way of getting home dir!
         # http://stackoverflow.com/a/4028943/532513
@@ -152,6 +151,29 @@ class Config:
         self.background_color = cp.get(cfg_sec, 'background_color')
 
         self.rest_css_path = cp.get(cfg_sec, 'rest_css_path')
+
+
+    def write_settings(self, section, key, value):
+        """
+        Write the key/value pair to the settngs file in the
+        section specified. The settings file is useful for recording
+        changes the user makes so that they can be remembered next time.
+        """
+        if not self.settings_file:
+            home = os.path.abspath(os.path.expanduser('~'))
+            self.settings_file = os.path.join(home, '.nvpy_settings')
+
+        cp = ConfigParser.SafeConfigParser()
+        cp.read(self.settings_file)
+        if not cp.has_section(section):
+            cp.add_section(section)
+
+        cp.set(section, key, "%s" % value)
+        with open(self.settings_file, 'wb') as configfile:
+            cp.write(configfile)
+
+        logging.debug("Wrote [%s] %s = %s to %s" % (section, key, value, self.settings_file))
+
 
 
 class NotesListModel(SubjectMixin):
