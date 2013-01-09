@@ -586,6 +586,10 @@ class View(utils.SubjectMixin):
         
         self.root = None
 
+        # remembers the most recent geometry so that it is
+        # written to settings file only when it changes
+        self.root_geometry = None
+
         self._create_ui()
         self._bind_events()
 
@@ -1052,9 +1056,25 @@ class View(utils.SubjectMixin):
 
         # now set the minsize so that things can not disappear
         self.root.minsize(self.root.winfo_width(), self.root.winfo_height())
-        
+
+        # set the window to the same place that it was last time
+        geo = self.config.read_setting('windows', 'root_geometry')
+        if geo:
+            self.root.geometry(geo)
+
         # call update so we know that sizes are up to date
         self.root.update_idletasks()
+
+        # bind the window changed event in order to remember window positions
+        self.root.bind('<Configure>', self.window_changed)
+
+    def window_changed(self, event):
+        """Save the window geometry so that we can start the same next time.
+        """
+        geo = self.root.geometry()
+        if self.root_geometry != geo:
+            self.config.write_setting('windows', 'root_geometry', geo)
+            self.root_geometry = geo
 
     def get_number_of_notes(self):
         return self.notes_list.get_number_of_notes()
