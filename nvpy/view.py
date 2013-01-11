@@ -210,10 +210,18 @@ class NotesList(tk.Frame):
         yscrollbar.pack(side=tk.RIGHT, fill=tk.Y)
 
         f = tkFont.Font(family=font_family, size=font_size)
+
+        # Calculate the text width in characters based on the font
+        # and the desired pixel width of the frame.
+        text_width = 30
+        if config.pixel_width:
+            sentence = 'MmMmMmMmMmMmMmMmMmMmMmMmMmMmMm'
+            text_width = int(float(config.pixel_width)/(float(f.measure(sentence)))*len(sentence))
+
         # tkFont.families(root) returns list of available font family names
         # this determines the width of the complete interface (yes)
         # size=-self.config.font_size
-        self.text = tk.Text(self, height=25, width=30,
+        self.text = tk.Text(self, height=25, width=text_width,
             wrap=tk.NONE,
             font=f,
             yscrollcommand=yscrollbar.set,
@@ -586,9 +594,11 @@ class View(utils.SubjectMixin):
         
         self.root = None
 
-        # remembers the most recent geometry so that it is
+        # remembers the most recent window settings so that it is
         # written to settings file only when it changes
         self.root_geometry = None
+        self.notes_list_width = None
+        self.notes_list_height = None
 
         self._create_ui()
         self._bind_events()
@@ -955,6 +965,9 @@ class View(utils.SubjectMixin):
 
         search_frame.pack(side=tk.TOP, fill=tk.X)
         
+        # Remember how the user sized the notes list, if available
+        self.notes_list_width = self.config.read_setting('windows', 'notes_list_width')
+        self.notes_list_height = self.config.read_setting('windows', 'notes_list_height')
         
         # the paned window ##############################################
         
@@ -971,7 +984,8 @@ class View(utils.SubjectMixin):
                 self.config.list_font_size,
                 utils.KeyValueObject(background_color=self.config.background_color,
                     layout=self.config.layout,
-                    print_columns=self.config.print_columns))
+                    print_columns=self.config.print_columns,
+                    pixel_width=self.notes_list_width))
             self.notes_list.pack(fill=tk.BOTH, expand=1)
 
             note_frame = tk.Frame(paned_window, width=400)
@@ -996,7 +1010,8 @@ class View(utils.SubjectMixin):
                 self.config.list_font_size,
                 utils.KeyValueObject(background_color=self.config.background_color,
                     layout=self.config.layout,
-                    print_columns=self.config.print_columns))
+                    print_columns=self.config.print_columns,
+                    pixel_height=self.notes_list_height))
             self.notes_list.pack(fill=tk.X, expand=1)
 
             note_frame = tk.Frame(paned_window)
@@ -1072,9 +1087,18 @@ class View(utils.SubjectMixin):
         """Save the window geometry so that we can start the same next time.
         """
         geo = self.root.geometry()
+        nl_width = self.notes_list.text.winfo_width()
+        nl_height = self.notes_list.text.winfo_height()
+
         if self.root_geometry != geo:
             self.config.write_setting('windows', 'root_geometry', geo)
             self.root_geometry = geo
+        if self.notes_list_width != nl_width:
+            self.config.write_setting('windows', 'notes_list_width', nl_width)
+            self.notes_list_width = nl_width
+        if self.notes_list_height != nl_height:
+            self.config.write_setting('windows', 'notes_list_height', nl_height)
+            self.notes_list_height = nl_height
 
     def get_number_of_notes(self):
         return self.notes_list.get_number_of_notes()

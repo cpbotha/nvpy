@@ -185,7 +185,8 @@ class Config:
         cp = ConfigParser.SafeConfigParser()
         cp.read(self.settings_file)
         if cp.has_section(section):
-            return cp.get(section, key)
+            if cp.has_option(section, key):
+                return cp.get(section, key)
         return None
 
 
