@@ -911,9 +911,20 @@ class View(utils.SubjectMixin):
         #FRAME_HEIGHT=400
         TEXT_WIDTH=80
 
+        # Minimum dimensions of the top-level window so that things cannot
+        # disappear.
+        MIN_ROOT_WIDTH = 400
+        MIN_ROOT_HEIGHT = 600
+
         # set the correct class name. this helps your desktop environment
         # to identify the nvPY window.
         self.root = tk.Tk(className="nvPY")
+
+        # Take the last size and position that the user changed the window to.
+        geo = self.config.read_setting('windows', 'root_geometry')
+        if geo:
+            self.root['width'] = int(geo.split('x')[0])
+            self.root['height'] = int(geo.split("x")[1].split("+")[0])
 
         self.root.title("nvPY")
         #self.root.configure(background="#b2b2b2")
@@ -1074,7 +1085,7 @@ class View(utils.SubjectMixin):
         # finish UI creation ###########################################
 
         # now set the minsize so that things can not disappear
-        self.root.minsize(self.root.winfo_width(), self.root.winfo_height())
+        self.root.minsize(MIN_ROOT_WIDTH, MIN_ROOT_HEIGHT)
 
         # set the window to the same place that it was last time
         geo = self.config.read_setting('windows', 'root_geometry')
@@ -1097,10 +1108,10 @@ class View(utils.SubjectMixin):
         if self.root_geometry != geo:
             self.config.write_setting('windows', 'root_geometry', geo)
             self.root_geometry = geo
-        if self.notes_list_width != nl_width:
+        if self.notes_list_width != nl_width and self.config.layout == 'horizontal':
             self.config.write_setting('windows', 'notes_list_width', nl_width)
             self.notes_list_width = nl_width
-        if self.notes_list_height != nl_height:
+        if self.notes_list_height != nl_height and self.config.layout == 'vertical':
             self.config.write_setting('windows', 'notes_list_height', nl_height)
             self.notes_list_height = nl_height
 
