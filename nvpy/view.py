@@ -912,15 +912,17 @@ class View(utils.SubjectMixin):
         TEXT_WIDTH=80
 
         # Minimum dimensions of the top-level window so that things cannot
-        # disappear.
-        MIN_ROOT_WIDTH = 400
-        MIN_ROOT_HEIGHT = 600
+        # disappear. If available, we are using the user's last known size
+        # settings instead of letting the windows size themselves, therefore
+        # we choose some minimum settings that are hopefully safe.
+        MIN_ROOT_WIDTH = 850
+        MIN_ROOT_HEIGHT = 850
 
         # set the correct class name. this helps your desktop environment
         # to identify the nvPY window.
         self.root = tk.Tk(className="nvPY")
 
-        # Take the last size and position that the user changed the window to.
+        # Take the last size and position to which the user set the window.
         geo = self.config.read_setting('windows', 'root_geometry')
         if geo:
             self.root['width'] = int(geo.split('x')[0])
@@ -980,9 +982,9 @@ class View(utils.SubjectMixin):
 
         search_frame.pack(side=tk.TOP, fill=tk.X)
         
-        # Remember how the user sized the notes list, if available
+        # Recall how the user sized the notes list, if available.
         self.notes_list_width = self.config.read_setting('windows', 'notes_list_width')
-        self.notes_list_height = self.config.read_setting('windows', 'notes_list_height')
+        self.notes_list_height = self.config.read_setting('windows', 'notes_list_height') or 150
         
         # the paned window ##############################################
         
@@ -1025,8 +1027,7 @@ class View(utils.SubjectMixin):
                 self.config.list_font_size,
                 utils.KeyValueObject(background_color=self.config.background_color,
                     layout=self.config.layout,
-                    print_columns=self.config.print_columns,
-                    pixel_height=self.notes_list_height))
+                    print_columns=self.config.print_columns))
             self.notes_list.pack(fill=tk.X, expand=1)
 
             note_frame = tk.Frame(paned_window)
@@ -1084,13 +1085,17 @@ class View(utils.SubjectMixin):
 
         # finish UI creation ###########################################
 
-        # now set the minsize so that things can not disappear
-        self.root.minsize(MIN_ROOT_WIDTH, MIN_ROOT_HEIGHT)
 
         # set the window to the same place that it was last time
         geo = self.config.read_setting('windows', 'root_geometry')
         if geo:
             self.root.geometry(geo)
+
+            # if using a user specified geometry, use sane minimums
+            self.root.minsize(MIN_ROOT_WIDTH, MIN_ROOT_HEIGHT)
+        else:
+            # set the minsize so that things can not disappear
+            self.root.minsize(self.root.winfo_width(), self.root.winfo_height())
 
         # call update so we know that sizes are up to date
         self.root.update_idletasks()
