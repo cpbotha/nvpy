@@ -222,21 +222,10 @@ class NotesList(tk.Frame):
         except:
             pass
 
-        # Calculate the text height in characters based on the font
-        # and the desired pixel height of the frame, if the picel_height
-        # is set at all.
-        text_height = 25
-        try:
-            if config.pixel_height:
-                text_height = int(float(config.pixel_height)/float(f.metrics('linespace')))
-        except:
-            pass
-        logging.debug('text_height: %d' % text_height)
-
         # tkFont.families(root) returns list of available font family names
         # this determines the width of the complete interface (yes)
         # size=-self.config.font_size
-        self.text = tk.Text(self, height=text_height, width=text_width,
+        self.text = tk.Text(self, height=25, width=text_width,
             wrap=tk.NONE,
             font=f,
             yscrollcommand=yscrollbar.set,
@@ -1009,7 +998,7 @@ class View(utils.SubjectMixin):
             paned_window = tk.PanedWindow(self.root, orient=tk.VERTICAL)
             paned_window.pack(fill=tk.BOTH, expand=1)
             
-            list_frame = tk.Frame(paned_window, height=150)
+            list_frame = tk.Frame(paned_window, height=self.notes_list_height)
             list_frame.pack_propagate(0)
             paned_window.add(list_frame)
 
