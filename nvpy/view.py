@@ -911,13 +911,6 @@ class View(utils.SubjectMixin):
         #FRAME_HEIGHT=400
         TEXT_WIDTH=80
 
-        # Minimum dimensions of the top-level window so that things cannot
-        # disappear. If available, we are using the user's last known size
-        # settings instead of letting the windows size themselves, therefore
-        # we choose some minimum settings that are hopefully safe.
-        MIN_ROOT_WIDTH = 850
-        MIN_ROOT_HEIGHT = 850
-
         # set the correct class name. this helps your desktop environment
         # to identify the nvPY window.
         self.root = tk.Tk(className="nvPY")
@@ -983,6 +976,8 @@ class View(utils.SubjectMixin):
         search_frame.pack(side=tk.TOP, fill=tk.X)
         
         # Recall how the user sized the notes list, if available.
+        # The default for width is set in NotesList.__init__() but
+        # for height it is set here.
         self.notes_list_width = self.config.read_setting('windows', 'notes_list_width')
         self.notes_list_height = self.config.read_setting('windows', 'notes_list_height') or 150
         
@@ -1090,11 +1085,8 @@ class View(utils.SubjectMixin):
         geo = self.config.read_setting('windows', 'root_geometry')
         if geo:
             self.root.geometry(geo)
-
-            # if using a user specified geometry, use sane minimums
-            self.root.minsize(MIN_ROOT_WIDTH, MIN_ROOT_HEIGHT)
         else:
-            # set the minsize so that things can not disappear
+            # now set the minsize so that things can not disappear
             self.root.minsize(self.root.winfo_width(), self.root.winfo_height())
 
         # call update so we know that sizes are up to date
