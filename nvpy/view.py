@@ -497,6 +497,9 @@ class TriggeredcompleteEntry(tk.Entry):
     def __init__(self, master, case_sensitive, **kw): 
         tk.Entry.__init__(self, master, **kw)
         self.case_sensitive = case_sensitive
+        # make sure we're initialised, else the event handler could generate
+        # exceptions checking for instance variables that don't exist yet.
+        self.set_completion_list([])
         self.bind('<KeyRelease>', self.handle_keyrelease)               
 
     def set_completion_list(self, completion_list):
