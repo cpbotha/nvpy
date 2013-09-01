@@ -34,7 +34,8 @@ import codecs
 import ConfigParser
 import logging
 from logging.handlers import RotatingFileHandler
-from sqlite_db import SqliteDB, SyncError, ReadError, WriteError
+from sqlite_db import SqliteDB
+from notes_db import NotesDB, SyncError, ReadError, WriteError
 import os
 import sys
 import time
