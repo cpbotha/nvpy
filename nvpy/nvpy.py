@@ -211,7 +211,7 @@ class Controller:
 
         log_filename = os.path.join(self.config.db_path, 'nvpy.log')
         # file will get nuked when it reaches 100kB
-        lhandler = RotatingFileHandler(log_filename, maxBytes=100000)
+        lhandler = RotatingFileHandler(log_filename, maxBytes=100000, backupCount=1)
         lhandler.setLevel(logging.DEBUG)
         lhandler.setFormatter(logging.Formatter(fmt='%(asctime)s - %(levelname)s - %(message)s'))
         # we get the root logger and configure it
