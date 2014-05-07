@@ -146,7 +146,7 @@ def check_internet_on():
     slightly adapted from: http://stackoverflow.com/a/3764660/532513
     """
     try:
-        urllib2.urlopen('http://74.125.113.99',timeout=1)
+        urllib2.urlopen('http://74.125.228.100',timeout=1)
         return True
     
     except urllib2.URLError: 
