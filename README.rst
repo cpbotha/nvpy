@@ -49,7 +49,7 @@ nvPY works best on Python 2.7.x. It does not work on Python 3.x yet.
 
 To install the latest development version from github, do::
 
-    pip install git+https://github.com/cpbotha/nvpy.git#egg=nvpy
+    pip install 'git+https://github.com/cpbotha/nvpy.git#egg=nvpy'
 
 OR, to install the version currently on pypi, do::
 
