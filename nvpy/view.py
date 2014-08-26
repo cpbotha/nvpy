@@ -326,6 +326,7 @@ class NotesList(tk.Frame):
             return "break"
 
         self.text.bind("<Up>", cmd_up)
+        self.text.bind("<Control-k>", cmd_up)
 
         # for pageup, event handler needs to return "break" so that
         # Text widget's default class handler for pageup does not trigger.
@@ -340,6 +341,7 @@ class NotesList(tk.Frame):
             return "break"
 
         self.text.bind("<Down>", cmd_down)
+        self.text.bind("<Control-j>", cmd_down)
 
         def cmd_pagedown(e):
             self.select_next(silent=False, delta=10)
@@ -747,16 +749,22 @@ class View(utils.SubjectMixin):
         
         self.search_entry.bind("<Escape>", lambda e:
                 self.search_entry.delete(0, tk.END))
+        self.search_entry.bind("<Control-bracketleft>", lambda e:
+                self.search_entry.delete(0, tk.END))
         # this will either focus current content, or
         # if there's no selection, create a new note.
         self.search_entry.bind("<Return>", self.handler_search_enter)
         
         self.search_entry.bind("<Up>", lambda e:
             self.notes_list.select_prev(silent=False))
+        self.search_entry.bind("<Control-k>", lambda e:
+            self.notes_list.select_prev(silent=False))
         self.search_entry.bind("<Prior>", lambda e:
             self.notes_list.select_prev(silent=False, delta=10))
 
         self.search_entry.bind("<Down>", lambda e:
+            self.notes_list.select_next(silent=False))
+        self.search_entry.bind("<Control-j>", lambda e:
             self.notes_list.select_next(silent=False))
         self.search_entry.bind("<Next>", lambda e:
             self.notes_list.select_next(silent=False, delta=10))
@@ -765,6 +773,7 @@ class View(utils.SubjectMixin):
         
         # user presses escape in text area, they go back to notes list
         self.text_note.bind("<Escape>", lambda e: self.notes_list.text.focus())
+        self.text_note.bind("<Control-bracketleft>", lambda e: self.notes_list.text.focus())
         # <Key>
         
         self.text_note.bind("<Control-a>", self.cmd_select_all)
