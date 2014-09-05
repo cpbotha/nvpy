@@ -34,6 +34,7 @@ import codecs
 import ConfigParser
 import logging
 from logging.handlers import RotatingFileHandler
+from sqlite_db import SqliteDB
 from notes_db import NotesDB, SyncError, ReadError, WriteError
 import os
 import sys
@@ -100,6 +101,10 @@ class Config:
                     # Filename or filepath to a css file used style the rendered
                     # output; e.g. nvpy.css or /path/to/my.css
                     'rest_css_path': None,
+                    # Whether to use the json or the sqlite3 backend for storage.
+                    # Right now the sqlite backend doesn't support simplenote
+                    # sync
+                    'use_sqlite_backend': '0',
                    }
 
         cp = ConfigParser.SafeConfigParser(defaults)
@@ -152,6 +157,7 @@ class Config:
         self.background_color = cp.get(cfg_sec, 'background_color')
 
         self.rest_css_path = cp.get(cfg_sec, 'rest_css_path')
+        self.use_sqlite_backend = cp.get(cfg_sec, 'use_sqlite_backend')
 
 
 class NotesListModel(SubjectMixin):
@@ -244,7 +250,10 @@ class Controller:
         # read our database of notes into memory
         # and sync with simplenote.
         try:
-           self.notes_db = NotesDB(self.config)
+           if config.use_sqlite_backend == '1':
+               self.notes_db = SqliteDB(self.config)
+           else:
+               self.notes_db = NotesDB(self.config)
 
         except ReadError, e:
             emsg = "Please check nvpy.log.\n" + str(e)
@@ -293,7 +302,7 @@ class Controller:
         # this will trigger the list_change event
         self.notes_list_model.set_list(nn)
         self.notes_list_model.match_regexp = match_regexp
-        self.view.set_note_tally(len(nn), active_notes, len(self.notes_db.notes))
+        self.view.set_note_tally(len(nn), active_notes, self.notes_db.get_note_count())
 
         # we'll use this to keep track of the currently selected note
         # we only use idx, because key could change from right under us.
@@ -539,7 +548,7 @@ class Controller:
         nn, match_regexp, active_notes = self.notes_db.filter_notes(evt.value)
         self.notes_list_model.set_list(nn)
         self.notes_list_model.match_regexp = match_regexp
-        self.view.set_note_tally(len(nn), active_notes, len(self.notes_db.notes))
+        self.view.set_note_tally(len(nn), active_notes, self.notes_db.get_note_count())
 
         idx = self.notes_list_model.get_idx(k)
 

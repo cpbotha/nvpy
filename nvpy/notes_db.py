@@ -405,6 +405,9 @@ class NotesDB(utils.SubjectMixin):
 
     def get_note(self, key):
         return self.notes[key]
+        
+    def get_note_count(self):
+        return len(self.notes)
 
     def get_note_content(self, key):
         return self.notes[key].get('content')
