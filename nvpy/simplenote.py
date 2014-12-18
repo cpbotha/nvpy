@@ -27,6 +27,7 @@ DATA_URL = 'https://simple-note.appspot.com/api2/data'
 INDX_URL = 'https://simple-note.appspot.com/api2/index?'
 NOTE_FETCH_LENGTH = 20
 
+
 class Simplenote(object):
     """ Class for interacting with the simplenote web service """
 
@@ -53,7 +54,7 @@ class Simplenote(object):
         try:
             res = urllib2.urlopen(request).read()
             token = urllib2.quote(res)
-        except IOError: # no connection exception
+        except IOError:  # no connection exception
             token = None
         return token
 
@@ -71,7 +72,6 @@ class Simplenote(object):
             self.token = self.authenticate(self.username, self.password)
         return self.token
 
-
     def get_note(self, noteid):
         """ method to get a specific note
 
@@ -88,7 +88,7 @@ class Simplenote(object):
         # request note
         params = '/%s?auth=%s&email=%s' % (str(noteid), self.get_token(),
                                            self.username)
-        request = Request(DATA_URL+params)
+        request = Request(DATA_URL + params)
         try:
             response = urllib2.urlopen(request)
         except HTTPError, e:
@@ -100,8 +100,8 @@ class Simplenote(object):
         if isinstance(note["content"], str):
             note["content"] = note["content"].encode('utf-8')
 
-        if note.has_key("tags"):
-            note["tags"] = [t.encode('utf-8') if isinstance(t,str) else t for t in note["tags"]]
+        if "tags" in note:
+            note["tags"] = [t.encode('utf-8') if isinstance(t, str) else t for t in note["tags"]]
 
         return note, 0
 
@@ -126,14 +126,14 @@ class Simplenote(object):
         if isinstance(note["content"], str):
             note["content"] = unicode(note["content"], 'utf-8')
 
-        if note.has_key("tags"):
+        if "tags" in note:
             # if a tag is a string, unicode it, otherwise pass it through
             # unchanged (it's unicode already)
             # using the ternary operator, because I like it: a if test else b
             note["tags"] = [unicode(t, 'utf-8') if isinstance(t, str) else t for t in note["tags"]]
 
         # determine whether to create a new note or updated an existing one
-        if note.has_key("key"):
+        if "key" in note:
             url = '%s/%s?auth=%s&email=%s' % (DATA_URL, note["key"],
                                               self.get_token(), self.username)
         else:
@@ -166,7 +166,7 @@ class Simplenote(object):
         """
         if type(note) == str:
             return self.update_note({"content": note})
-        elif (type(note) == dict) and note.has_key("content"):
+        elif (type(note) == dict) and "content" in note:
             return self.update_note(note)
         else:
             return "No string or valid note.", -1
@@ -190,7 +190,7 @@ class Simplenote(object):
         status = 0
         ret = []
         response = {}
-        notes = { "data" : [] }
+        notes = {"data": []}
 
         # get the note index
         if qty < NOTE_FETCH_LENGTH:
@@ -201,14 +201,14 @@ class Simplenote(object):
                                                  NOTE_FETCH_LENGTH)
         # perform initial HTTP request
         try:
-            request = Request(INDX_URL+params)
+            request = Request(INDX_URL + params)
             response = json.loads(urllib2.urlopen(request).read())
             notes["data"].extend(response["data"])
         except IOError:
             status = -1
 
         # get additional notes if bookmark was set in response
-        while response.has_key("mark") and len(notes["data"]) < qty:
+        while "mark" in response and len(notes["data"]) < qty:
             if (qty - len(notes["data"])) < NOTE_FETCH_LENGTH:
                 vals = (self.get_token(), self.username, response["mark"], qty - len(notes["data"]))
             else:
@@ -217,7 +217,7 @@ class Simplenote(object):
 
             # perform the actual HTTP request
             try:
-                request = Request(INDX_URL+params)
+                request = Request(INDX_URL + params)
                 response = json.loads(urllib2.urlopen(request).read())
                 notes["data"].extend(response["data"])
             except IOError:
@@ -270,7 +270,7 @@ class Simplenote(object):
 
         params = '/%s?auth=%s&email=%s' % (str(note_id), self.get_token(),
                                            self.username)
-        request = Request(url=DATA_URL+params, method='DELETE')
+        request = Request(url=DATA_URL + params, method='DELETE')
         try:
             urllib2.urlopen(request)
         except IOError, e:
@@ -293,5 +293,3 @@ class Request(urllib2.Request):
             return self.method
 
         return urllib2.Request.get_method(self)
-
-
