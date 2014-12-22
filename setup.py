@@ -1,6 +1,6 @@
 import os
 from setuptools import setup
-from nvpy import nvpy
+from nvpy.version import VERSION
 
 # Utility function to read the README file.
 # Used for the long_description.  It's nice, because now 1) we have a top level
@@ -11,7 +11,7 @@ def read(fname):
 
 setup(
     name = "nvpy",
-    version = nvpy.VERSION,
+    version = VERSION,
     author = "Charl P. Botha",
     author_email = "cpbotha@vxlabs.com",
     description = "A cross-platform simplenote-syncing note-taking app inspired by Notational Velocity.",
@@ -20,7 +20,7 @@ setup(
     url = "https://github.com/cpbotha/nvpy",
     packages=['nvpy'],
     long_description=read('README.rst'),
-    install_requires = ['Markdown', 'docutils'],
+    install_requires = ['Markdown', 'docutils', 'TinkerPy'],
     entry_points = {
         'gui_scripts' : ['nvpy = nvpy.nvpy:main']
     },
