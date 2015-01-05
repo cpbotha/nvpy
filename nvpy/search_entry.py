@@ -1,4 +1,4 @@
-# pretty style for entry widget, adapted from 
+# pretty style for entry widget, adapted from
 # http://python-ttk.googlecode.com/svn/trunk/pyttk-samples/mac_searchentry.py
 
 """Mac style search widget
@@ -53,17 +53,18 @@ otQhBRa6VvSJIRwhIkotvgRTzMUYZ6xxMcj4QkspeKDxxRhEmUfIHWjAgQcijEDissuXvCyz
 zH7Q8YQURxDhUsn/bCInR3AELfTQZBRt9BBJkCGFFVhMwTNBlnBCSCGEIJQQIAklZMXWRBAR
 RRRWENHwRQEBADs="""
 
+
 def make_style():
     # need to keep bindings for s1 and s2 around, else the get eaten by GC
     global s1, s2
     s1 = Tkinter.PhotoImage("search1", data=data, format="gif -index 0")
     s2 = Tkinter.PhotoImage("search2", data=data, format="gif -index 1")
-    
+
     style = ttk.Style()
-    
+
     style.element_create("Search.field", "image", "search1",
         ("focus", "search2"), border=[22, 7, 14], sticky="ew")
-    
+
     style.layout("Search.entry", [
         ("Search.field", {"sticky": "nswe", "border": 1, "children":
             [("Entry.padding", {"sticky": "nswe", "children":
@@ -71,6 +72,5 @@ def make_style():
             })]
         })]
     )
-    
+
     #style.configure("Search.entry", background="#b2b2b2")
-    
