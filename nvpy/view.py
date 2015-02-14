@@ -47,7 +47,7 @@ class WidgetRedirector:
         tk.call("rename", orig, w)
 
     def register(self, name, function):
-        if name in self.dict():
+        if name in self.dict.keys():
             previous = dict[name]
         else:
             previous = OriginalCommand(self, name)
@@ -56,7 +56,7 @@ class WidgetRedirector:
         return previous
 
     def unregister(self, name):
-        if name in self.dict():
+        if name in self.dict.keys():
             function = self.dict[name]
             del self.dict[name]
             if hasattr(self.widget, name):
@@ -1003,20 +1003,27 @@ class View(utils.SubjectMixin):
 
         paned_window.add(note_frame)
 
-        note_meta_frame = tk.Frame(note_frame)
-        note_meta_frame.pack(side=tk.BOTTOM, fill=tk.X)
+        note_pinned_frame = tk.Frame(note_frame)
+        note_pinned_frame.pack(side=tk.BOTTOM, fill=tk.X)
 
-        pinned_label = tk.Label(note_meta_frame, text="Pinned")
+        pinned_label = tk.Label(note_pinned_frame, text="Pinned")
         pinned_label.pack(side=tk.LEFT)
         self.pinned_checkbutton_var = tk.IntVar()
-        self.pinned_checkbutton = tk.Checkbutton(note_meta_frame, variable=self.pinned_checkbutton_var)
+        self.pinned_checkbutton = tk.Checkbutton(note_pinned_frame, variable=self.pinned_checkbutton_var)
         self.pinned_checkbutton.pack(side=tk.LEFT)
 
-        tags_label = tk.Label(note_meta_frame, text="Tags")
+        note_tags_frame = tk.Frame(note_pinned_frame)
+        note_tags_frame.pack(side=tk.LEFT)
+
+        tags_label = tk.Label(note_tags_frame, text="Tags")
         tags_label.pack(side=tk.LEFT)
+
         self.tags_entry_var = tk.StringVar()
-        self.tags_entry = tk.Entry(note_meta_frame, textvariable=self.tags_entry_var)
+        self.tags_entry = tk.Entry(note_tags_frame, textvariable=self.tags_entry_var)
         self.tags_entry.pack(side=tk.LEFT, fill=tk.X, expand=1, pady=3, padx=3)
+
+        self.note_existing_tags_frame = tk.Frame(note_tags_frame)
+        self.note_existing_tags_frame.pack(side=tk.LEFT)
 
         # we'll use this method to create the different edit boxes
         def create_scrolled_text(master):
@@ -1454,6 +1461,14 @@ class View(utils.SubjectMixin):
 
             # default to an empty array for tags
             tags = note.get('tags', [])
+		
+	    for tag_button in self.note_existing_tags_frame.children.values():
+		tag_button.destroy()
+	
+	    for tag in tags:
+        	tag_button = tk.Button(self.note_existing_tags_frame, text=tag)
+        	tag_button.pack(side=tk.LEFT)
+		
             self.tags_entry_var.set(','.join(tags))
             self.pinned_checkbutton_var.set(utils.note_pinned(note))
 
