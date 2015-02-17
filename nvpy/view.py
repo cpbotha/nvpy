@@ -610,7 +610,7 @@ class View(utils.SubjectMixin):
     def askyesno(self, title, msg):
         return tkMessageBox.askyesno(title, msg)
 
-    def cmd_notes_list_select(self, evt):
+    def cmd_notes_list_select(self, evt=None):
         sidx = self.notes_list.selected_idx
         self.notify_observers('select:note', utils.KeyValueObject(sel=sidx))
 
@@ -912,7 +912,7 @@ class View(utils.SubjectMixin):
 
         iconpath = os.path.join(
             self.config.app_dir, 'icons', icon_fn)
-
+        
         self.icon = tk.PhotoImage(file=iconpath)
         self.root.tk.call('wm', 'iconphoto', self.root._w, self.icon)
 
@@ -1466,7 +1466,7 @@ class View(utils.SubjectMixin):
 		tag_button.destroy()
 	
 	    for tag in tags:
-        	tag_button = tk.Button(self.note_existing_tags_frame, text=tag)
+        	tag_button = tk.Button(self.note_existing_tags_frame, text=tag + " x")
         	tag_button.pack(side=tk.LEFT)
 		
             self.tags_entry_var.set(','.join(tags))

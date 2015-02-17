@@ -185,23 +185,9 @@ class Controller:
     """Main application class.
     """
 
-    def __init__(self):
-        # setup appdir
-        if hasattr(sys, 'frozen') and sys.frozen:
-            self.appdir, _ = os.path.split(sys.executable)
-
-        else:
-            dirname = os.path.dirname(__file__)
-            if dirname and dirname != os.curdir:
-                self.appdir = dirname
-            else:
-                self.appdir = os.getcwd()
-
-        # make sure it's the full path
-        self.appdir = os.path.abspath(self.appdir)
-
+    def __init__(self, config):
         # should probably also look in $HOME
-        self.config = Config(self.appdir)
+        self.config = config
         self.config.app_version = VERSION
 
         # configure logging module
@@ -591,6 +577,7 @@ class Controller:
         if self.selected_note_idx >= 0:
             key = self.notes_list_model.list[self.selected_note_idx].key
             self.notes_db.set_note_tags(key, evt.value)
+            self.view.cmd_notes_list_select()
 
     def observer_view_change_pinned(self, view, evt_type, evt):
         # get new text and update our database
@@ -693,7 +680,23 @@ class Controller:
 
 
 def main():
-    controller = Controller()
+    # setup appdir
+    if hasattr(sys, 'frozen') and sys.frozen:
+        appdir, _ = os.path.split(sys.executable)
+
+    else:
+        dirname = os.path.dirname(__file__)
+        if dirname and dirname != os.curdir:
+            appdir = dirname
+        else:
+            appdir = os.getcwd()
+
+    # make sure it's the full path
+    appdir_full_path = os.path.abspath(appdir)
+
+    config = Config(appdir_full_path)
+
+    controller = Controller(config)
     controller.main_loop()
 
 
