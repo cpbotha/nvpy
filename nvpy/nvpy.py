@@ -257,10 +257,9 @@ class Controller:
         self.view.add_observer('change:pinned', self.observer_view_change_pinned)
         self.view.add_observer('create:note', self.observer_view_create_note)
         self.view.add_observer('keep:house', self.observer_view_keep_house)
-        self.view.add_observer('command:markdown',
-                self.observer_view_markdown)
-        self.view.add_observer('command:rest',
-                self.observer_view_rest)
+        self.view.add_observer('command:markdown', self.observer_view_markdown)
+        self.view.add_observer('command:rest', self.observer_view_rest)
+        self.view.add_observer('delete:tag', self.observer_view_delete_tag)
 
         if self.config.simplenote_sync:
             self.view.add_observer('command:sync_full', lambda v, et, e: self.sync_full())
@@ -579,6 +578,11 @@ class Controller:
             self.notes_db.set_note_tags(key, evt.value)
             self.view.cmd_notes_list_select()
 
+    def observer_view_delete_tag(self, view, evt_type, evt):
+        key = self.notes_list_model.list[self.selected_note_idx].key
+        self.notes_db.delete_note_tag(key, evt.tag)
+        self.view.cmd_notes_list_select()
+
     def observer_view_change_pinned(self, view, evt_type, evt):
         # get new text and update our database
         # need local key of currently selected note for this
@@ -630,7 +634,6 @@ class Controller:
         @param idx:
         @return:
         """
-
         if idx >= 0:
             key = self.notes_list_model.list[idx].key
             note = self.notes_db.get_note(key)

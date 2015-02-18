@@ -807,6 +807,14 @@ class NotesDB(utils.SubjectMixin):
             n['tags'] = tags
             n['modifydate'] = time.time()
             self.notify_observers('change:note-status', utils.KeyValueObject(what='modifydate', key=key))
+    
+    def delete_note_tag(self, key, tag):
+        note = self.notes[key]
+        note_tags = note.get('tags')
+        note_tags.remove(tag)
+        note['tags'] = note_tags
+        note['modifydate'] = time.time()
+        self.notify_observers('change:note-status', utils.KeyValueObject(what='modifydate', key=key))
 
     def set_note_pinned(self, key, pinned):
         n = self.notes[key]

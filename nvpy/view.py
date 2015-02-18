@@ -1440,6 +1440,9 @@ class View(utils.SubjectMixin):
     def set_status_text(self, txt):
         self.statusbar.set_status(txt)
 
+    def handler_delete_tag_from_selected_note(self,tag_name):
+        self.notify_observers('delete:tag', utils.KeyValueObject(tag=tag_name))
+
     def set_note_data(self, note, reset_undo=True, content_unchanged=False):
         """Replace text in editor with content.
 
@@ -1466,9 +1469,9 @@ class View(utils.SubjectMixin):
 		tag_button.destroy()
 	
 	    for tag in tags:
-        	tag_button = tk.Button(self.note_existing_tags_frame, text=tag + " x")
+        	tag_button = tk.Button(self.note_existing_tags_frame, text=tag + " x", command=lambda tag=tag: self.handler_delete_tag_from_selected_note(tag))
         	tag_button.pack(side=tk.LEFT)
-		
+        
             self.tags_entry_var.set(','.join(tags))
             self.pinned_checkbutton_var.set(utils.note_pinned(note))
 
