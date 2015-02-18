@@ -779,7 +779,7 @@ class View(utils.SubjectMixin):
 
         self.text_note.bind("<Control-a>", self.cmd_select_all)
 
-        self.tags_entry_var.trace('w', self.handler_tags_entry)
+	self.tags_entry.bind("<Return>", self.handler_add_tags_to_selected_note)
         self.tags_entry.bind("<Escape>", lambda e: self.text_note.focus())
 
         self.pinned_checkbutton_var.trace('w', self.handler_pinned_checkbutton)
@@ -1015,7 +1015,7 @@ class View(utils.SubjectMixin):
         note_tags_frame = tk.Frame(note_pinned_frame)
         note_tags_frame.pack(side=tk.LEFT)
 
-        tags_label = tk.Label(note_tags_frame, text="Tags")
+        tags_label = tk.Label(note_tags_frame, text="Add Tags")
         tags_label.pack(side=tk.LEFT)
 
         self.tags_entry_var = tk.StringVar()
@@ -1274,9 +1274,8 @@ class View(utils.SubjectMixin):
         self.notify_observers('change:search_mode',
             utils.KeyValueObject(value=self.search_mode_var.get()))
 
-    def handler_tags_entry(self, *args):
-        self.notify_observers('change:tags',
-            utils.KeyValueObject(value=self.tags_entry_var.get()))
+    def handler_add_tags_to_selected_note(self, evt=None):
+        self.notify_observers('add:tag', utils.KeyValueObject(tags=self.tags_entry_var.get()))
 
     def handler_click_link(self, link):
         if link.startswith('[['):
@@ -1390,6 +1389,7 @@ class View(utils.SubjectMixin):
 
         tags = note.get('tags', [])
         # get list of string tags from ui
+        # TODO: [Errol] change how this comparison is made?
         ui_tags = utils.sanitise_tags(self.tags_entry_var.get())
         if ui_tags != tags:
             return True
@@ -1407,7 +1407,8 @@ class View(utils.SubjectMixin):
 
     def mute_note_data_changes(self):
         self.mute('change:text')
-        self.mute('change:tags')
+        self.mute('add:tag')
+        self.mute('delete:tag')
         self.mute('change:pinned')
 
     def search(self, e):
@@ -1472,7 +1473,7 @@ class View(utils.SubjectMixin):
         	tag_button = tk.Button(self.note_existing_tags_frame, text=tag + " x", command=lambda tag=tag: self.handler_delete_tag_from_selected_note(tag))
         	tag_button.pack(side=tk.LEFT)
         
-            self.tags_entry_var.set(','.join(tags))
+            #self.tags_entry_var.set(','.join(tags))
             self.pinned_checkbutton_var.set(utils.note_pinned(note))
 
         if reset_undo:
@@ -1518,7 +1519,8 @@ class View(utils.SubjectMixin):
 
     def unmute_note_data_changes(self):
         self.unmute('change:text')
-        self.unmute('change:tags')
+        self.unmute('add:tag')
+        self.unmute('delete:tag')
         self.unmute('change:pinned')
 
     def update_selected_note_data(self, note):

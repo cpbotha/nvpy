@@ -54,33 +54,6 @@ class Tags(unittest.TestCase):
         
 	self.assertEqual(len(tag_elements), 2) 
         view.close()
-    
-    def test_tag_buttons_are_updated_when_updating_tags_on_a_note(self):
-        controller = Controller(self.__mock_config())	
-        
-	controller.observer_view_create_note(controller.view, "create:note", utils.KeyValueObject(title='aNote'))
-	
-	controller.view.tags_entry_var.set('atag,anotherTag')
-        
-        tag_elements = controller.view.note_existing_tags_frame.children.values() 
-        self.assertEqual(len(tag_elements), 2)
-	
-        controller.view.close()
-    
-    def test_tag_is_deleted_from_note_when_tag_button_is_clicked(self): 
-        controller = Controller(self.__mock_config())	
-        
-	controller.observer_view_create_note(controller.view, "create:note", utils.KeyValueObject(title='aNote'))
-	
-	controller.view.tags_entry_var.set('aTag')
 
-	controller.view.handler_delete_tag_from_selected_note('aTag')
-        
-        tag_elements = controller.view.note_existing_tags_frame.children.values() 
-        self.assertEqual(len(tag_elements), 0)
-	
-        controller.view.close()
-    
-        
 if __name__ == '__main__':
     unittest.main()

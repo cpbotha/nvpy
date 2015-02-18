@@ -253,13 +253,13 @@ class Controller:
         self.view.add_observer('select:note', self.observer_view_select_note)
         self.view.add_observer('change:entry', self.observer_view_change_entry)
         self.view.add_observer('change:text', self.observer_view_change_text)
-        self.view.add_observer('change:tags', self.observer_view_change_tags)
         self.view.add_observer('change:pinned', self.observer_view_change_pinned)
         self.view.add_observer('create:note', self.observer_view_create_note)
         self.view.add_observer('keep:house', self.observer_view_keep_house)
         self.view.add_observer('command:markdown', self.observer_view_markdown)
         self.view.add_observer('command:rest', self.observer_view_rest)
         self.view.add_observer('delete:tag', self.observer_view_delete_tag)
+        self.view.add_observer('add:tag', self.observer_view_add_tag)
 
         if self.config.simplenote_sync:
             self.view.add_observer('command:sync_full', lambda v, et, e: self.sync_full())
@@ -582,6 +582,12 @@ class Controller:
         key = self.notes_list_model.list[self.selected_note_idx].key
         self.notes_db.delete_note_tag(key, evt.tag)
         self.view.cmd_notes_list_select()
+    
+    def observer_view_add_tag(self, view, evt_type, evt):
+        key = self.notes_list_model.list[self.selected_note_idx].key
+        self.notes_db.add_note_tags(key, evt.tags)
+        self.view.cmd_notes_list_select()
+        self.view.tags_entry_var.set('')
 
     def observer_view_change_pinned(self, view, evt_type, evt):
         # get new text and update our database
