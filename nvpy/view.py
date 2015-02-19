@@ -1388,10 +1388,12 @@ class View(utils.SubjectMixin):
             return True
 
         tags = note.get('tags', [])
-        # get list of string tags from ui
-        # TODO: [Errol] change how this comparison is made?
-        ui_tags = utils.sanitise_tags(self.tags_entry_var.get())
-        if ui_tags != tags:
+        
+	# get list of string tags from ui
+        tag_elements = self.note_existing_tags_frame.children.values() 
+        ui_tags = [element['text'].replace(' x', '') for element in tag_elements]
+
+        if sorted(ui_tags) != sorted(tags):
             return True
 
         if bool(self.pinned_checkbutton_var.get()) != bool(utils.note_pinned(note)):

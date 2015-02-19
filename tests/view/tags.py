@@ -54,6 +54,89 @@ class Tags(unittest.TestCase):
         
 	self.assertEqual(len(tag_elements), 2) 
         view.close()
+    
+    def test_view_can_check_if_a_note_has_not_changed(self):
+        mockNotesListModel = NotesListModel()
+        mockNotesListModel.add_observer = Mock()
+	view = View(self.__mock_config(), mockNotesListModel)
 
+        note = {
+            'content': "title",
+            'modifydate': "timestamp",
+            'createdate': "timestamp",
+            'savedate': 0,  # never been written to disc
+            'syncdate': 0,  # never been synced with server
+            'tags': ['atag', 'anotherTag']
+        }
+
+	view.set_note_data(note)
+        
+        self.assertFalse(view.is_note_different(note))
+
+        view.close()
+    
+    def test_view_can_check_if_a_notes_content_has_changed(self):
+        mockNotesListModel = NotesListModel()
+        mockNotesListModel.add_observer = Mock()
+	view = View(self.__mock_config(), mockNotesListModel)
+
+        note = {
+            'content': "title",
+            'modifydate': "timestamp",
+            'createdate': "timestamp",
+            'savedate': 0,  # never been written to disc
+            'syncdate': 0,  # never been synced with server
+            'tags': ['atag', 'anotherTag']
+        }
+
+	view.set_note_data(note)
+        
+        new_note = {
+            'content': "new title",
+            'modifydate': "timestamp",
+            'createdate': "timestamp",
+            'savedate': 0,  # never been written to disc
+            'syncdate': 0,  # never been synced with server
+            'tags': ['atag', 'anotherTag']
+        }
+
+	view.set_note_data(note)
+        
+        
+        self.assertTrue(view.is_note_different(new_note))
+
+        view.close()
+    
+    def test_view_can_check_if_a_notes_tags_has_changed(self):
+        mockNotesListModel = NotesListModel()
+        mockNotesListModel.add_observer = Mock()
+	view = View(self.__mock_config(), mockNotesListModel)
+
+        note = {
+            'content': "title",
+            'modifydate': "timestamp",
+            'createdate': "timestamp",
+            'savedate': 0,  # never been written to disc
+            'syncdate': 0,  # never been synced with server
+            'tags': ['atag', 'anotherTag']
+        }
+
+	view.set_note_data(note)
+        
+        new_note = {
+            'content': "title",
+            'modifydate': "timestamp",
+            'createdate': "timestamp",
+            'savedate': 0,  # never been written to disc
+            'syncdate': 0,  # never been synced with server
+            'tags': ['anotherTag']
+        }
+
+	view.set_note_data(note)
+        
+        self.assertTrue(view.is_note_different(new_note))
+
+        view.close()
+        
 if __name__ == '__main__':
     unittest.main()
