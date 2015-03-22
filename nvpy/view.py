@@ -47,7 +47,7 @@ class WidgetRedirector:
         tk.call("rename", orig, w)
 
     def register(self, name, function):
-        if name in self.dict():
+        if name in self.dict.keys():
             previous = dict[name]
         else:
             previous = OriginalCommand(self, name)
@@ -206,6 +206,7 @@ class NotesList(tk.Frame):
     TAGS_COL = 1
     MODIFYDATE_COL = 2
     PINNED_COL = 3
+    CREATEDATE_COL = 4
 
     def __init__(self, master, font_family, font_size, config):
         tk.Frame.__init__(self, master)
@@ -275,7 +276,8 @@ class NotesList(tk.Frame):
         tags = note.get('tags')
         modifydate = float(note.get('modifydate'))
         pinned = utils.note_pinned(note)
-        self.note_headers.append((title, tags, modifydate, pinned))
+        createdate = float(note.get('createdate'))
+        self.note_headers.append((title, tags, modifydate, pinned, createdate))
 
         self.enable_text()
 
@@ -294,7 +296,7 @@ class NotesList(tk.Frame):
                 else:
                     self.text.insert(tk.END, u'{0:<{w}}'.format(','.join(tags)[:cellwidth - 1], w=cellwidth), ("tags",))
 
-            self.text.insert(tk.END, ' ' + utils.human_date(modifydate), ("modifydate",))
+            self.text.insert(tk.END, ' ' + utils.human_date(createdate), ("createdate",))
 
             # tags can be None (newly created note) or [] or ['tag1', 'tag2']
         else:
@@ -303,7 +305,7 @@ class NotesList(tk.Frame):
             if pinned:
                 self.text.insert(tk.END, ' *', ("pinned",))
 
-            self.text.insert(tk.END, ' ' + utils.human_date(modifydate), ("modifydate",))
+            self.text.insert(tk.END, ' ' + utils.human_date(createdate), ("createdate",))
 
             # tags can be None (newly created note) or [] or ['tag1', 'tag2']
             if tags > 0:
@@ -416,6 +418,14 @@ class NotesList(tk.Frame):
         @returns: modifydate as a floating point timestamp.
         """
         return self.note_headers[idx][NotesList.MODIFYDATE_COL]
+
+    def get_createdate(self, idx):
+        """
+        Return createdate of idx'th note.
+
+        @returns: createdate as a floating point timestamp.
+        """
+        return self.note_headers[idx][NotesList.CREATEDATE_COL]
 
     def idx_to_index_range(self, idx):
         """
@@ -909,7 +919,6 @@ class View(utils.SubjectMixin):
 
         # with iconphoto we have to use gif, also on windows
         icon_fn = 'nvpy.gif'
-
         iconpath = os.path.join(
             self.config.app_dir, 'icons', icon_fn)
 
@@ -1163,6 +1172,7 @@ class View(utils.SubjectMixin):
         # check if titles need refreshing
         refresh_notes_list = False
         prev_title = None
+        prev_createdate = None
         prev_modifydate = None
         prev_pinned = 0
         for i, o in enumerate(self.notes_list_model.list):
@@ -1178,6 +1188,14 @@ class View(utils.SubjectMixin):
             # compare modifydate timestamp in our notes_list_model to what's displayed
             # if these are more than 60 seconds apart, we want to update our
             # mod-date display.
+            cd = float(o.note.get('createdate', 0))
+            ocd = self.notes_list.get_createdate(i)
+            if cd != ocd:
+                # we log the title
+                logging.debug('createdate "%s" resync, %d - %d' % (nt,cd,ocd))
+                refresh_notes_list = True
+                break
+
             md = float(o.note.get('modifydate', 0))
             omd = self.notes_list.get_modifydate(i)
             if abs(md - omd) > 60:
@@ -1210,6 +1228,17 @@ class View(utils.SubjectMixin):
                     break
 
                 prev_title = nt
+
+            elif self.config.sort_mode == 2:
+                if prev_createdate is not None and prev_createdate < cd and \
+                   not prev_pinned:
+                    logging.debug("createdate resort triggered %d > %d" % (cd, prev_createdate))
+                    refresh_notes_list = True
+                    break
+
+                prev_createdate = cd
+                if self.config.pinned_ontop:
+                    prev_pinned = utils.note_pinned(o.note)
 
             else:
 
