@@ -221,6 +221,13 @@ class NotesDB(utils.SubjectMixin):
                 filtered_notes.sort(key=lambda o: utils.get_note_title(o.note))
             else:
                 filtered_notes.sort(utils.sort_by_title_pinned)
+        elif self.config.sort_mode == 2:
+            if self.config.pinned_ontop == 0:
+                # last modified on top
+                filtered_notes.sort(key=lambda o: -float(o.note.get('createdate', 0)))
+            else:
+                filtered_notes.sort(utils.sort_by_create_date_pinned, reverse=True)
+
 
         else:
             if self.config.pinned_ontop == 0:
