@@ -98,6 +98,7 @@ class Config:
                     'sn_username': '',
                     'sn_password': '',
                     'simplenote_sync': '1',
+                    'debug' : '1',
                     # Filename or filepath to a css file used style the rendered
                     # output; e.g. nvpy.css or /path/to/my.css
                     'rest_css_path': None,
@@ -153,6 +154,7 @@ class Config:
         self.background_color = cp.get(cfg_sec, 'background_color')
 
         self.rest_css_path = cp.get(cfg_sec, 'rest_css_path')
+        self.debug = cp.get(cfg_sec, 'debug')
 
 
 class NotesListModel(SubjectMixin):
@@ -204,7 +206,8 @@ class Controller:
         lhandler.setFormatter(logging.Formatter(fmt='%(asctime)s - %(levelname)s - %(message)s'))
         # we get the root logger and configure it
         logger = logging.getLogger()
-        logger.setLevel(logging.DEBUG)
+        if self.config.debug == 1:
+            logger.setLevel(logging.DEBUG)
         logger.addHandler(lhandler)
         # this will go to the root logger
         logging.debug('nvpy logging initialized')
@@ -694,7 +697,7 @@ def main():
         appdir, _ = os.path.split(sys.executable)
 
     else:
-        dirname = os.path.dirname(__file__)
+        dirname, _ = os.path.split(os.path.realpath(__file__))
         if dirname and dirname != os.curdir:
             appdir = dirname
         else:
