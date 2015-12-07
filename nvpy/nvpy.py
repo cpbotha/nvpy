@@ -35,6 +35,7 @@ import ConfigParser
 import logging
 from logging.handlers import RotatingFileHandler
 from notes_db import NotesDB, SyncError, ReadError, WriteError
+import getopt
 import os
 import sys
 import time
@@ -105,13 +106,17 @@ class Config:
                    }
 
         cp = ConfigParser.SafeConfigParser(defaults)
+
+        cfgfile = self.parseCmdLineOpts()
         # later config files overwrite earlier files
         # try a number of alternatives
         self.files_read = cp.read([os.path.join(app_dir, 'nvpy.cfg'),
                                    os.path.join(home, 'nvpy.cfg'),
                                    os.path.join(home, '.nvpy.cfg'),
                                    os.path.join(home, '.nvpy'),
-                                   os.path.join(home, '.nvpyrc')])
+                                   os.path.join(home, '.nvpyrc'),
+                                   cfgfile,
+                                   os.path.join(app_dir, cfgfile)])
 
         cfg_sec = 'nvpy'
 
@@ -155,6 +160,23 @@ class Config:
 
         self.rest_css_path = cp.get(cfg_sec, 'rest_css_path')
         self.debug = cp.get(cfg_sec, 'debug')
+
+    def parseCmdLineOpts(self):
+        usage = 'Usage: nvpy -cfg nvpy.cfg'
+        cfgfile = ''
+        try:
+            opts = getopt.getopt(sys.argv[1:], "hc:", ["help", "cfg="])[0]
+        except getopt.GetoptError:
+            print usage
+            sys.exit(2)
+
+        for opt, arg in opts:
+            if opt in ("-h", "--help"):
+                print usage
+                sys.exit()
+            elif opt in ("-c", "--cfg"):
+                cfgfile = arg
+        return cfgfile
 
 
 class NotesListModel(SubjectMixin):
