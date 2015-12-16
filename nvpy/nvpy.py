@@ -406,7 +406,11 @@ class Controller:
 <html>
 <head>
 <meta http-equiv="Content-Type" content="text/html; charset=UTF-8"/>
-<meta http-equiv="refresh" content="5">
+"""
+            if self.view.get_continuous_rendering():
+              s += '<meta http-equiv="refresh" content="5">'
+
+            s += """
 </head>
 <body>
 %s
