@@ -35,8 +35,9 @@ class WidgetRedirector:
                                              self.widget._w)
 
     def close(self):
-        for name in self.dict.keys():
+        for name in self.dict:
             self.unregister(name)
+
         widget = self.widget
         del self.widget
         orig = self.orig
@@ -47,21 +48,25 @@ class WidgetRedirector:
         tk.call("rename", orig, w)
 
     def register(self, name, function):
-        if name in self.dict.keys():
+        if name in self.dict:
             previous = dict[name]
+
         else:
             previous = OriginalCommand(self, name)
+
         self.dict[name] = function
         setattr(self.widget, name, function)
         return previous
 
     def unregister(self, name):
-        if name in self.dict():
+        if name in self.dict:
             function = self.dict[name]
             del self.dict[name]
             if hasattr(self.widget, name):
                 delattr(self.widget, name)
+
             return function
+
         else:
             return None
 
@@ -305,7 +310,10 @@ class NotesList(tk.Frame):
             if pinned:
                 self.text.insert(tk.END, ' *', ("pinned",))
 
-            self.text.insert(tk.END, ' ' + utils.human_date(createdate), ("createdate",))
+            # latest modified first is the default mode
+            # we could consider showing createddate here IF the sort mode
+            # is configured to be latest created first
+            self.text.insert(tk.END, ' ' + utils.human_date(modifydate), ("modifydate",))
 
             # tags can be None (newly created note) or [] or ['tag1', 'tag2']
             if tags > 0:
@@ -620,7 +628,7 @@ class View(utils.SubjectMixin):
     def askyesno(self, title, msg):
         return tkMessageBox.askyesno(title, msg)
 
-    def cmd_notes_list_select(self, evt):
+    def cmd_notes_list_select(self, evt=None):
         sidx = self.notes_list.selected_idx
         self.notify_observers('select:note', utils.KeyValueObject(sel=sidx))
 
@@ -789,7 +797,7 @@ class View(utils.SubjectMixin):
 
         self.text_note.bind("<Control-a>", self.cmd_select_all)
 
-        self.tags_entry_var.trace('w', self.handler_tags_entry)
+	self.tags_entry.bind("<Return>", self.handler_add_tags_to_selected_note)
         self.tags_entry.bind("<Escape>", lambda e: self.text_note.focus())
 
         self.pinned_checkbutton_var.trace('w', self.handler_pinned_checkbutton)
@@ -921,7 +929,7 @@ class View(utils.SubjectMixin):
         icon_fn = 'nvpy.gif'
         iconpath = os.path.join(
             self.config.app_dir, 'icons', icon_fn)
-
+        
         self.icon = tk.PhotoImage(file=iconpath)
         self.root.tk.call('wm', 'iconphoto', self.root._w, self.icon)
 
@@ -1012,20 +1020,27 @@ class View(utils.SubjectMixin):
 
         paned_window.add(note_frame)
 
-        note_meta_frame = tk.Frame(note_frame)
-        note_meta_frame.pack(side=tk.BOTTOM, fill=tk.X)
+        note_pinned_frame = tk.Frame(note_frame)
+        note_pinned_frame.pack(side=tk.BOTTOM, fill=tk.X)
 
-        pinned_label = tk.Label(note_meta_frame, text="Pinned")
+        pinned_label = tk.Label(note_pinned_frame, text="Pinned")
         pinned_label.pack(side=tk.LEFT)
         self.pinned_checkbutton_var = tk.IntVar()
-        self.pinned_checkbutton = tk.Checkbutton(note_meta_frame, variable=self.pinned_checkbutton_var)
+        self.pinned_checkbutton = tk.Checkbutton(note_pinned_frame, variable=self.pinned_checkbutton_var)
         self.pinned_checkbutton.pack(side=tk.LEFT)
 
-        tags_label = tk.Label(note_meta_frame, text="Tags")
+        note_tags_frame = tk.Frame(note_pinned_frame)
+        note_tags_frame.pack(side=tk.LEFT)
+
+        tags_label = tk.Label(note_tags_frame, text="Add Tags")
         tags_label.pack(side=tk.LEFT)
+
         self.tags_entry_var = tk.StringVar()
-        self.tags_entry = tk.Entry(note_meta_frame, textvariable=self.tags_entry_var)
+        self.tags_entry = tk.Entry(note_tags_frame, textvariable=self.tags_entry_var)
         self.tags_entry.pack(side=tk.LEFT, fill=tk.X, expand=1, pady=3, padx=3)
+
+        self.note_existing_tags_frame = tk.Frame(note_tags_frame)
+        self.note_existing_tags_frame.pack(side=tk.LEFT)
 
         # we'll use this method to create the different edit boxes
         def create_scrolled_text(master):
@@ -1139,7 +1154,7 @@ class View(utils.SubjectMixin):
 
         tkMessageBox.showinfo(
             'Help | About',
-            'nvPY %s is copyright 2012 by Charl P. Botha '
+            'nvPY %s is copyright 2012-2015 by Charl P. Botha '
             '<http://charlbotha.com/>\n\n'
             'A rather ugly but cross-platform simplenote client.' % (self.config.app_version,),
             parent=self.root)
@@ -1296,9 +1311,8 @@ class View(utils.SubjectMixin):
         self.notify_observers('change:search_mode',
             utils.KeyValueObject(value=self.search_mode_var.get()))
 
-    def handler_tags_entry(self, *args):
-        self.notify_observers('change:tags',
-            utils.KeyValueObject(value=self.tags_entry_var.get()))
+    def handler_add_tags_to_selected_note(self, evt=None):
+        self.notify_observers('add:tag', utils.KeyValueObject(tags=self.tags_entry_var.get()))
 
     def handler_click_link(self, link):
         if link.startswith('[['):
@@ -1411,9 +1425,12 @@ class View(utils.SubjectMixin):
             return True
 
         tags = note.get('tags', [])
-        # get list of string tags from ui
-        ui_tags = utils.sanitise_tags(self.tags_entry_var.get())
-        if ui_tags != tags:
+        
+	# get list of string tags from ui
+        tag_elements = self.note_existing_tags_frame.children.values() 
+        ui_tags = [element['text'].replace(' x', '') for element in tag_elements]
+
+        if sorted(ui_tags) != sorted(tags):
             return True
 
         if bool(self.pinned_checkbutton_var.get()) != bool(utils.note_pinned(note)):
@@ -1429,7 +1446,8 @@ class View(utils.SubjectMixin):
 
     def mute_note_data_changes(self):
         self.mute('change:text')
-        self.mute('change:tags')
+        self.mute('add:tag')
+        self.mute('delete:tag')
         self.mute('change:pinned')
 
     def search(self, e):
@@ -1462,6 +1480,9 @@ class View(utils.SubjectMixin):
     def set_status_text(self, txt):
         self.statusbar.set_status(txt)
 
+    def handler_delete_tag_from_selected_note(self,tag_name):
+        self.notify_observers('delete:tag', utils.KeyValueObject(tag=tag_name))
+
     def set_note_data(self, note, reset_undo=True, content_unchanged=False):
         """Replace text in editor with content.
 
@@ -1483,7 +1504,15 @@ class View(utils.SubjectMixin):
 
             # default to an empty array for tags
             tags = note.get('tags', [])
-            self.tags_entry_var.set(','.join(tags))
+		
+	    for tag_button in self.note_existing_tags_frame.children.values():
+		tag_button.destroy()
+	
+	    for tag in tags:
+        	tag_button = tk.Button(self.note_existing_tags_frame, text=tag + " x", command=lambda tag=tag: self.handler_delete_tag_from_selected_note(tag))
+        	tag_button.pack(side=tk.LEFT)
+        
+            #self.tags_entry_var.set(','.join(tags))
             self.pinned_checkbutton_var.set(utils.note_pinned(note))
 
         if reset_undo:
@@ -1529,7 +1558,8 @@ class View(utils.SubjectMixin):
 
     def unmute_note_data_changes(self):
         self.unmute('change:text')
-        self.unmute('change:tags')
+        self.unmute('add:tag')
+        self.unmute('delete:tag')
         self.unmute('change:pinned')
 
     def update_selected_note_data(self, note):

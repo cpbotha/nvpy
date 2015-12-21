@@ -356,9 +356,9 @@ class NotesDB(utils.SubjectMixin):
         if search_string:
             try:
                 if self.config.case_sensitive == 0:
-                    sspat = re.compile(search_string, re.I)
+                    sspat = re.compile(search_string, re.MULTILINE|re.I)
                 else:
-                    sspat = re.compile(search_string)
+                    sspat = re.compile(search_string, re.MULTILINE)
             except re.error:
                 sspat = None
 
@@ -719,7 +719,8 @@ class NotesDB(utils.SubjectMixin):
                     self.notify_observers('progress:sync_full', utils.KeyValueObject(msg='Synced modified note %d to server.' % (ni,)))
 
                 else:
-                    raise SyncError("Sync step 1 error - Could not update note to server")
+                    key = n.get('key') or lk
+                    raise SyncError("Sync step 1 error - Could not update note {0} to server: {1}".format(key, str(uret[0])))
 
         # 2. if remote syncnum > local syncnum, update our note; if key is new, add note to local.
         # this gets the FULL note list, even if multiple gets are required
@@ -814,6 +815,23 @@ class NotesDB(utils.SubjectMixin):
             n['tags'] = tags
             n['modifydate'] = time.time()
             self.notify_observers('change:note-status', utils.KeyValueObject(what='modifydate', key=key))
+    
+    def delete_note_tag(self, key, tag):
+        note = self.notes[key]
+        note_tags = note.get('tags')
+        note_tags.remove(tag)
+        note['tags'] = note_tags
+        note['modifydate'] = time.time()
+        self.notify_observers('change:note-status', utils.KeyValueObject(what='modifydate', key=key))
+    
+    def add_note_tags(self, key, comma_seperated_tags):
+        note = self.notes[key]
+        note_tags = note.get('tags')
+        new_tags = utils.sanitise_tags(comma_seperated_tags)
+        note_tags.extend(new_tags)
+        note['tags'] = note_tags
+        note['modifydate'] = time.time()
+        self.notify_observers('change:note-status', utils.KeyValueObject(what='modifydate', key=key))
 
     def set_note_pinned(self, key, pinned):
         n = self.notes[key]
