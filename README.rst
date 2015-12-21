@@ -183,3 +183,7 @@ Credits
 * The brilliant application icon, a blue mini car (not as fast as the notational velocity rocket, get it?), is by `Cemagraphics <http://cemagraphics.deviantart.com/>`_.
 * Thanks for the tips! stfa, https://github.com/gudnm and stephen powell
 
+Running Tests
+=============
+
+PYTHONPATH=.:$PYTHONPATH python -m unittest discover -s tests -p '*.py'

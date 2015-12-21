@@ -187,22 +187,9 @@ class Controller:
     """Main application class.
     """
 
-    def __init__(self):
-        # setup appdir
-        if hasattr(sys, 'frozen') and sys.frozen:
-            self.appdir, _ = os.path.split(sys.executable)
-        else:
-            dirname, _ = os.path.split(os.path.realpath(__file__))
-            if dirname and dirname != os.curdir:
-                self.appdir = dirname
-            else:
-                self.appdir = os.getcwd()
-
-        # make sure it's the full path
-        self.appdir = os.path.abspath(self.appdir)
-
+    def __init__(self, config):
         # should probably also look in $HOME
-        self.config = Config(self.appdir)
+        self.config = config
         self.config.app_version = VERSION
 
         # configure logging module
@@ -269,14 +256,13 @@ class Controller:
         self.view.add_observer('select:note', self.observer_view_select_note)
         self.view.add_observer('change:entry', self.observer_view_change_entry)
         self.view.add_observer('change:text', self.observer_view_change_text)
-        self.view.add_observer('change:tags', self.observer_view_change_tags)
         self.view.add_observer('change:pinned', self.observer_view_change_pinned)
         self.view.add_observer('create:note', self.observer_view_create_note)
         self.view.add_observer('keep:house', self.observer_view_keep_house)
-        self.view.add_observer('command:markdown',
-                self.observer_view_markdown)
-        self.view.add_observer('command:rest',
-                self.observer_view_rest)
+        self.view.add_observer('command:markdown', self.observer_view_markdown)
+        self.view.add_observer('command:rest', self.observer_view_rest)
+        self.view.add_observer('delete:tag', self.observer_view_delete_tag)
+        self.view.add_observer('add:tag', self.observer_view_add_tag)
 
         if self.config.simplenote_sync:
             self.view.add_observer('command:sync_full', lambda v, et, e: self.sync_full())
@@ -593,6 +579,18 @@ class Controller:
         if self.selected_note_idx >= 0:
             key = self.notes_list_model.list[self.selected_note_idx].key
             self.notes_db.set_note_tags(key, evt.value)
+            self.view.cmd_notes_list_select()
+
+    def observer_view_delete_tag(self, view, evt_type, evt):
+        key = self.notes_list_model.list[self.selected_note_idx].key
+        self.notes_db.delete_note_tag(key, evt.tag)
+        self.view.cmd_notes_list_select()
+    
+    def observer_view_add_tag(self, view, evt_type, evt):
+        key = self.notes_list_model.list[self.selected_note_idx].key
+        self.notes_db.add_note_tags(key, evt.tags)
+        self.view.cmd_notes_list_select()
+        self.view.tags_entry_var.set('')
 
     def observer_view_change_pinned(self, view, evt_type, evt):
         # get new text and update our database
@@ -645,7 +643,6 @@ class Controller:
         @param idx:
         @return:
         """
-
         if idx >= 0:
             key = self.notes_list_model.list[idx].key
             note = self.notes_db.get_note(key)
@@ -695,7 +692,23 @@ class Controller:
 
 
 def main():
-    controller = Controller()
+    # setup appdir
+    if hasattr(sys, 'frozen') and sys.frozen:
+        appdir, _ = os.path.split(sys.executable)
+
+    else:
+        dirname, _ = os.path.split(os.path.realpath(__file__))
+        if dirname and dirname != os.curdir:
+            appdir = dirname
+        else:
+            appdir = os.getcwd()
+
+    # make sure it's the full path
+    appdir_full_path = os.path.abspath(appdir)
+
+    config = Config(appdir_full_path)
+
+    controller = Controller(config)
     controller.main_loop()
 
 
