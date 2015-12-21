@@ -23,7 +23,7 @@ class Tags(unittest.TestCase):
         mockConfig.txt_path = '/tmp/.nvpyUnitTests/notes'
         mockConfig.simplenote_sync = 0
 
-	return mockConfig
+        return mockConfig
 
     def test_database_can_delete_tags(self):
         notes_db = NotesDB(self.__mock_config())
@@ -31,7 +31,7 @@ class Tags(unittest.TestCase):
 
         notes_db.delete_note_tag('9', 'aTag')
 
-	self.assertEqual(notes_db.notes['9']['tags'], ['anotherTag'])
+        self.assertEqual(notes_db.notes['9']['tags'], ['anotherTag'])
     
     def test_database_can_add_tags(self):
         notes_db = NotesDB(self.__mock_config())
@@ -39,7 +39,7 @@ class Tags(unittest.TestCase):
 
         notes_db.add_note_tags('9', 'aTag,anotherTag')
 
-	self.assertEqual(notes_db.notes['9']['tags'], ['aTag', 'anotherTag'])
+        self.assertEqual(notes_db.notes['9']['tags'], ['aTag', 'anotherTag'])
         
 if __name__ == '__main__':
     unittest.main()
