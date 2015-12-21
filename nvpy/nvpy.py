@@ -105,18 +105,24 @@ class Config:
                     'rest_css_path': None,
                    }
 
-        cp = ConfigParser.SafeConfigParser(defaults)
+        # parse command-line arguments
+        args = self.parse_cmd_line_opts()
 
-        cfgfile = self.parse_cmd_line_opts()
         # later config files overwrite earlier files
         # try a number of alternatives
-        self.files_read = cp.read([os.path.join(app_dir, 'nvpy.cfg'),
-                                   os.path.join(home, 'nvpy.cfg'),
-                                   os.path.join(home, '.nvpy.cfg'),
-                                   os.path.join(home, '.nvpy'),
-                                   os.path.join(home, '.nvpyrc'),
-                                   cfgfile,
-                                   os.path.join(app_dir, cfgfile)])
+        cfg_files = [os.path.join(app_dir, 'nvpy.cfg'),
+                     os.path.join(home, 'nvpy.cfg'),
+                     os.path.join(home, '.nvpy.cfg'),
+                     os.path.join(home, '.nvpy'),
+                     os.path.join(home, '.nvpyrc')]
+
+        # user has specified either a specific path to a CFG file, or a
+        # path relative to the nvpy.py location. specific takes precedence.
+        if args.cfg is not None:
+            cfg_files.extend([os.path.join(app_dir, args.cfg), args.cfg])
+
+        cp = ConfigParser.SafeConfigParser(defaults)
+        self.files_read = cp.read(cfg_files)
 
         cfg_sec = 'nvpy'
 
@@ -163,9 +169,11 @@ class Config:
 
     def parse_cmd_line_opts(self):
         parser = argparse.ArgumentParser()
-        parser.add_argument('--cfg', '-c', default = '', dest = 'cfg', metavar='nvpy.cfg', help='path to config file')
+        parser.add_argument('--cfg', '-c', default='', dest='cfg',
+                            metavar='nvpy.cfg', help='path to config file')
         args = parser.parse_args()
-        return args.cfg
+        return args
+
 
 class NotesListModel(SubjectMixin):
     """
