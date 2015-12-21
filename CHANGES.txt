@@ -1,3 +1,4 @@
+v0.9.6, 2015-12-21 -- more bug fixes.
 v0.9.5, 2015-12-21 -- bugs fixed, tag buttons, automated tests.
 v0.9.4, 2012-10-24 -- vertical layout option; statusbar improvement.
 v0.9.3, 2012-10-18 -- gstyle search mode.
