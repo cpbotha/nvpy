@@ -118,7 +118,7 @@ class Config:
 
         # user has specified either a specific path to a CFG file, or a
         # path relative to the nvpy.py location. specific takes precedence.
-        if args.cfg is not None:
+        if args is not None and args.cfg is not None:
             cfg_files.extend([os.path.join(app_dir, args.cfg), args.cfg])
 
         cp = ConfigParser.SafeConfigParser(defaults)
@@ -168,6 +168,9 @@ class Config:
         self.debug = cp.get(cfg_sec, 'debug')
 
     def parse_cmd_line_opts(self):
+        if __name__ != '__main__':
+            return None
+
         parser = argparse.ArgumentParser()
         parser.add_argument('--cfg', '-c', default='', dest='cfg',
                             metavar='nvpy.cfg', help='path to config file')
