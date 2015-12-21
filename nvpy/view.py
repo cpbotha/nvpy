@@ -310,7 +310,10 @@ class NotesList(tk.Frame):
             if pinned:
                 self.text.insert(tk.END, ' *', ("pinned",))
 
-            self.text.insert(tk.END, ' ' + utils.human_date(createdate), ("createdate",))
+            # latest modified first is the default mode
+            # we could consider showing createddate here IF the sort mode
+            # is configured to be latest created first
+            self.text.insert(tk.END, ' ' + utils.human_date(modifydate), ("modifydate",))
 
             # tags can be None (newly created note) or [] or ['tag1', 'tag2']
             if tags > 0:
