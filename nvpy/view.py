@@ -35,8 +35,9 @@ class WidgetRedirector:
                                              self.widget._w)
 
     def close(self):
-        for name in self.dict.keys():
+        for name in self.dict:
             self.unregister(name)
+
         widget = self.widget
         del self.widget
         orig = self.orig
@@ -47,21 +48,25 @@ class WidgetRedirector:
         tk.call("rename", orig, w)
 
     def register(self, name, function):
-        if name in self.dict.keys():
+        if name in self.dict:
             previous = dict[name]
+
         else:
             previous = OriginalCommand(self, name)
+
         self.dict[name] = function
         setattr(self.widget, name, function)
         return previous
 
     def unregister(self, name):
-        if name in self.dict.keys():
+        if name in self.dict:
             function = self.dict[name]
             del self.dict[name]
             if hasattr(self.widget, name):
                 delattr(self.widget, name)
+
             return function
+
         else:
             return None
 
