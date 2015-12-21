@@ -35,7 +35,7 @@ import ConfigParser
 import logging
 from logging.handlers import RotatingFileHandler
 from notes_db import NotesDB, SyncError, ReadError, WriteError
-import getopt
+import argparse
 import os
 import sys
 import time
@@ -162,22 +162,10 @@ class Config:
         self.debug = cp.get(cfg_sec, 'debug')
 
     def parseCmdLineOpts(self):
-        usage = 'Usage: nvpy -cfg nvpy.cfg'
-        cfgfile = ''
-        try:
-            opts = getopt.getopt(sys.argv[1:], "hc:", ["help", "cfg="])[0]
-        except getopt.GetoptError:
-            print usage
-            sys.exit(2)
-
-        for opt, arg in opts:
-            if opt in ("-h", "--help"):
-                print usage
-                sys.exit()
-            elif opt in ("-c", "--cfg"):
-                cfgfile = arg
-        return cfgfile
-
+        parser = argparse.ArgumentParser()
+        parser.add_argument('--cfg', '-c', default = '', dest = 'cfg', metavar='nvpy.cfg', help='path to config file')
+        args = parser.parse_args()
+        return args.cfg
 
 class NotesListModel(SubjectMixin):
     """
