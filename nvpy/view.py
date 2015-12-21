@@ -2,19 +2,15 @@
 # copyright 2012 by Charl P. Botha <cpbotha@vxlabs.com>
 # new BSD license
 
-import copy
 import logging
 import os
 import re
 import search_entry
-import sys
 import tk
 import tkFont
 import tkMessageBox
 import utils
 import webbrowser
-
-from datetime import datetime
 
 
 class WidgetRedirector:
@@ -49,7 +45,7 @@ class WidgetRedirector:
 
     def register(self, name, function):
         if name in self.dict:
-            previous = dict[name]
+            previous = self.dict[name]
 
         else:
             previous = OriginalCommand(self, name)
