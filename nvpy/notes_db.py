@@ -356,9 +356,9 @@ class NotesDB(utils.SubjectMixin):
         if search_string:
             try:
                 if self.config.case_sensitive == 0:
-                    sspat = re.compile(search_string, re.I)
+                    sspat = re.compile(search_string, re.MULTILINE|re.I)
                 else:
-                    sspat = re.compile(search_string)
+                    sspat = re.compile(search_string, re.MULTILINE)
             except re.error:
                 sspat = None
 
