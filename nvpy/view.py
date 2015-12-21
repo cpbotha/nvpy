@@ -1501,6 +1501,10 @@ class View(utils.SubjectMixin):
             # default to an empty array for tags
             tags = note.get('tags', [])
 
+        else:
+            # note is None - for tags machinery further down, we have empty list
+            tags = []
+
         for tag_button in self.note_existing_tags_frame.children.values():
             tag_button.destroy()
 
