@@ -107,7 +107,7 @@ class Config:
 
         cp = ConfigParser.SafeConfigParser(defaults)
 
-        cfgfile = self.parseCmdLineOpts()
+        cfgfile = self.parse_cmd_line_opts()
         # later config files overwrite earlier files
         # try a number of alternatives
         self.files_read = cp.read([os.path.join(app_dir, 'nvpy.cfg'),
@@ -161,7 +161,7 @@ class Config:
         self.rest_css_path = cp.get(cfg_sec, 'rest_css_path')
         self.debug = cp.get(cfg_sec, 'debug')
 
-    def parseCmdLineOpts(self):
+    def parse_cmd_line_opts(self):
         parser = argparse.ArgumentParser()
         parser.add_argument('--cfg', '-c', default = '', dest = 'cfg', metavar='nvpy.cfg', help='path to config file')
         args = parser.parse_args()
