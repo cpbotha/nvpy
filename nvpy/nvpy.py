@@ -99,7 +99,7 @@ class Config:
                     'sn_username': '',
                     'sn_password': '',
                     'simplenote_sync': '1',
-                    'debug' : '1',
+                    'debug': '1',
                     # Filename or filepath to a css file used style the rendered
                     # output; e.g. nvpy.css or /path/to/my.css
                     'rest_css_path': None,
@@ -165,7 +165,7 @@ class Config:
         self.background_color = cp.get(cfg_sec, 'background_color')
 
         self.rest_css_path = cp.get(cfg_sec, 'rest_css_path')
-        self.debug = cp.get(cfg_sec, 'debug')
+        self.debug = cp.getint(cfg_sec, 'debug')
 
     def parse_cmd_line_opts(self):
         if __name__ != '__main__':
