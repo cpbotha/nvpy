@@ -1509,7 +1509,10 @@ class View(utils.SubjectMixin):
             tag_button.destroy()
 
         for tag in tags:
-            tag_button = tk.Button(self.note_existing_tags_frame, text=tag + " x", command=lambda tag=tag: self.handler_delete_tag_from_selected_note(tag))
+            tag_button = tk.Button(
+                    self.note_existing_tags_frame, width=0, text=tag + " x",
+                    command=lambda tag=tag:
+                    self.handler_delete_tag_from_selected_note(tag))
             tag_button.pack(side=tk.LEFT)
         
             #self.tags_entry_var.set(','.join(tags))
