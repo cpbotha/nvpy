@@ -60,7 +60,7 @@ To start nvpy, just do::
 If the pip install does not upgrade to a newer version of nvpy, try::
 
     sudo pip uninstall nvpy
-    sudo pip install --upgrade --ignore-installed --no-deps nvpy
+    sudo pip install --upgrade nvpy
 
 Integrating with your Linux desktop environment
 ===============================================

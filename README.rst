@@ -58,7 +58,7 @@ OR, to install the version currently on pypi, do::
 If already have nvpy installed, but you want to upgrade, try the following::
 
     sudo pip uninstall nvpy
-    sudo pip install --upgrade --ignore-installed --no-deps nvpy
+    sudo pip install --upgrade nvpy
 
 OR, you can of course use easy\_install instead::
 
