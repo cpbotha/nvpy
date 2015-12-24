@@ -27,7 +27,7 @@ Screenshots and screencasts
 
 * Screenshot taken shortly before the 0.9.7 release (clam theme, droid font):
 
-.. image:: https://lh3.googleusercontent.com/--3LAeWzHF-4/VnvANnC0rAI/AAAAAAABZ1c/K6YgcDAx62s/s800-Ic42/nvpy-0.9.7-clam-droid.png
+.. image:: https://lh3.googleusercontent.com/DvOXzSgUnzO_kUiKS8UdcF0F9DsF3v6MBRCiUMIT472FtSvlMGqU3AEr1XwT2ERmTQh5RcKraZvdtnnScWhtqZlQd-KQDnVwmbTtPWx8uWpAI1OJHsf0fhXlbB5rRnp2iakM7xwi1IO4_-CWno4LRIqsTf7g5Bvu6BogQshWeAYyZQlsn7i5vD7OqljS7UcEc9EcQy2WLao0uiWCB38RVWSaq4eWFWxJnxV_MaFV5fs9lTvkGC78pq9u2Z4-eTdjqzj6X-ZzLOPZTQZc7g-pyTkFIIa2_pZNUBW0-y1IqYJxM4eDLYcu6PPt4VlHPCN9rvkLN6xYUJLdaz0SIo8X9ezPLHvIuI41SiiIn1wZnrr9rfgFGocstzOMt-A5QzZ8gTkXuAHucrZdmg5Xe4upqvCZGztpc4bgwEyvx132Ua4Zk2utBUgLAh3rp3D1GR0J5R_-W0iBJsn2gsQaFGUJf4zB-bD6HszWkTJ7AAcV0TogR4CQE1757tcZIKPxdOPSwFuMGGq-xeIhHYyGa7dYE_xbkhqIeE3AIpJ7dRpTN5AxIlTzQg5WYF8TEw7pdu6P9YpYcw=w873-h470-no
 
 * Screencast of nvpy's inter-note linking (May 27, 2012): http://youtu.be/NXuVMZr31SI
 * Screencast of nvpy's gstyle search mode (October 18, 2012): http://youtu.be/dzILoLC5vRM
