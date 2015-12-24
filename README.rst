@@ -25,9 +25,9 @@ and it hasn't disappointed me (yet).
 Screenshots and screencasts
 ===========================
 
-* Screenshot taken shortly after 0.9.3 release:
+* Screenshot taken shortly before the 0.9.7 release (clam theme, droid font):
 
-.. image:: https://lh4.googleusercontent.com/-ASCgH2VhYmc/UIOlIWLvYVI/AAAAAAAAQ8s/0ccEQLHXKIg/s800/nvpy_post_0.9.2_screenshot.png
+.. image:: https://lh3.googleusercontent.com/--3LAeWzHF-4/VnvANnC0rAI/AAAAAAABZ1c/K6YgcDAx62s/s800-Ic42/nvpy-0.9.7-clam-droid.png
 
 * Screencast of nvpy's inter-note linking (May 27, 2012): http://youtu.be/NXuVMZr31SI
 * Screencast of nvpy's gstyle search mode (October 18, 2012): http://youtu.be/dzILoLC5vRM
