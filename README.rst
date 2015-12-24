@@ -87,7 +87,26 @@ are much faster as it uses the database it stores in your home directory.
 If you prefer to run from your git clone, you can just invoke python on nvpy.py, or on the nvpy package directory.
 
 The `example nvpy.cfg <https://github.com/cpbotha/nvpy/blob/master/nvpy/nvpy-example.cfg>`_ shows how you can configure the font 
-family and size, configure nvpy to save and load notes as clear text, disable simplenote syncing, and so forth.
+family and size, the widget theme (!) configure nvpy to save and load notes as clear text, disable simplenote syncing, and so forth.
+
+Making nvpy slightly less ugly on Linux
+=======================================
+
+On Linux, I set the nvpy ttk theme to ``clam`` (instead of ``default``; the example
+config above has more information about themes), and I select nicer fonts. The
+relevant config options are as follows::
+
+    theme = clam
+    font_family = droid sans mono
+    font_size = 12
+    list_font_size = 12
+
+On Debian systems, you have to install the ``fonts-droid`` package to be able to
+select the attractive ``droid sans mono`` font. ``ubuntu mono`` is also good and
+should work out of the box on Ubuntu installations.
+
+Let us know on the Google group if you have suggestions for further decreasing
+the level of ugliness!
 
 Keyboard handling
 =================

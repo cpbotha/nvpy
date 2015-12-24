@@ -88,6 +88,7 @@ class Config:
                     'pinned_ontop': '1',
                     'db_path': os.path.join(home, '.nvpy'),
                     'txt_path': os.path.join(home, '.nvpy/notes'),
+                    'theme': 'default',
                     'font_family': 'Courier',  # monospaced on all platforms
                     'font_size': '10',
                     'list_font_family': 'Helvetica',  # sans on all platforms
@@ -152,6 +153,7 @@ class Config:
         self.housekeeping_interval = cp.getint(cfg_sec, 'housekeeping_interval')
         self.housekeeping_interval_ms = self.housekeeping_interval * 1000
 
+        self.theme = cp.get(cfg_sec, 'theme')
         self.font_family = cp.get(cfg_sec, 'font_family')
         self.font_size = cp.getint(cfg_sec, 'font_size')
 

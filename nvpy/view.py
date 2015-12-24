@@ -918,6 +918,15 @@ class View(utils.SubjectMixin):
         # to identify the nvPY window.
         self.root = tk.Tk(className="nvPY")
 
+        # setup user-specified TTK theme
+        # this HAS to happen after Tk() root has been instantiated, else
+        # you'll see errors about PhotoImage not being PhotoImage when we
+        # try to set the app icon.
+        style = tk.Style()
+        #print style.theme_names()
+        #print style.theme_use()
+        style.theme_use(self.config.theme)
+
         self.root.title("nvPY")
         #self.root.configure(background="#b2b2b2")
 
