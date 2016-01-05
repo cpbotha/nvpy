@@ -616,6 +616,7 @@ class View(utils.SubjectMixin):
         self.text_tags_links = []
         self.text_tags_search = []
 
+
         #self._current_text = None
         #self.user_text.focus_set()
 
@@ -1078,6 +1079,11 @@ class View(utils.SubjectMixin):
         self.text_note = create_scrolled_text(note_frame)
         self.fonts = self.notes_list.fonts + self.text_note.fonts
 
+        # setup generic tags for markdown highlighting
+        bold_font = tkFont.Font(self.text_note, self.text_note.cget("font"))
+        bold_font.configure(weight="bold")
+        self.text_note.tag_config('md-bold', font=bold_font)
+
         # finish UI creation ###########################################
 
         # now set the minsize so that things can not disappear
@@ -1413,6 +1419,21 @@ class View(utils.SubjectMixin):
             # record the tag name so we can delete it later
             self.text_tags_links.append(tag)
 
+    def activate_markdown_highlighting(self):
+        t = self.text_note
+
+        pat = re.compile(r"^#.*$", re.MULTILINE)
+
+        # we have multiple tags with the same name, e.g. md-bold
+        # this will remove all of them.
+        t.tag_remove('md-bold', '1.0', 'end')
+
+        for mo in pat.finditer(t.get('1.0', 'end')):
+            # mo.start(), mo.end() or mo.span() in one go
+            t.tag_add('md-bold',
+                      '1.0+{0}c'.format(mo.start()),
+                      '1.0+{0}c'.format(mo.end()))
+
     def handler_text_change(self, evt):
         self.notify_observers('change:text', None)
         # FIXME: consider having this called from the housekeeping
@@ -1420,6 +1441,7 @@ class View(utils.SubjectMixin):
         # single keystroke.
         self.activate_links()
         self.activate_search_string_highlights()
+        self.activate_markdown_highlighting()
 
     def is_note_different(self, note):
         """
