@@ -616,7 +616,6 @@ class View(utils.SubjectMixin):
         self.text_tags_links = []
         self.text_tags_search = []
 
-
         #self._current_text = None
         #self.user_text.focus_set()
 
@@ -1421,14 +1420,24 @@ class View(utils.SubjectMixin):
 
     def activate_markdown_highlighting(self):
         t = self.text_note
-
-        pat = re.compile(r"^#.*$", re.MULTILINE)
+        content = t.get('1.0', 'end')
 
         # we have multiple tags with the same name, e.g. md-bold
         # this will remove all of them.
         t.tag_remove('md-bold', '1.0', 'end')
 
-        for mo in pat.finditer(t.get('1.0', 'end')):
+        # first just use our standard regular expression for finding the first
+        # non whitespace line, wherever it is:
+        mo = utils.note_title_re.match(content)
+        if mo:
+            t.tag_add('md-bold',
+                      '1.0+{0}c'.format(mo.start()),
+                      '1.0+{0}c'.format(mo.end()))
+
+        # then do headings
+        pat = re.compile(r"^#.*$", re.MULTILINE)
+
+        for mo in pat.finditer(content):
             # mo.start(), mo.end() or mo.span() in one go
             t.tag_add('md-bold',
                       '1.0+{0}c'.format(mo.start()),
