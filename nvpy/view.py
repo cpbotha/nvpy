@@ -1164,7 +1164,7 @@ class View(utils.SubjectMixin):
 
         tkMessageBox.showinfo(
             'Help | About',
-            'nvPY %s is copyright 2012-2015 by Charl P. Botha '
+            'nvPY %s is copyright 2012-2016 by Charl P. Botha '
             '<http://charlbotha.com/>\n\n'
             'A rather ugly but cross-platform simplenote client.' % (self.config.app_version,),
             parent=self.root)
