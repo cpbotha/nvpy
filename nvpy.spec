@@ -37,4 +37,8 @@ coll = COLLECT(exe,
 app = BUNDLE(coll,
              name='nvpy.app',
              icon='nvpy/icons/nvpy.icns',
-             bundle_identifier='com.vxlabs.nvpy')
+             bundle_identifier='com.vxlabs.nvpy',
+             info_plist={
+                 # for high-dpi / retina support
+                 'NSHighResolutionCapable': 'True'
+             })
