@@ -208,6 +208,7 @@ Credits
   * stephen powell
   * Robert Munger
   * Jordan McCommons
+  * Jan Steinocher
 
 Running Tests
 =============
