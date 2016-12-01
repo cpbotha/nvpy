@@ -1387,7 +1387,7 @@ class View(utils.SubjectMixin):
         t = self.text_note
         # the last group matches [[bla bla]] inter-note links
         pat = \
-        r"\b((https?|ftp|file)://[-A-Za-z0-9+&@#/%?=~_|!:,.;]*[A-Za-z0-9+&@#/%=~_|])|(\[\[[^][]*\]\])"
+        r"\b((https?|ftp|file)://[-A-Za-z0-9+&@#/%?=~_|!:,.;\(\)]*[A-Za-z0-9+&@#/%=~_|])|(\[\[[^][]*\]\])"
 
         # remove all existing tags
         for tag in self.text_tags_links:
