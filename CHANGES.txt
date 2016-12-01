@@ -1,3 +1,4 @@
+v1.0.0, 2016-12-01 -- highlight headings, retina support, confirm delete, fixes.
 v0.9.7, 2015-12-24 -- ttk theme support, logging bug fix.
 v0.9.6, 2015-12-21 -- more bug fixes.
 v0.9.5, 2015-12-21 -- bugs fixed, tag buttons, automated tests.
