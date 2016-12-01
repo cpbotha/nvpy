@@ -629,8 +629,13 @@ class View(utils.SubjectMixin):
         self.notify_observers('select:note', utils.KeyValueObject(sel=sidx))
 
     def cmd_root_delete(self, evt=None):
-        sidx = self.notes_list.selected_idx
-        self.notify_observers('delete:note', utils.KeyValueObject(sel=sidx))
+        # double-check that the user really means delete
+        # https://github.com/cpbotha/nvpy/issues/119
+        if tkMessageBox.askyesno("Really delete note?",
+                                 "Are you sure you want to delete the current note?",
+                                 default=tkMessageBox.NO):
+            sidx = self.notes_list.selected_idx
+            self.notify_observers('delete:note', utils.KeyValueObject(sel=sidx))
 
     def cmd_root_new(self, evt=None):
         # this'll get caught by a controller event handler
