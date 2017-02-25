@@ -678,7 +678,18 @@ class NotesDB(utils.SubjectMixin):
 
         return (nsynced, nerrored)
 
-    def sync_full(self):
+    def sync_full_threaded(self):
+        def wrapper():
+            try:
+                sync_from_server_errors = self.sync_full_unthreaded()
+                self.notify_observers('complete:sync_full', utils.KeyValueObject(errors=sync_from_server_errors))
+            except Exception as e:
+                self.notify_observers('error:sync_full', utils.KeyValueObject(error=e))
+
+        thread = Thread(target=wrapper)
+        thread.start()
+
+    def sync_full_unthreaded(self):
         """Perform a full bi-directional sync with server.
 
         This follows the recipe in the SimpleNote 2.0 API documentation.
