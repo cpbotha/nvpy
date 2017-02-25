@@ -356,6 +356,7 @@ class Controller:
                 # can undo synced back changes if they would want to.
                 self.view.set_note_data(selected_note_o.note, reset_undo=False)
                 self.view.unmute_note_data_changes()
+        self.view.refresh_notes_list()
 
     def observer_view_click_notelink(self, view, evt_type, note_name):
         # find note_name in titles, try to jump to that note
