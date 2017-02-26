@@ -686,8 +686,9 @@ class NotesDB(utils.SubjectMixin):
             except Exception as e:
                 self.notify_observers('error:sync_full', utils.KeyValueObject(error=e))
 
-        thread = Thread(target=wrapper)
-        thread.start()
+        thread_sync_full = Thread(target=wrapper)
+        thread_sync_full.setDaemon(True)
+        thread_sync_full.start()
 
     def sync_full_unthreaded(self):
         """Perform a full bi-directional sync with server.
