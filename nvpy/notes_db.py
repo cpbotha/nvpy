@@ -733,8 +733,7 @@ class NotesDB(utils.SubjectMixin):
                     key = n.get('key') or lk
                     raise SyncError("Sync step 1 error - Could not update note {0} to server: {1}".format(key, str(uret[0])))
 
-        # 2. if remote syncnum > local syncnum, update our note; if key is new, add note to local.
-        # this gets the FULL note list, even if multiple gets are required
+        # 2. this gets the FULL note list, even if multiple gets are required
         self.notify_observers('progress:sync_full', utils.KeyValueObject(msg='Retrieving full note list from server, could take a while.'))
         nl = self.simplenote.get_note_list()
         if nl[1] == 0:
@@ -744,12 +743,28 @@ class NotesDB(utils.SubjectMixin):
         else:
             raise SyncError('Could not get note list from server.')
 
+        # 3. for each local note not in server index, remove.
         server_keys = {}
+        for n in nl:
+            k = n.get('key')
+            server_keys[k] = True
+
+        for lk in self.notes.keys():
+            if lk not in server_keys:
+                if self.config.notes_as_txt:
+                    tfn = os.path.join(self.config.txt_path, utils.get_note_title_file(self.notes[lk]))
+                    if os.path.isfile(tfn):
+                        os.unlink(tfn)
+                del self.notes[lk]
+                local_deletes[lk] = True
+
+        self.notify_observers('progress:sync_full', utils.KeyValueObject(msg='Deleted note %d.' % (len(local_deletes))))
+
+        # 4. if remote syncnum > local syncnum, update our note; if key is new, add note to local.
         lennl = len(nl)
         sync_from_server_errors = 0
         for ni, n in enumerate(nl):
             k = n.get('key')
-            server_keys[k] = True
             # this works, only because in phase 1 we rewrite local keys to
             # server keys when we get an updated not back from the server
             if k in self.notes:
@@ -783,17 +798,7 @@ class NotesDB(utils.SubjectMixin):
                     logging.error('Error syncing new note %s from server: %s' % (k, ret[0]))
                     sync_from_server_errors += 1
 
-        # 3. for each local note not in server index, remove.
-        for lk in self.notes.keys():
-            if lk not in server_keys:
-                if self.config.notes_as_txt:
-                    tfn = os.path.join(self.config.txt_path, utils.get_note_title_file(self.notes[lk]))
-                    if os.path.isfile(tfn):
-                        os.unlink(tfn)
-                del self.notes[lk]
-                local_deletes[lk] = True
-
-        # sync done, now write changes to db_path
+        # 5. sync done, now write changes to db_path
         for uk in local_updates.keys():
             try:
                 self.helper_save_note(uk, self.notes[uk])
