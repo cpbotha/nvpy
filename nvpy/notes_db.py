@@ -701,7 +701,6 @@ class NotesDB(utils.SubjectMixin):
         """
 
         with self.syncing_lock:
-            local_updates = {}
             local_deletes = {}
             now = time.time()
 
@@ -728,7 +727,7 @@ class NotesDB(utils.SubjectMixin):
                         uret[0]['syncdate'] = now
 
                         # whatever the case may be, k is now updated
-                        local_updates[k] = True
+                        self.helper_save_note(k, self.notes[k])
                         if lk != k:
                             # if lk was a different (purely local) key, should be deleted
                             local_deletes[lk] = True
@@ -786,9 +785,9 @@ class NotesDB(utils.SubjectMixin):
 
                         if ret[1] == 0:
                             self.notes[k].update(ret[0])
-                            local_updates[k] = True
                             # in both cases, new or newer note, syncdate is now.
                             self.notes[k]['syncdate'] = now
+                            self.helper_save_note(k, self.notes[k])
                             self.notify_observers('progress:sync_full', utils.KeyValueObject(msg='Synced newer note %d (%d) from server.' % (ni, lennl)))
 
                         else:
@@ -803,9 +802,9 @@ class NotesDB(utils.SubjectMixin):
 
                     if ret[1] == 0:
                         self.notes[k] = ret[0]
-                        local_updates[k] = True
                         # in both cases, new or newer note, syncdate is now.
                         self.notes[k]['syncdate'] = now
+                        self.helper_save_note(k, self.notes[k])
                         self.notify_observers('progress:sync_full', utils.KeyValueObject(msg='Synced new note %d (%d) from server.' % (ni, lennl)))
 
                     else:
@@ -813,13 +812,6 @@ class NotesDB(utils.SubjectMixin):
                         sync_from_server_errors += 1
 
             # 5. sync done, now write changes to db_path
-            for uk in local_updates.keys():
-                try:
-                    self.helper_save_note(uk, self.notes[uk])
-
-                except WriteError, e:
-                    raise WriteError(e)
-
             for dk in local_deletes.keys():
                 fn = self.helper_key_to_fname(dk)
                 if os.path.exists(fn):
