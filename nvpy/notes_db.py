@@ -707,7 +707,9 @@ class NotesDB(utils.SubjectMixin):
         for ni, lk in enumerate(self.notes.keys()):
             n = self.notes[lk]
             if not n.get('key') or float(n.get('modifydate')) > float(n.get('syncdate')):
+                self.waiting_for_simplenote = True
                 uret = self.simplenote.update_note(n)
+                self.waiting_for_simplenote = False
                 if uret[1] == 0:
                     # replace n with uret[0]
                     # if this was a new note, our local key is not valid anymore
@@ -736,7 +738,9 @@ class NotesDB(utils.SubjectMixin):
 
         # 2. this gets the FULL note list, even if multiple gets are required
         self.notify_observers('progress:sync_full', utils.KeyValueObject(msg='Retrieving full note list from server, could take a while.'))
+        self.waiting_for_simplenote = True
         nl = self.simplenote.get_note_list()
+        self.waiting_for_simplenote = False
         if nl[1] == 0:
             nl = nl[0]
             self.notify_observers('progress:sync_full', utils.KeyValueObject(msg='Retrieved full note list from server.'))
@@ -773,7 +777,10 @@ class NotesDB(utils.SubjectMixin):
                 # check if server n has a newer syncnum than mine
                 if int(n.get('syncnum')) > int(self.notes[k].get('syncnum', -1)):
                     # and the server is newer
+                    self.waiting_for_simplenote = True
                     ret = self.simplenote.get_note(k)
+                    self.waiting_for_simplenote = False
+
                     if ret[1] == 0:
                         self.notes[k].update(ret[0])
                         local_updates[k] = True
@@ -787,7 +794,10 @@ class NotesDB(utils.SubjectMixin):
 
             else:
                 # new note
+                self.waiting_for_simplenote = True
                 ret = self.simplenote.get_note(k)
+                self.waiting_for_simplenote = False
+
                 if ret[1] == 0:
                     self.notes[k] = ret[0]
                     local_updates[k] = True
