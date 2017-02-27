@@ -759,6 +759,10 @@ class NotesDB(utils.SubjectMixin):
 
             for lk in self.notes.keys():
                 if lk not in server_keys:
+                    if self.notes[lk]['syncdate'] == 0:
+                        # this note must be keep, because its was created in midst of executing task 2.
+                        continue
+
                     if self.config.notes_as_txt:
                         tfn = os.path.join(self.config.txt_path, utils.get_note_title_file(self.notes[lk]))
                         if os.path.isfile(tfn):
