@@ -867,7 +867,7 @@ class View(utils.SubjectMixin):
         self.root.bind_all("<Control-z>", lambda e: self.text_note.edit_undo())
 
         edit_menu.add_command(label="Redo", accelerator="Ctrl+Y",
-                              underline=0, command=lambda: self.text_note.edit_undo())
+                              underline=0, command=lambda: self.text_note.edit_redo())
         self.root.bind_all("<Control-y>", lambda e: self.text_note.edit_redo())
 
         edit_menu.add_separator()
