@@ -209,6 +209,7 @@ Credits
   * Robert Munger
   * Jordan McCommons
   * Jan Steinocher
+  * T Anderson
 
 Running Tests
 =============
