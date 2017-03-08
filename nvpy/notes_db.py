@@ -703,7 +703,9 @@ class NotesDB(utils.SubjectMixin):
         reset any views that you might have.
         """
 
-        with self.syncing_lock:
+        try:
+            self.syncing_lock.acquire()
+
             self.full_syncing = True
             local_deletes = {}
             now = time.time()
@@ -829,6 +831,10 @@ class NotesDB(utils.SubjectMixin):
 
             self.full_syncing = False
             return sync_from_server_errors
+
+        finally:
+            self.full_syncing = False
+            self.syncing_lock.release()
 
     def set_note_content(self, key, content):
         n = self.notes[key]

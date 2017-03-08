@@ -347,6 +347,9 @@ class Controller:
         # put cursor where it used to be.
         self.view.refresh_notes_list()
 
+        # change status to "Full syncing"
+        self.update_note_status()
+
     def observer_notes_db_error_sync_full(self, notes_db, evt_type, evt):
         try:
             raise evt.error
@@ -357,10 +360,16 @@ class Controller:
             self.view.show_error('Sync error', emsg)
             exit(1)
 
+        # return normal status from "Full syning".
+        self.update_note_status()
+
     def observer_notes_db_complete_sync_full(self, notes_db, evt_type, evt):
         sync_from_server_errors = evt.errors
         if sync_from_server_errors > 0:
             self.view.show_error('Error syncing notes from server', 'Error syncing %d notes from server. Please check nvpy.log for details.' % (sync_from_server_errors,))
+
+        # return normal status from "Full syning".
+        self.update_note_status()
 
     def observer_notes_db_synced_note(self, notes_db, evt_type, evt):
         """This observer gets called only when a note returns from
@@ -718,6 +727,10 @@ class Controller:
 
     def sync_full(self):
         self.notes_db.sync_full_threaded()
+
+    def update_note_status(self):
+        skey = self.get_selected_note_key()
+        self.view.set_note_status(self.notes_db.get_note_status(skey))
 
 
 def main():
