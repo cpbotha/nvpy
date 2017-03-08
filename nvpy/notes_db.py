@@ -161,6 +161,7 @@ class NotesDB(utils.SubjectMixin):
             self.waiting_for_simplenote = False
 
             self.syncing_lock = Lock()
+            self.full_syncing = False
 
             self.q_sync = Queue()
             self.q_sync_res = Queue()
@@ -418,7 +419,7 @@ class NotesDB(utils.SubjectMixin):
 
     def get_note_status(self, key):
         n = self.notes[key]
-        o = utils.KeyValueObject(saved=False, synced=False, modified=False)
+        o = utils.KeyValueObject(saved=False, synced=False, modified=False, full_syncing=self.full_syncing)
         modifydate = float(n['modifydate'])
         savedate = float(n['savedate'])
 
@@ -702,6 +703,7 @@ class NotesDB(utils.SubjectMixin):
         """
 
         with self.syncing_lock:
+            self.full_syncing = True
             local_deletes = {}
             now = time.time()
 
@@ -824,6 +826,7 @@ class NotesDB(utils.SubjectMixin):
 
             self.notify_observers('progress:sync_full', utils.KeyValueObject(msg='Full sync complete.'))
 
+            self.full_syncing = False
             return sync_from_server_errors
 
     def set_note_content(self, key, content):

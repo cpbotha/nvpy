@@ -156,7 +156,8 @@ class StatusBar(tk.Frame):
     # 0 - saved and synced - light blue - 3
     # 1 - saved - light yellow - 2
     # 2 - modified - lighter red - 1
-    NOTE_STATUS_LUT = {0: 3, 1: 2, 2: 1}
+    # 3 - full syncing - lighter red - 1
+    NOTE_STATUS_LUT = {0: 3, 1: 2, 2: 1, 3: 1}
 
     def __init__(self, master):
         tk.Frame.__init__(self, master)
@@ -730,6 +731,11 @@ class View(utils.SubjectMixin):
         """status is an object with ivars modified, saved and synced.
         """
 
+        if status.full_syncing:
+            s = 'Full syncing'
+            self.statusbar.set_note_status_color(3)
+            self.statusbar.set_note_status(s)
+            return
         if status.modified:
             s = 'modified'
             self.statusbar.set_note_status_color(2)
