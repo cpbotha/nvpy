@@ -913,6 +913,10 @@ class NotesDB(utils.SubjectMixin):
             else:
                 o = self.q_sync.get()
 
+            if o.key not in self.threaded_syncing_keys:
+                # this note was already synced by sync_full thread.
+                continue
+
             if o.action == ACTION_SYNC_PARTIAL_TO_SERVER:
                 self.waiting_for_simplenote = True
                 if 'key' in o.note:
