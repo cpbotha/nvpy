@@ -145,11 +145,11 @@ class StatusBar(tk.Frame):
     # global status
     # note status
 
-    # http://colorbrewer2.org/index.php?type=sequential&scheme=OrRd&n=3
+    # http://colorbrewer2.org#type=sequential&scheme=OrRd&n=3
     # from light to dark orange; colorblind-safe scheme
     #NOTE_STATUS_COLORS = ["#FEE8C8", "#FDBB84", "#E34A33"]
 
-    # http://colorbrewer2.org/index.php?type=diverging&scheme=RdYlBu&n=5
+    # http://colorbrewer2.org#type=diverging&scheme=RdYlBu&n=5
     # diverging red to blue; colorblind-safe scheme
     # red, lighter red, light yellow, light blue, dark blue
     NOTE_STATUS_COLORS = ["#D7191C", "#FDAE61", "#FFFFBF", "#ABD9E9", "#2C7BB6"]
