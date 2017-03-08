@@ -270,6 +270,8 @@ class Controller:
 
         if self.config.simplenote_sync:
             self.notes_db.add_observer('progress:sync_full', self.observer_notes_db_sync_full)
+            self.notes_db.add_observer('error:sync_full', self.observer_notes_db_error_sync_full)
+            self.notes_db.add_observer('complete:sync_full', self.observer_notes_db_complete_sync_full)
             self.sync_full()
 
         # we want to be notified when the user does stuff
@@ -340,6 +342,26 @@ class Controller:
         logging.debug(evt.msg)
         self.view.set_status_text(evt.msg)
 
+        # regenerate display list
+        # reselect old selection
+        # put cursor where it used to be.
+        self.view.refresh_notes_list()
+
+    def observer_notes_db_error_sync_full(self, notes_db, evt_type, evt):
+        try:
+            raise evt.error
+        except SyncError, e:
+            self.view.show_error('Sync error', e)
+        except WriteError, e:
+            emsg = "Please check nvpy.log.\n" + str(e)
+            self.view.show_error('Sync error', emsg)
+            exit(1)
+
+    def observer_notes_db_complete_sync_full(self, notes_db, evt_type, evt):
+        sync_from_server_errors = evt.errors
+        if sync_from_server_errors > 0:
+            self.view.show_error('Error syncing notes from server', 'Error syncing %d notes from server. Please check nvpy.log for details.' % (sync_from_server_errors,))
+
     def observer_notes_db_synced_note(self, notes_db, evt_type, evt):
         """This observer gets called only when a note returns from
         a sync that's more recent than our most recent mod to that note.
@@ -356,6 +378,7 @@ class Controller:
                 # can undo synced back changes if they would want to.
                 self.view.set_note_data(selected_note_o.note, reset_undo=False)
                 self.view.unmute_note_data_changes()
+        self.view.refresh_notes_list()
 
     def observer_view_click_notelink(self, view, evt_type, note_name):
         # find note_name in titles, try to jump to that note
@@ -694,24 +717,7 @@ class Controller:
         self.view.unmute_note_data_changes()
 
     def sync_full(self):
-        try:
-            sync_from_server_errors = self.notes_db.sync_full()
-
-        except SyncError, e:
-            self.view.show_error('Sync error', e)
-        except WriteError, e:
-            emsg = "Please check nvpy.log.\n" + str(e)
-            self.view.show_error('Sync error', emsg)
-            exit(1)
-
-        else:
-            # regenerate display list
-            # reselect old selection
-            # put cursor where it used to be.
-            self.view.refresh_notes_list()
-
-            if sync_from_server_errors > 0:
-                self.view.show_error('Error syncing notes from server', 'Error syncing %d notes from server. Please check nvpy.log for details.' % (sync_from_server_errors,))
+        self.notes_db.sync_full_threaded()
 
 
 def main():
