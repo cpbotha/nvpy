@@ -145,6 +145,8 @@ class NotesDB(utils.SubjectMixin):
         thread_save.setDaemon(True)
         thread_save.start()
 
+        self.full_syncing = False
+
         # initialise the simplenote instance we're going to use
         # this does not yet need network access
         if self.config.simplenote_sync:
@@ -161,7 +163,6 @@ class NotesDB(utils.SubjectMixin):
             self.waiting_for_simplenote = False
 
             self.syncing_lock = Lock()
-            self.full_syncing = False
 
             self.q_sync = Queue()
             self.q_sync_res = Queue()
