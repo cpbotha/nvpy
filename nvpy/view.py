@@ -1566,8 +1566,8 @@ class View(utils.SubjectMixin):
                     self.handler_delete_tag_from_selected_note(tag))
             tag_button.pack(side=tk.LEFT)
 
-        #self.tags_entry_var.set(','.join(tags))
-        self.pinned_checkbutton_var.set(utils.note_pinned(note))
+        if note is not None:
+            self.pinned_checkbutton_var.set(utils.note_pinned(note))
 
         if reset_undo:
             # usually when a new note is selected, we want to reset the
