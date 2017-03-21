@@ -39,6 +39,7 @@ import argparse
 import os
 import sys
 import time
+import traceback
 
 from utils import KeyValueObject, SubjectMixin
 import view
@@ -357,6 +358,14 @@ class Controller:
             self.view.show_error('Sync error', e)
         except WriteError, e:
             emsg = "Please check nvpy.log.\n" + str(e)
+            self.view.show_error('Sync error', emsg)
+            exit(1)
+        except Exception, e:
+            crash_log = ''.join(traceback.format_exception(*evt.exc_info))
+            logging.error(crash_log)
+            emsg = 'An unexpected error has occurred.\n'\
+                   'Please check nvpy.log.\n' \
+                   + repr(e)
             self.view.show_error('Sync error', emsg)
             exit(1)
 

@@ -6,6 +6,7 @@ import codecs
 import copy
 import glob
 import os
+import sys
 import json
 import logging
 from Queue import Queue, Empty
@@ -688,8 +689,8 @@ class NotesDB(utils.SubjectMixin):
             try:
                 sync_from_server_errors = self.sync_full_unthreaded()
                 self.notify_observers('complete:sync_full', utils.KeyValueObject(errors=sync_from_server_errors))
-            except Exception as e:
-                self.notify_observers('error:sync_full', utils.KeyValueObject(error=e))
+            except Exception, e:
+                self.notify_observers('error:sync_full', utils.KeyValueObject(error=e, exc_info=sys.exc_info()))
 
         thread_sync_full = Thread(target=wrapper)
         thread_sync_full.setDaemon(True)
