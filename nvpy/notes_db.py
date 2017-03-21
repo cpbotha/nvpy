@@ -420,8 +420,11 @@ class NotesDB(utils.SubjectMixin):
         return self.notes[key].get('content')
 
     def get_note_status(self, key):
-        n = self.notes[key]
         o = utils.KeyValueObject(saved=False, synced=False, modified=False, full_syncing=self.full_syncing)
+        if key is None:
+            return o
+        
+        n = self.notes[key]
         modifydate = float(n['modifydate'])
         savedate = float(n['savedate'])
 
