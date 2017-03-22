@@ -1671,3 +1671,6 @@ class View(utils.SubjectMixin):
         tlen = len(txt.split())
 
         self.show_info('Word Count', '%d words in total\n%d words in selection' % (tlen, slen))
+
+    def after(self, ms, callback):
+        self.root.after(ms, callback)

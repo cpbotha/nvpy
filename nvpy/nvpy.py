@@ -40,6 +40,7 @@ import os
 import sys
 import time
 import traceback
+import threading
 
 from utils import KeyValueObject, SubjectMixin
 import view
@@ -214,6 +215,8 @@ class Controller:
     """
 
     def __init__(self, config):
+        SubjectMixin.MAIN_THREAD = threading.current_thread()
+
         # should probably also look in $HOME
         self.config = config
         self.config.app_version = VERSION
@@ -317,7 +320,7 @@ class Controller:
         self.view.select_note(0)
 
         if self.config.background_full_sync:
-            self.sync_full()
+            self.view.after(0, self.sync_full)
 
     def get_selected_note_key(self):
         if self.selected_note_idx >= 0:
@@ -336,6 +339,11 @@ class Controller:
             (str(self.config.files_read),)
             self.view.show_warning('Rename config section', wmsg)
 
+        def poll_notifies():
+            self.view.after(100, poll_notifies)
+            self.notes_db.handle_notifies()
+
+        self.view.after(0, poll_notifies)
         self.view.main_loop()
 
     def observer_notes_db_change_note_status(self, notes_db, evt_type, evt):
