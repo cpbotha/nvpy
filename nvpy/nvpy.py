@@ -101,6 +101,7 @@ class Config:
                     'sn_username': '',
                     'sn_password': '',
                     'simplenote_sync': '1',
+                    'background_full_sync': 'true',
                     'debug': '1',
                     # Filename or filepath to a css file used style the rendered
                     # output; e.g. nvpy.css or /path/to/my.css
@@ -141,6 +142,7 @@ class Config:
         self.sn_username = cp.get(cfg_sec, 'sn_username', raw=True)
         self.sn_password = cp.get(cfg_sec, 'sn_password', raw=True)
         self.simplenote_sync = cp.getint(cfg_sec, 'simplenote_sync')
+        self.background_full_sync = cp.get(cfg_sec, 'background_full_sync')
         # make logic to find in $HOME if not set
         self.db_path = cp.get(cfg_sec, 'db_path')
         #  0 = alpha sort, 1 = last modified first
@@ -273,7 +275,6 @@ class Controller:
             self.notes_db.add_observer('progress:sync_full', self.observer_notes_db_sync_full)
             self.notes_db.add_observer('error:sync_full', self.observer_notes_db_error_sync_full)
             self.notes_db.add_observer('complete:sync_full', self.observer_notes_db_complete_sync_full)
-            self.sync_full()
 
         # we want to be notified when the user does stuff
         self.view.add_observer('click:notelink',
@@ -314,6 +315,9 @@ class Controller:
         # we only use idx, because key could change from right under us.
         self.selected_note_idx = -1
         self.view.select_note(0)
+
+        if self.config.background_full_sync:
+            self.sync_full()
 
     def get_selected_note_key(self):
         if self.selected_note_idx >= 0:
@@ -735,7 +739,10 @@ class Controller:
         self.view.unmute_note_data_changes()
 
     def sync_full(self):
-        self.notes_db.sync_full_threaded()
+        if self.config.background_full_sync:
+            self.notes_db.sync_full_threaded()
+        else:
+            self.notes_db.sync_full_unthreaded()
 
     def update_note_status(self):
         skey = self.get_selected_note_key()
