@@ -893,6 +893,25 @@ class NotesDB(utils.SubjectMixin):
             n['modifydate'] = time.time()
             self.notify_observers('change:note-status', utils.KeyValueObject(what='modifydate', key=key))
 
+    def is_different_note(self, local_note, remote_note):
+        # for keeping original data.
+        local_note = dict(local_note)
+        remote_note = dict(remote_note)
+
+        del local_note['savedate']
+        del local_note['syncdate']
+
+        # convert to hashable objects.
+        for k, v in local_note.items():
+            if isinstance(v, list):
+                local_note[k] = tuple(v)
+        for k, v in remote_note.items():
+            if isinstance(v, list):
+                remote_note[k] = tuple(v)
+
+        # it will returns an empty set() if each notes is equals.
+        return set(local_note.items()) ^ set(remote_note.items())
+
     def worker_save(self):
         while True:
             o = self.q_save.get()
@@ -968,5 +987,26 @@ class NotesDB(utils.SubjectMixin):
                     self.q_sync_res.put(o)
 
                 else:
+                    update_error = uret[0]
+
+                    self.waiting_for_simplenote = True
+                    uret = self.simplenote.get_note(o.key)
+                    self.waiting_for_simplenote = False
+
+                    if uret[1] == 0:
+                        local_note = o.note
+                        remote_note = uret[0]
+                        if not self.is_different_note(local_note, remote_note):
+                            # got an error response when updating the note.
+                            # however, the remote note has been updated.
+                            # this phenomenon is rarely occurs.
+                            # if it occurs, housekeeper's is going to repeatedly update this note.
+                            # regard updating error as success for prevent this problem.
+
+                            logging.info('Regard updating error (local key %s, error object %s) as success.' % (o.key, repr(update_error)))
+                            o.error = 0
+                            self.q_sync_res.put(o)
+                            continue
+
                     o.error = 1
                     self.q_sync_res.put(o)
