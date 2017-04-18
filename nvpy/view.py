@@ -135,6 +135,29 @@ class HelpBindings(tk.Toplevel):
         button = tk.Button(self, text="Dismiss", command=self.destroy)
         button.pack()
 
+class TagList(tk.Toplevel):
+    def __init__(self, parent, taglist):
+        tk.Toplevel.__init__(self, parent)
+        self.title("List all tags")
+        if taglist:
+            alltags = list(set(taglist))
+            alltags.sort(key=lambda x: x.upper())
+            tagtxt = '\n'.join(alltags)
+        else:
+            tagtxt = "No tags defined"
+
+        msg = tk.Text(self, width=30, wrap=tk.NONE)
+        msg.insert(tk.END, tagtxt)
+        msg.config(state=tk.DISABLED)
+        msg.pack()
+
+        button = tk.Button(self, text="Dismiss", command=self.destroy)
+        button.pack()
+        x = parent.winfo_x()+100
+        y = parent.winfo_y()+100
+
+        self.geometry("+%d+%d" % (x, y))  # Put me over root window
+
 
 #########################################################################
 class StatusBar(tk.Frame):
@@ -903,6 +926,9 @@ class View(utils.SubjectMixin):
         tools_menu.add_command(label="Word Count",
             underline=0, command=self.word_count)
 
+        tools_menu.add_command(label="List tags",
+            underline=0, command=self.cmd_list_tags)
+
         # the internet thinks that multiple modifiers should work, but this didn't
         # want to.
         #self.root.bind_all("<Control-Shift-c>", lambda e: self.word_count())
@@ -1179,6 +1205,10 @@ class View(utils.SubjectMixin):
             '<http://charlbotha.com/>\n\n'
             'A rather ugly but cross-platform simplenote client.' % (self.config.app_version,),
             parent=self.root)
+
+    def cmd_list_tags(self):
+        l = TagList(self.root, self.taglist)
+        self.root.wait_window(l)
 
     def cmd_help_bindings(self):
         h = HelpBindings()
