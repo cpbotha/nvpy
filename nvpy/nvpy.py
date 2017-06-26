@@ -54,6 +54,17 @@ else:
     HAVE_MARKDOWN = True
 
 try:
+    import pygments
+    from pygments import highlight
+    from pygments.styles import get_style_by_name
+    from pygments.lexers import guess_lexer
+    from pygments.formatters import HtmlFormatter
+except ImportError:
+    HAVE_PYGMENTS = False
+else:
+    HAVE_PYGMENTS = True
+
+try:
     import docutils
     import docutils.core
 except ImportError:
@@ -107,6 +118,7 @@ class Config:
                     # Filename or filepath to a css file used style the rendered
                     # output; e.g. nvpy.css or /path/to/my.css
                     'rest_css_path': None,
+                    'md_css_path': None,
                    }
 
         # parse command-line arguments
@@ -171,6 +183,7 @@ class Config:
         self.background_color = cp.get(cfg_sec, 'background_color')
 
         self.rest_css_path = cp.get(cfg_sec, 'rest_css_path')
+        self.md_css_path = cp.get(cfg_sec, 'md_css_path')
         self.debug = cp.getint(cfg_sec, 'debug')
 
     def parse_cmd_line_opts(self):
@@ -246,16 +259,27 @@ class Controller:
         if self.config.sn_username == '':
             self.config.simplenote_sync = 0
 
-        css = self.config.rest_css_path
-        if css:
-            if css.startswith("~/"):
+        rst_css = self.config.rest_css_path
+        if rst_css:
+            if rst_css.startswith("~/"):
                 # On Mac, paths that start with '~/' aren't found by path.exists
-                css = css.replace(
+                rst_css = rst_css.replace(
                     "~", os.path.abspath(os.path.expanduser('~')), 1)
-                self.config.rest_css_path = css
-            if not os.path.exists(css):
+                self.config.rest_css_path = rst_css
+            if not os.path.exists(rst_css):
                 # Couldn't find the user-defined css file. Use docutils css instead.
                 self.config.rest_css_path = None
+        md_css = self.config.md_css_path
+        if md_css:
+            if md_css.startswith("~/"):
+                # On Mac, paths that start with '~/' aren't found by path.exists
+                md_css = md_css.replace(
+                    "~", os.path.abspath(os.path.expanduser('~')), 1)
+                self.config.md_css_path = md_css
+            if not os.path.exists(md_css):
+                # Couldn't find the user-defined css file. Use docutils css instead.
+                self.config.md_css_path = None
+
 
         self.notes_list_model = NotesListModel()
         # create the interface
@@ -451,9 +475,15 @@ class Controller:
             key = self.notes_list_model.list[self.selected_note_idx].key
             c = self.notes_db.get_note_content(key)
             logging.debug("Trying to convert %s to html." % (key,))
+            if HAVE_PYGMENTS:
+                exts = ['markdown.extensions.codehilite']
+                if self.config.md_css_path:
+                    css = u"""<link rel="stylesheet" href="%s">""" % (self.config.md_css_path,)
+            else:
+                exts = []
             if HAVE_MARKDOWN:
                 logging.debug("Convert note %s to html." % (key,))
-                html = markdown.markdown(c)
+                html = markdown.markdown(c, extensions=exts)
                 logging.debug("Convert done.")
 
             else:
@@ -469,12 +499,15 @@ class Controller:
 <head>
 <meta http-equiv="Content-Type" content="text/html; charset=UTF-8"/>
 %s
+%s
 </head>
 <body>
 %s
 </body>
 </html>
-            """ % ('<meta http-equiv="refresh" content="5">' if self.view.get_continuous_rendering() else "",html,)
+            """ % ('<meta http-equiv="refresh" content="5">' if self.view.get_continuous_rendering() else "",
+                   css if self.config.md_css_path else "",
+                   html,)
             f.write(s)
             f.close()
             return fn
