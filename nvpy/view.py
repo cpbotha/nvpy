@@ -653,11 +653,19 @@ class View(utils.SubjectMixin):
         self.notify_observers('select:note', utils.KeyValueObject(sel=sidx))
 
     def cmd_root_delete(self, evt=None):
-        # double-check that the user really means delete
-        # https://github.com/cpbotha/nvpy/issues/119
-        if tkMessageBox.askyesno("Really delete note?",
-                                 "Are you sure you want to delete the current note?",
-                                 default=tkMessageBox.NO):
+        is_delete = False
+        if self.config.confirm_delete:
+            # double-check that the user really means delete
+            # https://github.com/cpbotha/nvpy/issues/119
+            if tkMessageBox.askyesno("Really delete note?",
+                                     "Are you sure you want to delete the current note?",
+                                     default=tkMessageBox.NO):
+                is_delete = True
+        else:
+            # delete a note without confirmation.
+            is_delete = True
+
+        if is_delete:
             sidx = self.notes_list.selected_idx
             self.notify_observers('delete:note', utils.KeyValueObject(sel=sidx))
 

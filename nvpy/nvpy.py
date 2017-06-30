@@ -108,6 +108,7 @@ class Config:
                     # output; e.g. nvpy.css or /path/to/my.css
                     'rest_css_path': None,
                     'keep_search_keyword': 'false',
+                    'confirm_delete': 'true',
                    }
 
         # parse command-line arguments
@@ -174,6 +175,7 @@ class Config:
         self.rest_css_path = cp.get(cfg_sec, 'rest_css_path')
         self.debug = cp.getint(cfg_sec, 'debug')
         self.keep_search_keyword = cp.getboolean(cfg_sec, 'keep_search_keyword')
+        self.confirm_delete = cp.getboolean(cfg_sec, 'confirm_delete')
 
     def parse_cmd_line_opts(self):
         if __name__ != '__main__':
