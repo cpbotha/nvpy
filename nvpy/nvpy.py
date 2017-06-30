@@ -109,6 +109,7 @@ class Config:
                     'rest_css_path': None,
                     'keep_search_keyword': 'false',
                     'confirm_delete': 'true',
+                    'confirm_exit': 'false',
                    }
 
         # parse command-line arguments
@@ -176,6 +177,7 @@ class Config:
         self.debug = cp.getint(cfg_sec, 'debug')
         self.keep_search_keyword = cp.getboolean(cfg_sec, 'keep_search_keyword')
         self.confirm_delete = cp.getboolean(cfg_sec, 'confirm_delete')
+        self.confirm_exit = cp.getboolean(cfg_sec, 'confirm_exit')
 
     def parse_cmd_line_opts(self):
         if __name__ != '__main__':
@@ -703,6 +705,11 @@ class Controller:
                 self.view.close()
 
         else:
+            if self.config.confirm_exit:
+                msg = "Do you want to exit?"
+                if not self.view.askyesno('Confirm exit', msg):
+                    return
+
             self.view.close()
 
     def observer_view_create_note(self, view, evt_type, evt):
