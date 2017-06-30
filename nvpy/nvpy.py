@@ -107,6 +107,7 @@ class Config:
                     # Filename or filepath to a css file used style the rendered
                     # output; e.g. nvpy.css or /path/to/my.css
                     'rest_css_path': None,
+                    'keep_search_keyword': 'false',
                    }
 
         # parse command-line arguments
@@ -172,6 +173,7 @@ class Config:
 
         self.rest_css_path = cp.get(cfg_sec, 'rest_css_path')
         self.debug = cp.getint(cfg_sec, 'debug')
+        self.keep_search_keyword = cp.getboolean(cfg_sec, 'keep_search_keyword')
 
     def parse_cmd_line_opts(self):
         if __name__ != '__main__':
@@ -705,7 +707,10 @@ class Controller:
         # create the note
         new_key = self.notes_db.create_note(evt.title)
         # clear the search entry, this should trigger a new list being returned
-        self.view.set_search_entry_text('')
+        keyword = ''
+        if self.config.keep_search_keyword:
+            keyword = self.view.get_search_entry_text()
+        self.view.set_search_entry_text(keyword)
         # we should focus on our thingy
         idx = self.notes_list_model.get_idx(new_key)
         self.view.select_note(idx)
