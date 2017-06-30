@@ -796,6 +796,7 @@ class View(utils.SubjectMixin):
         self.root.bind_all("<Control-question>", lambda e: self.cmd_help_bindings())
         self.root.bind_all("<Control-plus>", lambda e: self.cmd_font_size(+1))
         self.root.bind_all("<Control-minus>", lambda e: self.cmd_font_size(-1))
+        self.root.bind_all("<Control-S>", lambda e: self.toggle_pinned_checkbutton())
 
         self.notes_list.bind("<<NotesListSelect>>", self.cmd_notes_list_select)
         # same behaviour as when the user presses enter on search entry:
@@ -1334,6 +1335,10 @@ class View(utils.SubjectMixin):
             self.refresh_notes_list()
 
         self.root.after(self.config.housekeeping_interval_ms, self.handler_housekeeper)
+
+    def toggle_pinned_checkbutton(self):
+        self.pinned_checkbutton_var.set(not self.pinned_checkbutton_var.get())
+        self.handler_pinned_checkbutton()
 
     def handler_pinned_checkbutton(self, *args):
         self.notify_observers('change:pinned',
