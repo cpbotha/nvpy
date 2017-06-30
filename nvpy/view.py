@@ -1119,6 +1119,7 @@ class View(utils.SubjectMixin):
         bold_font = tkFont.Font(self.text_note, self.text_note.cget("font"))
         bold_font.configure(weight="bold")
         self.text_note.tag_config('md-bold', font=bold_font)
+        self.fonts.append(bold_font)
 
         # finish UI creation ###########################################
 
