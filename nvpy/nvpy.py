@@ -55,10 +55,6 @@ else:
 
 try:
     import pygments
-    from pygments import highlight
-    from pygments.styles import get_style_by_name
-    from pygments.lexers import guess_lexer
-    from pygments.formatters import HtmlFormatter
 except ImportError:
     HAVE_PYGMENTS = False
 else:
@@ -119,6 +115,7 @@ class Config:
                     # output; e.g. nvpy.css or /path/to/my.css
                     'rest_css_path': None,
                     'md_css_path': None,
+                    'md_extensions': '',
                    }
 
         # parse command-line arguments
@@ -184,6 +181,7 @@ class Config:
 
         self.rest_css_path = cp.get(cfg_sec, 'rest_css_path')
         self.md_css_path = cp.get(cfg_sec, 'md_css_path')
+        self.md_extensions = cp.get(cfg_sec, 'md_extensions')
         self.debug = cp.getint(cfg_sec, 'debug')
 
     def parse_cmd_line_opts(self):
@@ -277,7 +275,8 @@ class Controller:
                     "~", os.path.abspath(os.path.expanduser('~')), 1)
                 self.config.md_css_path = md_css
             if not os.path.exists(md_css):
-                # Couldn't find the user-defined css file. Use docutils css instead.
+                # Couldn't find the user-defined css file.
+                # Do not use css styling for markdown.
                 self.config.md_css_path = None
 
 
@@ -475,16 +474,16 @@ class Controller:
             key = self.notes_list_model.list[self.selected_note_idx].key
             c = self.notes_db.get_note_content(key)
             logging.debug("Trying to convert %s to html." % (key,))
-            if HAVE_PYGMENTS:
-                exts = ['markdown.extensions.codehilite']
-                if self.config.md_css_path:
-                    css = u"""<link rel="stylesheet" href="%s">""" % (self.config.md_css_path,)
-            else:
-                exts = []
             if HAVE_MARKDOWN:
                 logging.debug("Convert note %s to html." % (key,))
+                exts = [self.config.md_extensions] if self.config.md_extensions else []
                 html = markdown.markdown(c, extensions=exts)
                 logging.debug("Convert done.")
+                if self.config.md_css_path:
+                    css = u"""<link rel="stylesheet" href="%s">""" % (self.config.md_css_path,)
+                    html = u"""<div class="markdown-body">%s</div>""" % (html,)
+                else:
+                    css = u""""""
 
             else:
                 logging.debug("Markdown not installed.")
