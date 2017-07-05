@@ -41,6 +41,7 @@ import sys
 import time
 import traceback
 import threading
+import re
 
 from utils import KeyValueObject, SubjectMixin
 import view
@@ -469,7 +470,7 @@ class Controller:
             logging.debug("Trying to convert %s to html." % (key,))
             if HAVE_MARKDOWN:
                 logging.debug("Convert note %s to html." % (key,))
-                exts = [self.config.md_extensions] if self.config.md_extensions else []
+                exts = re.split("\\s", self.config.md_extensions.strip()) if self.config.md_extensions else []
                 html = markdown.markdown(c, extensions=exts)
                 logging.debug("Convert done.")
                 if self.config.md_css_path:
