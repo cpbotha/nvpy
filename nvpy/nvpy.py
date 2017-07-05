@@ -54,13 +54,6 @@ else:
     HAVE_MARKDOWN = True
 
 try:
-    import pygments
-except ImportError:
-    HAVE_PYGMENTS = False
-else:
-    HAVE_PYGMENTS = True
-
-try:
     import docutils
     import docutils.core
 except ImportError:
