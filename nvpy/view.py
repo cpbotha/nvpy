@@ -768,6 +768,147 @@ class TriggeredcompleteEntry(tk.Entry):
                 self.cycle = 1
 
 
+class TriggeredcompleteText(RedirectedText):
+    """
+    TriggeredcompleteText completes the note title when I press "[[".
+    This class behaves like the TriggeredcompleteEntry.
+    """
+
+    def __init__(self, master, case_sensitive, **kwargs):
+        RedirectedText.__init__(self, master, **kwargs)
+        self.case_sensitive = case_sensitive
+        # make sure we're initialised, else the event handler could generate
+        # exceptions checking for instance variables that don't exist yet.
+        self.set_completion_list([])
+        self.bind('<KeyRelease>', self.handle_keyrelease)
+
+        self.old_cursor_pos = 0
+        self.old_content = ""
+
+    def set_completion_list(self, completion_list):
+        self._completion_list = completion_list
+        self._hits = []
+        self._hit_index = 0
+        self.cycle = 0
+        self.comp_word_start = None
+        self.comp_word_end = None
+
+    def triggeredcomplete(self):
+        """triggeredcomplete the Entry, delta may be 0/1 to cycle through possible hits"""
+        try:
+            first_index = "1.0"
+            current_line = self.get(first_index, tk.INSERT).splitlines()[-1]
+            current_line += self.get(tk.INSERT, tk.END).splitlines()[0]
+            line, cur_col = self.index(tk.INSERT).split(".")
+            cur_col = int(cur_col)
+
+            word_start = current_line.rindex("[[", 0, int(cur_col)) + 2
+            try:
+                word_end = current_line.index("]]", word_start) + 2
+                word_prefix_end = word_end
+                if word_end < cur_col:
+                    # cursor position is outside the link string like "[[...]]".
+                    return
+                elif word_end - 2 < cur_col:
+                    # cursor position is upon "]]".
+                    word_prefix_end = word_end - 2
+
+                if self.cycle:
+                    word_prefix_end = int(self.cursor_index.split(".")[1])
+            except ValueError:
+                # "]]" is not found. word_end overwrites the cursor position.
+                word_prefix_end = cur_col
+                word_end = cur_col
+
+            bow_index = "%s.%s" % (line, str(word_start))  # index of beginning of word
+            eowp_index = "%s.%s" % (line, str(word_prefix_end))  # index of ending of word_prefix
+            eow_index = "%s.%s" % (line, str(word_end))  # index of ending of word
+
+            word_prefix = current_line[word_start:word_prefix_end].rstrip("]]")
+            word = current_line[word_start:word_end].rstrip("]]")
+        except IndexError:
+            # when press "ctrl+space" key on empty note, will be occur IndexError.
+            return
+        except ValueError:
+            # when press "ctrl+space" key on a line not including of "[[", str.index() will be occur ValueError.
+            return
+
+
+        if self.cycle:
+            self._hit_index += 1
+            if self._hit_index == len(self._hits):
+                self._hit_index = 0
+
+        else:  # set position to end so selection starts where textentry ended
+            self.cursor_index = eowp_index
+            self.comp_word_start = bow_index
+            self.comp_word_end = eow_index
+
+            # collect hits
+            hits = []
+            for element in self._completion_list:
+                if self.case_sensitive == 0:
+                    if element.lower().startswith(word_prefix.lower()):
+                        hits.append(element)
+                else:
+                    if element.startswith(word_prefix):
+                        hits.append(element)
+
+            self._hit_index = 0
+            self._hits = hits
+
+        # now finally perform the triggered completion
+        if self._hits:
+            new_word = self._hits[self._hit_index] + "]]"
+            new_eow_index = "%s.%s" % (line, word_start + len(new_word))  # index of ending of word
+
+            self.delete(self.comp_word_start, self.comp_word_end)
+            self.insert(bow_index, new_word)
+            self.tag_add("sel", self.cursor_index, new_eow_index)
+
+            self.comp_word_start = bow_index
+            self.comp_word_end = new_eow_index
+
+    def handle_keyrelease(self, event):
+        """event handler for the keyrelease event on this widget"""
+        ctrl = ((event.state & 0x0004) != 0)
+
+        # special case handling below only if we are in cycle mode.
+        if self.cycle:
+            if event.keysym == "BackSpace":
+                self.cycle = 0
+                return
+
+            if event.keysym in ("Right", "Return"):
+                self.cycle = 0
+                if event.keysym == "Return":
+                    # restore content
+                    self.delete("1.0", tk.END)
+                    self.insert("1.0", self.old_content)
+                # restore cursor position
+                self.mark_set("insert", self.old_cursor_pos)
+                return
+
+        if event.keysym == "space" and ctrl:
+            # cycle
+            self.triggeredcomplete()
+            if self.cycle == 0:
+                self.cycle = 1
+            self.old_cursor_pos = self.index(tk.INSERT)
+            self.old_content = self.get("1.0", tk.END)
+            return
+
+        cursor_pos = self.index(tk.INSERT)
+        content = self.get("1.0", tk.END)
+        if self.old_cursor_pos == cursor_pos and self.old_content == content:
+            # ignore
+            return
+        self.old_cursor_pos = cursor_pos
+        self.old_content = content
+        # other keys pressed
+        self.cycle = 0
+
+
 class View(utils.SubjectMixin):
     """Main user interface class.
     """
@@ -1263,12 +1404,12 @@ class View(utils.SubjectMixin):
                             size=self.config.font_size)
             # tkFont.families(root) returns list of available font family names
             # this determines the width of the complete interface (yes)
-            text = RedirectedText(master, height=25, width=TEXT_WIDTH,
-                                  wrap=tk.WORD,
-                                  font=f, tabs=(4 * f.measure(0), 'left'), tabstyle='wordprocessor',
-                                  yscrollcommand=yscrollbar.set,
-                                  undo=True,
-                                  background=self.config.background_color)
+            text = TriggeredcompleteText(master, self.config.case_sensitive, height=25, width=TEXT_WIDTH,
+                                         wrap=tk.WORD,
+                                         font=f, tabs=(4 * f.measure(0), 'left'), tabstyle='wordprocessor',
+                                         yscrollcommand=yscrollbar.set,
+                                         undo=True,
+                                         background=self.config.background_color)
             # change default font at runtime with:
             text.config(font=f)
 
@@ -1785,6 +1926,7 @@ class View(utils.SubjectMixin):
         # clear the notes list
         self.notes_list.clear()
         taglist = []
+        titlelist = []
 
         for o in notes:
             tags = o.note.get('tags')
@@ -1792,6 +1934,15 @@ class View(utils.SubjectMixin):
                 taglist += tags
 
             self.notes_list.append(o.note, utils.KeyValueObject(tagfound=o.tagfound))
+            # find first non-empty line, and append to titlelist.
+            for title in o.note["content"].splitlines():
+                slim_title = title.strip()
+                if slim_title:
+                    titlelist.append(slim_title)
+                    break
+
+        titlelist = list(set(titlelist))
+        self.text_note.set_completion_list(titlelist)
 
         if self.taglist is None:
             # first time we get called, so we need to initialise
