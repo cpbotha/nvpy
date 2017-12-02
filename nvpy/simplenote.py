@@ -13,6 +13,7 @@ import urllib
 import urllib2
 from urllib2 import HTTPError
 import base64
+import logging
 try:
     import json
 except ImportError:
@@ -54,7 +55,8 @@ class Simplenote(object):
         try:
             res = urllib2.urlopen(request).read()
             token = urllib2.quote(res)
-        except IOError:  # no connection exception
+        except IOError as e:  # no connection exception
+            logging.warning("can not get token: %s" % (str(e),))
             token = None
         return token
 
@@ -204,7 +206,8 @@ class Simplenote(object):
             request = Request(INDX_URL + params)
             response = json.loads(urllib2.urlopen(request).read())
             notes["data"].extend(response["data"])
-        except IOError:
+        except IOError as e:
+            logging.warning("fetch error: %s" % (str(e),))
             status = -1
 
         # get additional notes if bookmark was set in response
@@ -220,7 +223,8 @@ class Simplenote(object):
                 request = Request(INDX_URL + params)
                 response = json.loads(urllib2.urlopen(request).read())
                 notes["data"].extend(response["data"])
-            except IOError:
+            except IOError as e:
+                logging.warning("fetch error: %s" % (str(e),))
                 status = -1
 
         # parse data fields in response
