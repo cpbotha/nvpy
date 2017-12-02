@@ -1242,7 +1242,9 @@ class View(utils.SubjectMixin):
         def completion_func(searchWord):
             if self.taglist is None:
                 return []
-            return [tag for tag in self.taglist if searchWord in tag]
+            tags = [tag for tag in self.taglist if searchWord in tag]
+            tags.sort(key=lambda x: x.upper())
+            return tags
 
         self.tags_entry_var = tk.StringVar()
         self.tags_entry = SuggestionEntry(completion_func, note_tags_frame, textvariable=self.tags_entry_var)
