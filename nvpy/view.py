@@ -135,6 +135,159 @@ class HelpBindings(tk.Toplevel):
         button = tk.Button(self, text="Dismiss", command=self.destroy)
         button.pack()
 
+
+class SuggestionEntry(tk.Entry):
+    """
+    SuggestionEntry shows suggestion tag list, and user can be complete the tag.
+
+    How to use:
+        Up arrow key:    select the previous tag in suggestion tag list.
+        Down arrow key:  select the next tag in suggestion tag list.
+        Types a word:    narrow down the suggestion tag list.
+        Right arrow key and Return key:  enter the currently selected tag.
+
+    args:
+        completion_func(searchWord) - returns a list of matching tags.
+    """
+
+    def __init__(self, completion_func, *args, **kwargs):
+        if "textvariable" in kwargs:
+            self.var = kwargs["textvariable"]
+        else:
+            self.var = tk.StringVar()
+            kwargs = kwargs.copy()
+            kwargs["textvariable"] = self.var
+
+        self.completion_func = completion_func
+        self.listbox = None
+        self.listbox_height = 6  # lines
+        self.listbox_lines = 0
+        tk.Entry.__init__(self, *args, **kwargs)
+
+        # apply a monkey patch.
+        self.orig_bind, self.bind = self.bind, self.new_bind
+
+        self.var.trace('w', self.changed)
+        self.orig_bind("<Right>", self.selection)
+        self.orig_bind("<Return>", self.selection)
+        self.orig_bind("<Up>", self.moveUp)
+        self.orig_bind("<Down>", self.moveDown)
+        self.orig_bind("<FocusIn>", self.focusIn)
+        self.orig_bind("<FocusOut>", self.focusOut)
+
+    def new_bind(self, sequence=None, func=None, add=None):
+        """
+        Hijack a key binding to "<Return>"
+        """
+        if sequence == '<Return>' and func is not None:
+            orig_func = func
+            def new_func(*args):
+                if self.listbox is not None:
+                    # If completion word list is shown, call to self.selection() instead of func().
+                    self.selection()
+                    return
+                return orig_func()
+
+            func = new_func
+        return self.orig_bind(sequence, func, add)
+
+    def _create_listbox(self):
+        self.listbox = tk.Listbox(width=self["width"], height=self.listbox_height)
+        self.listbox.bind("<Button-1>", self.selection)
+        self.listbox.bind("<Right>", self.selection)
+        self.listbox.place(
+            in_=self.master,
+            relx=0.0, rely=0.0,
+            x=self.winfo_x(), y=self.winfo_y() - self.listbox.winfo_reqheight(),
+        )
+
+    def _update_listbox(self):
+        if self.listbox is None:
+            return
+
+        selectedWord = self.listbox.get(tk.ACTIVE)
+        words = tuple(self.completion_func(self.var.get()))
+        self.listbox_lines = len(words)
+        self.listbox.delete(0, tk.END)
+        for w in words:
+            self.listbox.insert(tk.END, w)
+
+        self.listbox.place(
+            in_=self.master,
+            relx=0.0, rely=0.0,
+            x=self.winfo_x(), y=self.winfo_y() - self.listbox.winfo_reqheight(),
+        )
+
+        try:
+            index = words.index(selectedWord)
+        except ValueError:
+            index = '0'
+        self._select_listbox(index)
+
+    def _select_listbox(self, index):
+        for old_index in self.listbox.curselection():
+            self.listbox.selection_clear(first=old_index)
+
+        if int(index) < 0:
+            index = '0'
+        elif self.listbox_lines <= int(index):
+            index = str(self.listbox_lines - 1)
+
+        self.listbox.selection_set(first=index)
+        self.listbox.see(index)
+        self.listbox.activate(index)
+
+
+    def _destroy_listbox(self):
+        if self.listbox is None:
+            return
+
+        self.listbox.destroy()
+        self.listbox = None
+
+    def changed(self, *args):
+        self._update_listbox()
+
+    def selection(self, *args):
+        if self.listbox is None:
+            return
+
+        self.var.set(self.listbox.get(tk.ACTIVE))
+        self._destroy_listbox()
+        self.icursor(tk.END)
+
+    def moveUp(self, *args):
+        if self.listbox is None:
+            self._create_listbox()
+            self._update_listbox()
+
+        if len(self.listbox.curselection()) == 0:
+            index = '0'
+        else:
+            oldIndex = self.listbox.curselection()[0]
+            index = str(int(oldIndex) - 1)
+        self._select_listbox(index)
+
+    def moveDown(self, *args):
+        if self.listbox is None:
+            self._create_listbox()
+            self._update_listbox()
+
+        if len(self.listbox.curselection()) == 0:
+            index = '0'
+        else:
+            oldIndex = self.listbox.curselection()[0]
+            index = str(int(oldIndex) + 1)
+        self._select_listbox(index)
+
+    def focusIn(self, *args):
+        self._create_listbox()
+        self._update_listbox()
+
+    def focusOut(self, *args):
+        self._destroy_listbox()
+
+
 class TagList(tk.Toplevel):
     def __init__(self, parent, taglist):
         tk.Toplevel.__init__(self, parent)
@@ -1086,8 +1239,13 @@ class View(utils.SubjectMixin):
         tags_label = tk.Label(note_tags_frame, text="Add Tags")
         tags_label.pack(side=tk.LEFT)
 
+        def completion_func(searchWord):
+            if self.taglist is None:
+                return []
+            return [tag for tag in self.taglist if searchWord in tag]
+
         self.tags_entry_var = tk.StringVar()
-        self.tags_entry = tk.Entry(note_tags_frame, textvariable=self.tags_entry_var)
+        self.tags_entry = SuggestionEntry(completion_func, note_tags_frame, textvariable=self.tags_entry_var)
         self.tags_entry.pack(side=tk.LEFT, fill=tk.X, expand=1, pady=3, padx=3)
 
         self.note_existing_tags_frame = tk.Frame(note_tags_frame)
