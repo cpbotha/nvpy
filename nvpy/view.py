@@ -1793,7 +1793,7 @@ class View(utils.SubjectMixin):
 
         if self.taglist is None:
             # first time we get called, so we need to initialise
-            self.taglist = taglist
+            self.taglist = list(set(taglist))
             self.search_entry.set_completion_list(self.taglist)
 
         else:
