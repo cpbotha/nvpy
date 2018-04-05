@@ -53,6 +53,15 @@ except ImportError:
     HAVE_MARKDOWN = False
 else:
     HAVE_MARKDOWN = True
+    DEFAULT_MARKDOWN_EXTS = (
+        # Add 'fenced code block' syntax support.
+        # If you try to convert without this extension, code block is treated as inline code.
+        # https://python-markdown.github.io/extensions/fenced_code_blocks/
+        'markdown.extensions.fenced_code',
+        # Add table syntax support.
+        # https://python-markdown.github.io/extensions/tables/
+        'markdown.extensions.tables',
+    )
 
 try:
     import docutils
@@ -477,6 +486,10 @@ class Controller:
             if HAVE_MARKDOWN:
                 logging.debug("Convert note %s to html." % (key,))
                 exts = re.split("\\s", self.config.md_extensions.strip()) if self.config.md_extensions else []
+                exts += list(DEFAULT_MARKDOWN_EXTS)
+                # remove duplicate items on exts.
+                exts = list(set(exts))
+
                 html = markdown.markdown(c, extensions=exts)
                 logging.debug("Convert done.")
                 if self.config.md_css_path:
