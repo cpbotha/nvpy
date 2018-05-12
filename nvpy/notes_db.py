@@ -57,8 +57,10 @@ class NotesDB(utils.SubjectMixin):
         now = time.time()
         # now read all .json files from disk
         fnlist = glob.glob(self.helper_key_to_fname('*'))
-        txtlist = glob.glob(unicode(self.config.txt_path + '/*.txt', 'utf-8'))
-        txtlist += glob.glob(unicode(self.config.txt_path + '/*.mkdn', 'utf-8'))
+        txtlist = []
+
+        for ext in config.read_txt_extensions.split(','):
+            txtlist += glob.glob(unicode(self.config.txt_path + '/*.' + ext, 'utf-8'))
 
         # removing json files and force full full sync if using text files
         # and none exists and json files are there
@@ -423,7 +425,7 @@ class NotesDB(utils.SubjectMixin):
         o = utils.KeyValueObject(saved=False, synced=False, modified=False, full_syncing=self.full_syncing)
         if key is None:
             return o
-        
+
         n = self.notes[key]
         modifydate = float(n['modifydate'])
         savedate = float(n['savedate'])
@@ -856,7 +858,7 @@ class NotesDB(utils.SubjectMixin):
             n['tags'] = tags
             n['modifydate'] = time.time()
             self.notify_observers('change:note-status', utils.KeyValueObject(what='modifydate', key=key))
-    
+
     def delete_note_tag(self, key, tag):
         note = self.notes[key]
         note_tags = note.get('tags')
@@ -864,7 +866,7 @@ class NotesDB(utils.SubjectMixin):
         note['tags'] = note_tags
         note['modifydate'] = time.time()
         self.notify_observers('change:note-status', utils.KeyValueObject(what='modifydate', key=key))
-    
+
     def add_note_tags(self, key, comma_seperated_tags):
         note = self.notes[key]
         note_tags = note.get('tags')
