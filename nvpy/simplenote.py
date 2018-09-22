@@ -14,6 +14,7 @@ import urllib2
 from urllib2 import HTTPError
 import base64
 import logging
+import HTMLParser
 try:
     import json
 except ImportError:
@@ -74,6 +75,22 @@ class Simplenote(object):
             self.token = self.authenticate(self.username, self.password)
         return self.token
 
+    def _unescape_note(self, note):
+        """Private method to unescape the note content.
+
+        The Legacy Simple Note API automatically escapes "&", "<" and ">" chars
+        in note content. This method fixes it.
+
+        Returns:
+            Unescaped note
+        """
+        if "content" not in note:
+            return note
+
+        new_note = note.copy()
+        new_note["content"] = HTMLParser.HTMLParser().unescape(note["content"])
+        return new_note
+
     def get_note(self, noteid):
         """ method to get a specific note
 
@@ -101,6 +118,7 @@ class Simplenote(object):
         #use UTF-8 encoding
         if isinstance(note["content"], str):
             note["content"] = note["content"].encode('utf-8')
+        note = self._unescape_note(note)
 
         if "tags" in note:
             note["tags"] = [t.encode('utf-8') if isinstance(t, str) else t for t in note["tags"]]
@@ -146,7 +164,10 @@ class Simplenote(object):
             response = urllib2.urlopen(request).read()
         except IOError, e:
             return e, -1
-        return json.loads(response), 0
+
+        new_note = json.loads(response)
+        new_note = self._unescape_note(new_note)
+        return new_note, 0
 
     def add_note(self, note):
         """wrapper function to add a note
