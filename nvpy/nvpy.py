@@ -92,6 +92,7 @@ class Config:
                     'appdir': app_dir,
                     'home': home,
                     'notes_as_txt': '0',
+                    'read_txt_extensions': 'txt,mkdn,md,mdown,markdown',
                     'housekeeping_interval': '2',
                     'search_mode': 'gstyle',
                     'case_sensitive': '1',
@@ -706,7 +707,7 @@ class Controller:
         key = self.notes_list_model.list[self.selected_note_idx].key
         self.notes_db.delete_note_tag(key, evt.tag)
         self.view.cmd_notes_list_select()
-    
+
     def observer_view_add_tag(self, view, evt_type, evt):
         key = self.notes_list_model.list[self.selected_note_idx].key
         self.notes_db.add_note_tags(key, evt.tags)
