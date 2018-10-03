@@ -797,35 +797,41 @@ class NotesDB(utils.SubjectMixin):
                     # n is already exists in local.
                     if int(n.get('syncnum')) > int(self.notes[k].get('syncnum', -1)):
                         # We must update local note with remote note.
-                        self.waiting_for_simplenote = True
-                        ret = self.simplenote.get_note(k)
-                        self.waiting_for_simplenote = False
+                        err = 0
+                        if 'content' not in n:
+                            # The content field is missing.  Get all data from server.
+                            self.waiting_for_simplenote = True
+                            n, err = self.simplenote.get_note(k)
+                            self.waiting_for_simplenote = False
 
-                        if ret[1] == 0:
-                            self.notes[k].update(ret[0])
+                        if err == 0:
+                            self.notes[k].update(n)
                             self.notes[k]['syncdate'] = now
                             self.helper_save_note(k, self.notes[k])
                             self.notify_observers('progress:sync_full', utils.KeyValueObject(msg='Synced newer note %d (%d) from server.' % (ni, lennl)))
 
                         else:
-                            logging.error('Error syncing newer note %s from server: %s' % (k, ret[0]))
+                            logging.error('Error syncing newer note %s from server: %s' % (k, err))
                             sync_from_server_errors += 1
 
                 else:
                     # n is new note.
                     # We must save it in local.
-                    self.waiting_for_simplenote = True
-                    ret = self.simplenote.get_note(k)
-                    self.waiting_for_simplenote = False
+                    err = 0
+                    if 'content' not in n:
+                        # The content field is missing.  Get all data from server.
+                        self.waiting_for_simplenote = True
+                        n, err = self.simplenote.get_note(k)
+                        self.waiting_for_simplenote = False
 
-                    if ret[1] == 0:
-                        self.notes[k] = ret[0]
+                    if err == 0:
+                        self.notes[k] = n
                         self.notes[k]['syncdate'] = now
                         self.helper_save_note(k, self.notes[k])
                         self.notify_observers('progress:sync_full', utils.KeyValueObject(msg='Synced new note %d (%d) from server.' % (ni, lennl)))
 
                     else:
-                        logging.error('Error syncing new note %s from server: %s' % (k, ret[0]))
+                        logging.error('Error syncing new note %s from server: %s' % (k, err))
                         sync_from_server_errors += 1
 
             # 5. Clean up local notes.
