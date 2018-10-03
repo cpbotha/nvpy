@@ -517,8 +517,7 @@ class NotesDB(utils.SubjectMixin):
 
         note = self.notes[k]
 
-        if not note.get('key') or float(note.get('modifydate')) > float(note.get('syncdate')):
-            # if has no key, or it has been modified sync last sync,
+        if Note(note).need_sync_to_server:
             # update to server
             uret = self.simplenote.update_note(note)
 
@@ -566,9 +565,7 @@ class NotesDB(utils.SubjectMixin):
 
     def save_threaded(self):
         for k, n in self.notes.items():
-            savedate = float(n.get('savedate'))
-            if float(n.get('modifydate')) > savedate or \
-               float(n.get('syncdate')) > savedate:
+            if Note(n).need_save:
                 cn = copy.deepcopy(n)
                 # put it on my queue as a save
                 o = utils.KeyValueObject(action=ACTION_SAVE, key=k, note=cn)
@@ -615,7 +612,7 @@ class NotesDB(utils.SubjectMixin):
 
         now = time.time()
         for k, n in self.notes.items():
-            # if note has been modified sinc the sync, we need to sync.
+            # if note has been modified since the sync, we need to sync.
             # only do so if note hasn't been touched for 3 seconds
             # and if this note isn't still in the queue to be processed by the
             # worker (this last one very important)
@@ -724,7 +721,7 @@ class NotesDB(utils.SubjectMixin):
             #    In this phase, synchronized all notes from client to server.
             for ni, lk in enumerate(self.notes.keys()):
                 n = self.notes[lk]
-                if not n.get('key') or float(n.get('modifydate')) > float(n.get('syncdate')):
+                if Note(n).need_sync_to_server:
                     self.waiting_for_simplenote = True
                     uret = self.simplenote.update_note(n)
                     self.waiting_for_simplenote = False
@@ -1022,6 +1019,20 @@ class NotesDB(utils.SubjectMixin):
 
 
 class Note(dict):
+    @property
+    def need_save(self):
+        """Check if the local note need to save."""
+        savedate = float(self['savedate'])
+        return float(self['modifydate']) > savedate or float(self['syncdate']) > savedate
+
+    @property
+    def need_sync_to_server(self):
+        """Check if the local note need to synchronize to the server.
+
+        Return True when it has not key or it has been modified since last sync.
+        """
+        return 'key' not in self or float(self['modifydate']) > float(self['syncdate'])
+
     def is_newer_than(self, other):
         return float(self['modifydate']) > float(other['modifydate'])
 
