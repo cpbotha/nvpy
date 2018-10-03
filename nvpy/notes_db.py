@@ -553,7 +553,7 @@ class NotesDB(utils.SubjectMixin):
             if gret[1] == 0:
                 n = gret[0]
 
-                if int(n.get('syncnum')) > int(note.get('syncnum')):
+                if Note(n).is_newer_than(note):
                     n['syncdate'] = time.time()
                     note.update(n)
                     return (k, True)
@@ -669,7 +669,7 @@ class NotesDB(utils.SubjectMixin):
 
                         else:
                             # the user has changed stuff since the version that got synced
-                            # just record syncnum and version that we got from simplenote
+                            # just record version that we got from simplenote
                             # if we don't do this, merging problems start happening.
                             # VERY importantly: also store the key. It
                             # could be that we've just created the
@@ -677,7 +677,7 @@ class NotesDB(utils.SubjectMixin):
                             # typing. We need to store the new server
                             # key, else we'll keep on sending new
                             # notes.
-                            tkeys = ['syncnum', 'version', 'syncdate', 'key']
+                            tkeys = ['version', 'syncdate', 'key']
                             for tk in tkeys:
                                 self.notes[okey][tk] = o.note[tk]
 
@@ -795,7 +795,7 @@ class NotesDB(utils.SubjectMixin):
                 k = n.get('key')
                 if k in self.notes:
                     # n is already exists in local.
-                    if int(n.get('syncnum')) > int(self.notes[k].get('syncnum', -1)):
+                    if Note(n).is_newer_than(self.notes[k]):
                         # We must update local note with remote note.
                         err = 0
                         if 'content' not in n:
@@ -1019,3 +1019,9 @@ class NotesDB(utils.SubjectMixin):
 
                     o.error = 1
                     self.q_sync_res.put(o)
+
+
+class Note(dict):
+    def is_newer_than(self, other):
+        return float(self['modifydate']) > float(other['modifydate'])
+
