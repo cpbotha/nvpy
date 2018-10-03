@@ -734,7 +734,7 @@ class NotesDB(utils.SubjectMixin):
                         del self.notes[lk]
                         # in either case (new or existing note), save note at assigned key
                         k = uret[0].get('key')
-                        # we merge the note we got back (content coud be empty!)
+                        # we merge the note we got back (content could be empty!)
                         n.update(uret[0])
                         # and put it at the new key slot
                         self.notes[k] = n
