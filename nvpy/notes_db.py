@@ -11,8 +11,13 @@ import json
 import logging
 from Queue import Queue, Empty
 import re
+import base64
 import simplenote
 from simplenote import Simplenote
+
+# API key provided for nvPY.
+# Please do not use for other software!
+simplenote.simplenote.API_KEY = ''.join(reversed(base64.b64decode('OTg0OTI4ZTg4YjY0NzMyOTZjYzQzY2IwMDI1OWFkMzg=')))
 
 from threading import Thread, Lock
 import time
