@@ -12,7 +12,6 @@ import logging
 from Queue import Queue, Empty
 import re
 import simplenote
-simplenote.NOTE_FETCH_LENGTH = 100
 from simplenote import Simplenote
 
 from threading import Thread, Lock
