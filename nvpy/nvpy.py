@@ -164,6 +164,7 @@ class Config:
         self.db_path = cp.get(cfg_sec, 'db_path')
         #  0 = alpha sort, 1 = last modified first
         self.notes_as_txt = cp.getint(cfg_sec, 'notes_as_txt')
+        self.read_txt_extensions = cp.get(cfg_sec, 'read_txt_extensions')
         self.txt_path = os.path.join(home, cp.get(cfg_sec, 'txt_path'))
         self.search_mode = cp.get(cfg_sec, 'search_mode')
         self.case_sensitive = cp.getint(cfg_sec, 'case_sensitive')
