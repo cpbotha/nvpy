@@ -71,8 +71,6 @@ except ImportError:
 else:
     HAVE_DOCUTILS = True
 
-VERSION = "1.0.0"
-
 
 class Config:
     """
