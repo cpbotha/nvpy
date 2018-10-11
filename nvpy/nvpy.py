@@ -46,6 +46,7 @@ import re
 from utils import KeyValueObject, SubjectMixin
 import view
 import webbrowser
+from version import VERSION
 
 try:
     import markdown
