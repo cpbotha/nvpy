@@ -431,11 +431,10 @@ class Controller:
         a sync that's more recent than our most recent mod to that note.
         """
 
-        selected_note_o = self.notes_list_model.get(self.selected_note_key)
         # if the note synced back matches our currently selected note,
         # we overwrite.
-
-        if selected_note_o.key == evt.lkey:
+        if self.selected_note_key is not None and self.selected_note_key == evt.lkey:
+            selected_note_o = self.notes_list_model.get(self.selected_note_key)
             if selected_note_o.note['content'] != evt.old_note['content']:
                 self.view.mute_note_data_changes()
                 # in this case, we want to keep the user's undo buffer so that they
