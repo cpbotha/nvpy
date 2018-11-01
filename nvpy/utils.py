@@ -196,6 +196,9 @@ class SubjectMixin:
         self.notifies = Queue()
 
     def add_observer(self, evt_type, o):
+        from .debug import wrap_buggy_function
+        o = wrap_buggy_function(o)
+
         if evt_type not in self.observers:
             self.observers[evt_type] = [o]
 

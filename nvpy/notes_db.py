@@ -27,6 +27,8 @@ ACTION_SAVE = 0
 ACTION_SYNC_PARTIAL_TO_SERVER = 1
 ACTION_SYNC_PARTIAL_FROM_SERVER = 2  # UNUSED.
 
+from .debug import wrap_buggy_function
+
 
 class SyncError(RuntimeError):
     pass
@@ -148,7 +150,7 @@ class NotesDB(utils.SubjectMixin):
         self.q_save = Queue()
         self.q_save_res = Queue()
 
-        thread_save = Thread(target=self.worker_save)
+        thread_save = Thread(target=wrap_buggy_function(self.worker_save))
         thread_save.setDaemon(True)
         thread_save.start()
 
@@ -174,7 +176,7 @@ class NotesDB(utils.SubjectMixin):
             self.q_sync = Queue()
             self.q_sync_res = Queue()
 
-            thread_sync = Thread(target=self.worker_sync)
+            thread_sync = Thread(target=wrap_buggy_function(self.worker_sync))
             thread_sync.setDaemon(True)
             thread_sync.start()
 
@@ -697,8 +699,9 @@ class NotesDB(utils.SubjectMixin):
                 self.notify_observers('complete:sync_full', utils.KeyValueObject(errors=sync_from_server_errors))
             except Exception, e:
                 self.notify_observers('error:sync_full', utils.KeyValueObject(error=e, exc_info=sys.exc_info()))
+                raise
 
-        thread_sync_full = Thread(target=wrapper)
+        thread_sync_full = Thread(target=wrap_buggy_function(wrapper))
         thread_sync_full.setDaemon(True)
         thread_sync_full.start()
 
