@@ -230,6 +230,13 @@ class NotesListModel(SubjectMixin):
         else:
             return -1
 
+    def get(self, key):
+        idx = self.get_idx(key)
+        if idx < 0:
+            raise KeyError('Note is not found: key={}'.format(key))
+
+        return self.list[idx]
+
 
 class Controller:
     """Main application class.
@@ -349,17 +356,11 @@ class Controller:
 
         # we'll use this to keep track of the currently selected note
         # we only use idx, because key could change from right under us.
-        self.selected_note_idx = -1
+        self.selected_note_key = None
         self.view.select_note(0)
 
         if self.config.background_full_sync:
             self.view.after(0, self.sync_full)
-
-    def get_selected_note_key(self):
-        if self.selected_note_idx >= 0:
-            return self.notes_list_model.list[self.selected_note_idx].key
-        else:
-            return None
 
     def main_loop(self):
         if not self.config.files_read:
@@ -380,7 +381,7 @@ class Controller:
         self.view.main_loop()
 
     def observer_notes_db_change_note_status(self, notes_db, evt_type, evt):
-        skey = self.get_selected_note_key()
+        skey = self.selected_note_key
         if skey == evt.key:
             self.view.set_note_status(self.notes_db.get_note_status(skey))
 
@@ -430,11 +431,10 @@ class Controller:
         a sync that's more recent than our most recent mod to that note.
         """
 
-        selected_note_o = self.notes_list_model.list[self.selected_note_idx]
         # if the note synced back matches our currently selected note,
         # we overwrite.
-
-        if selected_note_o.key == evt.lkey:
+        if self.selected_note_key is not None and self.selected_note_key == evt.lkey:
+            selected_note_o = self.notes_list_model.get(self.selected_note_key)
             if selected_note_o.note['content'] != evt.old_note['content']:
                 self.view.mute_note_data_changes()
                 # in this case, we want to keep the user's undo buffer so that they
@@ -460,11 +460,8 @@ class Controller:
         # delete note from notes_db
         # remove the note from the notes_list_model.list
 
-        # if these two are not equal, something is not kosher.
-        assert(evt.sel == self.selected_note_idx)
-
         # first get key of note that is to be deleted
-        key = self.get_selected_note_key()
+        key = self.selected_note_key
 
         # then try to select after the one that is to be deleted
         nidx = evt.sel + 1
@@ -480,8 +477,8 @@ class Controller:
         self.view.set_search_entry_text(self.view.get_search_entry_text())
 
     def helper_markdown_to_html(self):
-        if self.selected_note_idx >= 0:
-            key = self.notes_list_model.list[self.selected_note_idx].key
+        if self.selected_note_key:
+            key = self.selected_note_key
             c = self.notes_db.get_note_content(key)
             logging.debug("Trying to convert %s to html." % (key,))
             if HAVE_MARKDOWN:
@@ -526,8 +523,8 @@ class Controller:
             return fn
 
     def helper_rest_to_html(self):
-        if self.selected_note_idx >= 0:
-            key = self.notes_list_model.list[self.selected_note_idx].key
+        if self.selected_note_key:
+            key = self.selected_note_key
             c = self.notes_db.get_note_content(key)
             if HAVE_DOCUTILS:
                 settings = {}
@@ -610,8 +607,8 @@ class Controller:
         self.select_note(evt.sel)
 
     def observer_view_sync_current_note(self, view, evt_type, evt):
-        if self.selected_note_idx >= 0:
-            key = self.notes_list_model.list[self.selected_note_idx].key
+        if self.selected_note_key:
+            key = self.selected_note_key
             # this call will update our in-memory version if necessary
             ret = self.notes_db.sync_note_unthreaded(key)
             if ret and ret[1] == True:
@@ -642,7 +639,7 @@ class Controller:
 
     def observer_view_change_entry(self, view, evt_type, evt):
         # store the currently selected note key
-        k = self.get_selected_note_key()
+        k = self.selected_note_key
         # for each new evt.value coming in, get a new list from the notes_db
         # and set it in the notes_list_model
         nn, match_regexp, active_notes = self.notes_db.filter_notes(evt.value)
@@ -666,8 +663,6 @@ class Controller:
             # if it does turn out to be new note content, this will be handled
             # a few lines down.
             self.view.select_note(idx, silent=True)
-            # but of course we DO have to record the possibly new IDX!!
-            self.selected_note_idx = idx
 
             # see if the note has been updated (content, tags, pin)
             new_note = self.notes_db.get_note(k)
@@ -690,36 +685,28 @@ class Controller:
     def observer_view_change_text(self, view, evt_type, evt):
         # get new text and update our database
         # need local key of currently selected note for this
-        if self.selected_note_idx >= 0:
-            key = self.notes_list_model.list[self.selected_note_idx].key
-            self.notes_db.set_note_content(key,
-                                           self.view.get_text())
+        if self.selected_note_key:
+            self.notes_db.set_note_content(self.selected_note_key, self.view.get_text())
 
     def observer_view_change_tags(self, view, evt_type, evt):
         # get new text and update our database
-        # need local key of currently selected note for this
-        if self.selected_note_idx >= 0:
-            key = self.notes_list_model.list[self.selected_note_idx].key
-            self.notes_db.set_note_tags(key, evt.value)
+        if self.selected_note_key:
+            self.notes_db.set_note_tags(self.selected_note_key, evt.value)
             self.view.cmd_notes_list_select()
 
     def observer_view_delete_tag(self, view, evt_type, evt):
-        key = self.notes_list_model.list[self.selected_note_idx].key
-        self.notes_db.delete_note_tag(key, evt.tag)
+        self.notes_db.delete_note_tag(self.selected_note_key, evt.tag)
         self.view.cmd_notes_list_select()
 
     def observer_view_add_tag(self, view, evt_type, evt):
-        key = self.notes_list_model.list[self.selected_note_idx].key
-        self.notes_db.add_note_tags(key, evt.tags)
+        self.notes_db.add_note_tags(self.selected_note_key, evt.tags)
         self.view.cmd_notes_list_select()
         self.view.tags_entry_var.set('')
 
     def observer_view_change_pinned(self, view, evt_type, evt):
         # get new text and update our database
-        # need local key of currently selected note for this
-        if self.selected_note_idx >= 0:
-            key = self.notes_list_model.list[self.selected_note_idx].key
-            self.notes_db.set_note_pinned(key, evt.value)
+        if self.selected_note_key:
+            self.notes_db.set_note_pinned(self.selected_note_key, evt.value)
 
     def observer_view_close(self, view, evt_type, evt):
         # check that everything has been saved and synced before exiting
@@ -782,14 +769,13 @@ class Controller:
         else:
             key = None
             note = None
-            idx = -1
             # no note selected, so we clear the UI (and display a clear
             # message that no note is selected) and we disable note
             # editing controls.
             self.view.clear_note_ui()
             self.view.set_note_editing(False)
 
-        self.selected_note_idx = idx
+        self.selected_note_key = key
 
         # when we do this, we don't want the change:{text,tags,pinned} events
         # because those should only fire when they are changed through the UI
@@ -807,7 +793,7 @@ class Controller:
             self.notes_db.sync_full_unthreaded()
 
     def update_note_status(self):
-        skey = self.get_selected_note_key()
+        skey = self.selected_note_key
         self.view.set_note_status(self.notes_db.get_note_status(skey))
 
 
