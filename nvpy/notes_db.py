@@ -12,6 +12,7 @@ import logging
 from Queue import Queue, Empty
 import re
 import base64
+import collections
 import simplenote
 from simplenote import Simplenote
 
@@ -40,6 +41,13 @@ class ReadError(RuntimeError):
 
 class WriteError(RuntimeError):
     pass
+
+
+UpdateResult = collections.namedtuple('UpdateResult', (
+    'note',
+    'is_updated',
+    'error_object',
+))
 
 
 class NotesDB(utils.SubjectMixin):
@@ -521,18 +529,14 @@ class NotesDB(utils.SubjectMixin):
 
         if Note(note).need_sync_to_server:
             # update to server
-            uret = self.simplenote.update_note(note)
+            result = self.update_note_to_server(note)
 
-            if uret[1] == 0:
+            if result.error_object is None:
                 # success!
-                n = uret[0]
+                n = result.note
 
                 # if content was unchanged, there'll be no content sent back!
-                if n.get('content', None):
-                    new_content = True
-
-                else:
-                    new_content = False
+                new_content = 'content' in n
 
                 now = time.time()
                 # 1. store when we've synced
@@ -725,22 +729,21 @@ class NotesDB(utils.SubjectMixin):
             for ni, lk in enumerate(self.notes.keys()):
                 n = self.notes[lk]
                 if Note(n).need_sync_to_server:
-                    self.waiting_for_simplenote = True
-                    uret = self.simplenote.update_note(n)
-                    self.waiting_for_simplenote = False
-                    if uret[1] == 0:
-                        # replace n with uret[0]
+                    result = self.update_note_to_server(n)
+
+                    if result.error_object is None:
+                        # replace n with result.note.
                         # if this was a new note, our local key is not valid anymore
                         del self.notes[lk]
                         # in either case (new or existing note), save note at assigned key
-                        k = uret[0].get('key')
+                        k = result.note.get('key')
                         # we merge the note we got back (content could be empty!)
-                        n.update(uret[0])
+                        n.update(result.note)
                         # and put it at the new key slot
                         self.notes[k] = n
 
                         # record that we just synced
-                        uret[0]['syncdate'] = now
+                        n['syncdate'] = now
 
                         # whatever the case may be, k is now updated
                         self.helper_save_note(k, self.notes[k])
@@ -752,7 +755,7 @@ class NotesDB(utils.SubjectMixin):
 
                     else:
                         key = n.get('key') or lk
-                        raise SyncError("Sync step 1 error - Could not update note {0} to server: {1}".format(key, str(uret[0])))
+                        raise SyncError("Sync step 1 error - Could not update note {0} to server: {1}".format(key, str(result.error_object)))
 
             # 2. Retrieves full note list from server.
             #    In phase 2 to 5, synchronized all notes from server to client.
@@ -961,26 +964,25 @@ class NotesDB(utils.SubjectMixin):
                 continue
 
             if o.action == ACTION_SYNC_PARTIAL_TO_SERVER:
-                self.waiting_for_simplenote = True
                 if 'key' in o.note:
                     logging.debug('Updating note %s (local key %s) to server.' % (o.note['key'], o.key))
-
                 else:
                     logging.debug('Sending new note (local key %s) to server.' % (o.key,))
 
-                uret = self.simplenote.update_note(o.note)
-                self.waiting_for_simplenote = False
+                result = self.update_note_to_server(o.note)
 
-                if uret[1] == 0:
-                    # success!
-                    n = uret[0]
+                if result.error_object is None:
+                    if result.is_updated:
+                        o.error = 0
+                        self.q_sync_res.put(o)
+                        continue
+
+                    n = result.note
 
                     if not n.get('content', None):
                         # if note has not been changed, we don't get content back
                         # delete our own copy too.
                         del o.note['content']
-
-                    logging.debug('Server replies with updated note ' + n['key'])
 
                     # syncdate was set when the note was copied into our queue
                     # we rely on that to determine when a returned note should
@@ -997,29 +999,59 @@ class NotesDB(utils.SubjectMixin):
                     self.q_sync_res.put(o)
 
                 else:
-                    update_error = uret[0]
-
-                    self.waiting_for_simplenote = True
-                    uret = self.simplenote.get_note(o.key)
-                    self.waiting_for_simplenote = False
-
-                    if uret[1] == 0:
-                        local_note = o.note
-                        remote_note = uret[0]
-                        if not self.is_different_note(local_note, remote_note):
-                            # got an error response when updating the note.
-                            # however, the remote note has been updated.
-                            # this phenomenon is rarely occurs.
-                            # if it occurs, housekeeper's is going to repeatedly update this note.
-                            # regard updating error as success for prevent this problem.
-
-                            logging.info('Regard updating error (local key %s, error object %s) as success.' % (o.key, repr(update_error)))
-                            o.error = 0
-                            self.q_sync_res.put(o)
-                            continue
-
                     o.error = 1
                     self.q_sync_res.put(o)
+
+    def update_note_to_server(self, note):
+        """Update the note to simplenote server.
+
+        :return: UpdateResult object
+        """
+
+        self.waiting_for_simplenote = True
+        o, err = self.simplenote.update_note(note)
+        self.waiting_for_simplenote = False
+
+        if err == 0:
+            # success!
+            new_note = o
+            logging.debug('Server replies with updated note ' + new_note['key'])
+            return UpdateResult(
+                note=new_note,
+                is_updated=True,
+                error_object=None,
+            )
+
+        elif 'key' in note:
+            update_error = o
+
+            # note has already been saved on the simplenote server.
+            self.waiting_for_simplenote = True
+            o, err = self.simplenote.get_note(note['key'])
+            self.waiting_for_simplenote = False
+
+            if err == 0:
+                local_note = note
+                remote_note = o
+
+                if not self.is_different_note(local_note, remote_note):
+                    # got an error response when updating the note.
+                    # however, the remote note has been updated.
+                    # this phenomenon is rarely occurs.
+                    # if it occurs, housekeeper's is going to repeatedly update this note.
+                    # regard updating error as success for prevent this problem.
+                    logging.info('Regard updating error (local key %s, error object %s) as success.' % (o.key, repr(update_error)))
+                    return UpdateResult(
+                        note=local_note,
+                        is_updated=False,
+                        error_object=None,
+                    )
+
+        return UpdateResult(
+            note=None,
+            is_updated=False,
+            error_object=o,
+        )
 
 
 class Note(dict):
