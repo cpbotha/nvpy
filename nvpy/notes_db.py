@@ -826,6 +826,7 @@ class NotesDB(utils.SubjectMixin):
 
                     if err == 0:
                         self.notes[k] = n
+                        self.notes[k]['savedate'] = 0  # never been written to disc
                         self.notes[k]['syncdate'] = now
                         self.helper_save_note(k, self.notes[k])
                         self.notify_observers('progress:sync_full', utils.KeyValueObject(msg='Synced new note %d (%d) from server.' % (ni, lennl)))
