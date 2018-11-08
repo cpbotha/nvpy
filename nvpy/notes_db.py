@@ -1014,7 +1014,11 @@ class NotesDB(utils.SubjectMixin):
 
         if err == 0:
             # success!
-            new_note = o
+
+            # Keeps the internal fields of nvpy.
+            new_note = dict(note)
+            new_note.update(o)
+
             logging.debug('Server replies with updated note ' + new_note['key'])
             return UpdateResult(
                 note=new_note,
