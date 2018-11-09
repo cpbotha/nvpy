@@ -972,7 +972,7 @@ class NotesDB(utils.SubjectMixin):
                 result = self.update_note_to_server(o.note)
 
                 if result.error_object is None:
-                    if result.is_updated:
+                    if not result.is_updated:
                         o.error = 0
                         self.q_sync_res.put(o)
                         continue
