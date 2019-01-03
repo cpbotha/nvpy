@@ -102,8 +102,8 @@ class RedirectedText(tk.Text):
     we use here.
     """
 
-    def __init__(self, master=None, cnf={}, **kw):
-        tk.Text.__init__(self, master, cnf, **kw)
+    def __init__(self, master=None, cnf=None, **kw):
+        tk.Text.__init__(self, master, cnf or {}, **kw)
 
         # now attach the redirector
         self.redir = WidgetRedirector(self)
