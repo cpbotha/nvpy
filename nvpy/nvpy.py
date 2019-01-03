@@ -359,7 +359,7 @@ class Controller:
         self.selected_note_key = None
         self.view.select_note(0)
 
-        if self.config.background_full_sync:
+        if self.config.simplenote_sync:
             self.view.after(0, self.sync_full)
 
     def main_loop(self):
