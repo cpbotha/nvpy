@@ -42,6 +42,7 @@ import time
 import traceback
 import threading
 import re
+import collections
 
 from utils import KeyValueObject, SubjectMixin
 import view
@@ -71,6 +72,17 @@ except ImportError:
     HAVE_DOCUTILS = False
 else:
     HAVE_DOCUTILS = True
+
+
+ColorConfig = collections.namedtuple('ColorConfig', (
+    'text',
+    'selected_note',
+    'note_info',
+    'highlight_note_info',
+    'url',
+    'background',
+    'highlight_background',
+))
 
 
 class Config:
@@ -108,7 +120,13 @@ class Config:
                     'list_font_size': '10',
                     'layout': 'horizontal',
                     'print_columns': '0',
+                    'text_color': 'black',
+                    'selected_note_color': 'light blue',
+                    'note_info_color': 'dark gray',
+                    'highlight_note_info_color': 'lightyellow',
+                    'url_color': '#03f',
                     'background_color': 'white',
+                    'highlight_background_color': 'yellow',
                     'sn_username': '',
                     'sn_password': '',
                     'simplenote_sync': '1',
@@ -184,7 +202,15 @@ class Config:
         self.layout = cp.get(cfg_sec, 'layout')
         self.print_columns = cp.getint(cfg_sec, 'print_columns')
 
-        self.background_color = cp.get(cfg_sec, 'background_color')
+        self.colors = ColorConfig(
+            text=cp.get(cfg_sec, 'text_color'),
+            selected_note=cp.get(cfg_sec, 'selected_note_color'),
+            note_info=cp.get(cfg_sec, 'note_info_color'),
+            highlight_note_info=cp.get(cfg_sec, 'highlight_note_info_color'),
+            url=cp.get(cfg_sec, 'url_color'),
+            background=cp.get(cfg_sec, 'background_color'),
+            highlight_background=cp.get(cfg_sec, 'highlight_background_color'),
+        )
 
         self.rest_css_path = cp.get(cfg_sec, 'rest_css_path')
         self.md_css_path = cp.get(cfg_sec, 'md_css_path')

@@ -401,7 +401,8 @@ class NotesList(tk.Frame):
             font=f,
             yscrollcommand=yscrollbar.set,
             undo=True,
-            background=config.background_color)
+            foreground=config.colors.text,
+            background=config.colors.background)
         # change default font at runtime with:
         #text.config(font=f)
 
@@ -412,9 +413,9 @@ class NotesList(tk.Frame):
         # tags for all kinds of styling ############################
         ############################################################
 
-        self.text.tag_config("selected", background="light blue")
+        self.text.tag_config("selected", background=config.colors.selected_note)
 
-        self.text.tag_config("pinned", foreground="dark gray")
+        self.text.tag_config("pinned", foreground=config.colors.note_info)
 
         # next two lines from:
         # http://stackoverflow.com/a/9901862/532513
@@ -424,10 +425,10 @@ class NotesList(tk.Frame):
 
         italic_font = tkFont.Font(self.text, self.text.cget("font"))
         italic_font.configure(slant="italic")
-        self.text.tag_config("tags", font=italic_font, foreground="dark gray")
-        self.text.tag_config("found", font=italic_font, foreground="dark gray", background="lightyellow")
+        self.text.tag_config("tags", font=italic_font, foreground=config.colors.note_info)
+        self.text.tag_config("found", font=italic_font, foreground=config.colors.note_info, background=config.colors.highlight_note_info)
 
-        self.text.tag_config("modifydate", foreground="dark gray")
+        self.text.tag_config("modifydate", foreground=config.colors.note_info)
 
         yscrollbar.config(command=self.text.yview)
 
@@ -1274,7 +1275,7 @@ class View(utils.SubjectMixin):
         icon_fn = 'nvpy.gif'
         iconpath = os.path.join(
             self.config.app_dir, 'icons', icon_fn)
-        
+
         self.icon = tk.PhotoImage(file=iconpath)
         self.root.tk.call('wm', 'iconphoto', self.root._w, self.icon)
 
@@ -1321,6 +1322,11 @@ class View(utils.SubjectMixin):
 
         # the paned window ##############################################
 
+        notes_list_config = utils.KeyValueObject(
+            colors=self.config.colors,
+            layout=self.config.layout,
+            print_columns=self.config.print_columns)
+
         if self.config.layout == "horizontal":
             paned_window = tk.PanedWindow(self.root, orient=tk.HORIZONTAL)
             paned_window.pack(fill=tk.BOTH, expand=1)
@@ -1332,9 +1338,7 @@ class View(utils.SubjectMixin):
                 list_frame,
                 self.config.list_font_family,
                 self.config.list_font_size,
-                utils.KeyValueObject(background_color=self.config.background_color,
-                    layout=self.config.layout,
-                    print_columns=self.config.print_columns))
+                notes_list_config)
             self.notes_list.pack(fill=tk.BOTH, expand=1)
 
             note_frame = tk.Frame(paned_window, width=400)
@@ -1356,9 +1360,7 @@ class View(utils.SubjectMixin):
                 list_frame,
                 font_family,
                 self.config.list_font_size,
-                utils.KeyValueObject(background_color=self.config.background_color,
-                    layout=self.config.layout,
-                    print_columns=self.config.print_columns))
+                notes_list_config)
             self.notes_list.pack(fill=tk.X, expand=1)
 
             note_frame = tk.Frame(paned_window)
@@ -1409,7 +1411,9 @@ class View(utils.SubjectMixin):
                                          font=f, tabs=(4 * f.measure(0), 'left'), tabstyle='wordprocessor',
                                          yscrollcommand=yscrollbar.set,
                                          undo=True,
-                                         background=self.config.background_color)
+                                         foreground=self.config.colors.text,
+                                         background=self.config.colors.background,
+                                         insertbackground=self.config.colors.text)
             # change default font at runtime with:
             text.config(font=f)
 
@@ -1723,7 +1727,7 @@ class View(utils.SubjectMixin):
 
             # start creating a new tkinter text tag
             tag = 'search-%d' % (len(self.text_tags_search),)
-            t.tag_config(tag, background="yellow")
+            t.tag_config(tag, background=self.config.colors.highlight_background)
 
             # mo.start(), mo.end() or mo.span() in one go
             t.tag_add(tag, '1.0+%dc' % (mo.start(),), '1.0+%dc' %
@@ -1761,7 +1765,7 @@ class View(utils.SubjectMixin):
 
             # start creating a new tkinter text tag
             tag = 'web-%d' % (len(self.text_tags_links),)
-            t.tag_config(tag, foreground="blue", underline=ul)
+            t.tag_config(tag, foreground=self.config.colors.url, underline=ul)
             # hovering should give us the finger (cursor) hehe
             t.tag_bind(tag, '<Enter>',
                     lambda e: t.config(cursor="hand2"))
