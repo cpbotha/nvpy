@@ -400,7 +400,7 @@ class NotesList(tk.Frame):
             wrap=tk.NONE,
             font=f,
             yscrollcommand=yscrollbar.set,
-            undo=True,
+            undo=False,
             foreground=config.colors.text,
             background=config.colors.background)
         # change default font at runtime with:
