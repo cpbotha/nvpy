@@ -188,6 +188,11 @@ class SubjectMixin:
 
     We follow the convention action:object, e.g. change:entry.
     """
+
+    # main thread object
+    #
+    # Workaround for missing the threading.main_thread() function on Python 2.7.
+    # This variable was updated by the Controller.__init__().
     MAIN_THREAD = None
 
     def __init__(self):
