@@ -1,3 +1,4 @@
+v1.1.0, 2019-03-31 -- Improved reliability of save and sync, Added black theme, confirm exit, migrate to the simperium api, fixed some bug
 v1.0.0, 2016-12-01 -- highlight headings, retina support, confirm delete, fixes.
 v0.9.7, 2015-12-24 -- ttk theme support, logging bug fix.
 v0.9.6, 2015-12-21 -- more bug fixes.
