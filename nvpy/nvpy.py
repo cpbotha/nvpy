@@ -29,15 +29,26 @@
 #   b) syncing with simplenote
 
 # to check if we're online
+from __future__ import print_function
+import sys
+
+if sys.version_info.major == 2:
+    PYTHON2 = True
+else:
+    PYTHON2 = False
 
 import codecs
-import ConfigParser
+if PYTHON2:
+    import ConfigParser
+else:
+    import configparser as ConfigParser
+    from p3port import unicode
+
 import logging
 from logging.handlers import RotatingFileHandler
 from notes_db import NotesDB, SyncError, ReadError, WriteError
 import argparse
 import os
-import sys
 import time
 import traceback
 import threading
@@ -332,7 +343,7 @@ class Controller:
         try:
             self.notes_db = NotesDB(self.config)
 
-        except ReadError, e:
+        except ReadError as e:
             emsg = "Please check nvpy.log.\n" + str(e)
             self.view.show_error('Sync error', emsg)
             exit(1)
@@ -426,13 +437,13 @@ class Controller:
     def observer_notes_db_error_sync_full(self, notes_db, evt_type, evt):
         try:
             raise evt.error
-        except SyncError, e:
+        except SyncError as e:
             self.view.show_error('Sync error', e)
-        except WriteError, e:
+        except WriteError as e:
             emsg = "Please check nvpy.log.\n" + str(e)
             self.view.show_error('Sync error', emsg)
             exit(1)
-        except Exception, e:
+        except Exception as e:
             crash_log = ''.join(traceback.format_exception(*evt.exc_info))
             logging.error(crash_log)
             emsg = 'An unexpected error has occurred.\n'\

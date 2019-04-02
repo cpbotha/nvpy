@@ -1,14 +1,26 @@
 # nvPY: cross-platform note-taking app with simplenote syncing
 # copyright 2012 by Charl P. Botha <cpbotha@vxlabs.com>
 # new BSD license
+import sys
+
+if sys.version_info.major == 2:
+    PYTHON2 = True
+else:
+    PYTHON2 = False
 
 import datetime
 import random
 import re
 import string
-import urllib2
+if PYTHON2:
+    from urllib2 import urlopen, URLError
+    from Queue import Queue, Empty as QueueEmpty
+else:
+    from urllib.request import urlopen, URLError
+    from queue import Queue, Empty as QueueEmpty
+    from p3port import unicode
+
 import threading
-from Queue import Queue, Empty as QueueEmpty
 
 # first line with non-whitespace should be the title
 note_title_re = re.compile('\s*(.*)\n?')
@@ -131,32 +143,20 @@ def sanitise_tags(tags):
     else:
         return illegals_removed.split(',')
 
+def sort_key_by_title_pinned(a):
+    if note_pinned(a.note):
+        return (1, get_note_title(a.note))
+    return (0, get_note_title(a.note))
 
-def sort_by_title_pinned(a, b):
-    if note_pinned(a.note) and not note_pinned(b.note):
-        return -1
-    elif not note_pinned(a.note) and note_pinned(b.note):
-        return 1
-    else:
-        return cmp(get_note_title(a.note), get_note_title(b.note))
+def sort_key_by_modify_date_pinned(a):
+    if note_pinned(a.note):
+        return (1, float(a.note.get('modifydate', 0)))
+    return (0, float(a.note.get('modifydate', 0)))
 
-
-def sort_by_modify_date_pinned(a, b):
-    if note_pinned(a.note) and not note_pinned(b.note):
-        return 1
-    elif not note_pinned(a.note) and note_pinned(b.note):
-        return -1
-    else:
-        return cmp(float(a.note.get('modifydate', 0)), float(b.note.get('modifydate', 0)))
-
-
-def sort_by_create_date_pinned(a, b):
-    if note_pinned(a.note) and not note_pinned(b.note):
-        return 1
-    elif not note_pinned(a.note) and note_pinned(b.note):
-        return -1
-    else:
-        return cmp(float(a.note.get('createdate', 0)), float(b.note.get('createdate', 0)))
+def sort_key_by_create_date_pinned(a):
+    if note_pinned(a.note):
+        return (1, float(a.note.get('createdate', 0)))
+    return (0, float(a.note.get('createdate', 0)))
 
 def check_internet_on():
     """Utility method to check if we have an internet connection.
@@ -164,10 +164,10 @@ def check_internet_on():
     slightly adapted from: http://stackoverflow.com/a/3764660/532513
     """
     try:
-        urllib2.urlopen('http://74.125.228.100', timeout=1)
+        urlopen('http://74.125.228.100', timeout=1)
         return True
 
-    except urllib2.URLError:
+    except URLError:
         pass
 
     return False
@@ -201,7 +201,7 @@ class SubjectMixin:
         self.notifies = Queue()
 
     def add_observer(self, evt_type, o):
-        from .debug import wrap_buggy_function
+        from debug import wrap_buggy_function
         o = wrap_buggy_function(o)
 
         if evt_type not in self.observers:

@@ -9,8 +9,9 @@ try:
     import Tkinter
 except ImportError:
     import tkinter as Tkinter
-
-import ttk
+    from tkinter import ttk
+else:
+    import ttk
 
 data = """
 R0lGODlhKgAaAOfnAFdZVllbWFpcWVtdWlxeW11fXF9hXmBiX2ZnZWhpZ2lraGxua25wbXJ0
