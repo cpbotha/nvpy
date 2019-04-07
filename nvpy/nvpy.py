@@ -29,7 +29,6 @@
 #   b) syncing with simplenote
 
 # to check if we're online
-from __future__ import print_function
 import sys
 
 if sys.version_info.major == 2:
