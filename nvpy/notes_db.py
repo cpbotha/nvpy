@@ -792,7 +792,7 @@ class NotesDB(utils.SubjectMixin):
                 k = n.get('key')
                 server_keys[k] = True
 
-            for lk in self.notes.keys():
+            for lk in list(self.notes.keys()):
                 if lk not in server_keys:
                     if self.notes[lk]['syncdate'] == 0:
                         # This note MUST NOT delete because it was created during phase 1 or phase 2.
