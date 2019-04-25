@@ -829,6 +829,16 @@ def main():
         if hasattr(sys, '_MEIPASS'):
             # PyInstaller
             appdir = sys._MEIPASS
+
+            # WORKAROUND: Bug that always raise the SSLCertVerificationError from urlopen()
+            #             when CPython is not installed.
+
+            # Use certificate from certifi only if cafile could not find by ssl.
+            # See https://github.com/pyinstaller/pyinstaller/pull/3952
+            import ssl
+            if ssl.get_default_verify_paths().cafile is None:
+                import certifi
+                os.environ['SSL_CERT_FILE'] = certifi.core.where()
         else:
             # py2exe
             appdir, _ = os.path.split(sys.executable)
