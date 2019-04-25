@@ -4,6 +4,10 @@ rem Requirements:
 rem   Windows 10
 rem   python 2.7
 rem   PyInstaller
+rem
+rem Output:
+rem   dist\nvpy.exe
+rem   dist\nvpy-debug.exe
 
 del dist\nvpy.exe
 del dist\nvpy-debug.exe
