@@ -826,7 +826,12 @@ class Controller:
 def main():
     # setup appdir
     if hasattr(sys, 'frozen') and sys.frozen:
-        appdir, _ = os.path.split(sys.executable)
+        if hasattr(sys, '_MEIPASS'):
+            # PyInstaller
+            appdir = sys._MEIPASS
+        else:
+            # py2exe
+            appdir, _ = os.path.split(sys.executable)
 
     else:
         dirname, _ = os.path.split(os.path.realpath(__file__))
