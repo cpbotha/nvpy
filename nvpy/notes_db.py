@@ -698,21 +698,7 @@ class NotesDB(utils.SubjectMixin):
         return (nsynced, nerrored)
 
     def sync_full_threaded(self):
-        def wrapper():
-            try:
-                sync_from_server_errors = self.sync_full_unthreaded()
-                self.notify_observers('complete:sync_full', utils.KeyValueObject(errors=sync_from_server_errors))
-            except Exception, e:
-                self.notify_observers('error:sync_full', utils.KeyValueObject(error=e, exc_info=sys.exc_info()))
-
-                if type(e) == SyncError:
-                    # We reported an error to user.  Should not propagate the error to callee.
-                    pass
-                else:
-                    # Unexpected error occurred.
-                    raise
-
-        thread_sync_full = Thread(target=wrap_buggy_function(wrapper))
+        thread_sync_full = Thread(target=self.sync_full_unthreaded)
         thread_sync_full.setDaemon(True)
         thread_sync_full.start()
 
@@ -762,7 +748,9 @@ class NotesDB(utils.SubjectMixin):
 
                     else:
                         key = n.get('key') or lk
-                        raise SyncError("Sync step 1 error - Could not update note {0} to server: {1}".format(key, str(result.error_object)))
+                        msg = "Sync step 1 error - Could not update note {0} to server: {1}".format(key, str(result.error_object))
+                        logging.error(msg)
+                        raise SyncError(msg)
 
             # 2. Retrieves full note list from server.
             #    In phase 2 to 5, synchronized all notes from server to client.
@@ -775,7 +763,10 @@ class NotesDB(utils.SubjectMixin):
                 self.notify_observers('progress:sync_full', utils.KeyValueObject(msg='Retrieved full note list from server.'))
 
             else:
-                raise SyncError('Could not get note list from server.')
+                error = nl[0]
+                msg = 'Could not get note list from server: %s' % str(error)
+                logging.error(msg)
+                raise SyncError(msg)
 
             # 3. Delete local notes not included in full note list.
             server_keys = {}
@@ -851,10 +842,11 @@ class NotesDB(utils.SubjectMixin):
                 if os.path.exists(fn):
                     os.unlink(fn)
 
-            self.notify_observers('progress:sync_full', utils.KeyValueObject(msg='Full sync complete.'))
+            self.notify_observers('complete:sync_full', utils.KeyValueObject(errors=sync_from_server_errors))
 
-            self.full_syncing = False
-            return sync_from_server_errors
+        except Exception, e:
+            # Report an error to UI thread.
+            self.notify_observers('error:sync_full', utils.KeyValueObject(error=e, exc_info=sys.exc_info()))
 
         finally:
             self.full_syncing = False
