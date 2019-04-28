@@ -704,7 +704,13 @@ class NotesDB(utils.SubjectMixin):
                 self.notify_observers('complete:sync_full', utils.KeyValueObject(errors=sync_from_server_errors))
             except Exception, e:
                 self.notify_observers('error:sync_full', utils.KeyValueObject(error=e, exc_info=sys.exc_info()))
-                raise
+
+                if type(e) == SyncError:
+                    # We reported an error to user.  Should not propagate the error to callee.
+                    pass
+                else:
+                    # Unexpected error occurred.
+                    raise
 
         thread_sync_full = Thread(target=wrap_buggy_function(wrapper))
         thread_sync_full.setDaemon(True)
