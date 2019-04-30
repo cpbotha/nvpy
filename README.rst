@@ -252,4 +252,8 @@ Credits
 Running Tests
 =============
 
-PYTHONPATH=.:$PYTHONPATH python -m unittest discover -s tests -p '*.py'
+Run the following command. ::
+
+    PYTHONPATH=.:$PYTHONPATH python -m unittest discover -s tests -p '*.py'
+
+NOTE: While test cases are running, the nvpy window is displayed many times.  It will impede your work.
