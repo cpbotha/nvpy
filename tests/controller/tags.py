@@ -1,13 +1,8 @@
 import unittest
-import ConfigParser 
-from mock import Mock
-from nvpy.view import View
-from nvpy.nvpy import NotesListModel
 from nvpy.nvpy import Controller
 from nvpy.nvpy import Config
 import os
 from nvpy import utils
-import time
 import shutil
 
 class Tags(unittest.TestCase):

@@ -1,6 +1,4 @@
 import unittest
-import ConfigParser 
-from mock import Mock
 from nvpy.nvpy import Config
 from nvpy.notes_db import NotesDB
 import os
