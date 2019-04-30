@@ -22,6 +22,10 @@ setup(
     long_description=read('README.rst'),
     # these are in reality not hard requirements of nvpy
     install_requires=['Markdown', 'docutils', 'simplenote>=2.1.2'],
+    extras_require={
+        # development and test requirements.
+        'dev': ['mock'],
+    },
     entry_points={
         'gui_scripts': ['nvpy = nvpy.nvpy:main']
     },
