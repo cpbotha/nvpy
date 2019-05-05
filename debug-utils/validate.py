@@ -2,10 +2,12 @@
 import json
 import os
 import glob
+import traceback
 
 cache_dir = os.path.expanduser('~/.nvpy')
 files = glob.glob(cache_dir + '/*.json')
 
+is_valid = True
 for file in files:
 	with open(file) as f:
 		obj = json.load(f)
@@ -25,9 +27,16 @@ for file in files:
 		except:
 			print('{}  Invalid'.format(file))
 			print(obj)
-			raise
+			print(traceback.format_exc())
+			print('')
+			is_valid = False
 		else:
 			print('{}  OK'.format(file))
 
-print('Done.  All notes are valid!')
+if is_valid:
+	print('Done.  All notes are valid!')
+else:
+	print('Done.  Some notes are broken :-(')
+	print('See above log for details.')
+	exit(1)
 
