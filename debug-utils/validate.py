@@ -22,7 +22,10 @@ for file in files:
 			assert 'tags' in obj       and type(obj['tags']) == list
 			assert 'content' in obj    and type(obj['content']) == unicode
 			# nvpy required fields.
-			assert 'savedate' in obj   and type(obj['savedate'] in [float, int])
+
+			# TODO: enable 'savedate' field validation
+			# NOTE: temporarily ignore 'savedate' field validation.
+			# assert 'savedate' in obj   and type(obj['savedate'] in [float, int])
 			assert 'syncdate' in obj   and type(obj['syncdate'] in [float, int])
 		except:
 			print('{}  Invalid'.format(file))
