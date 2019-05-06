@@ -1009,7 +1009,10 @@ class NotesDB(utils.SubjectMixin):
 
         try:
             self.waiting_for_simplenote = True
-            o, err = self.simplenote.update_note(note)
+            # WORKAROUND: simplenote <=v2.1.2 modifies the note passed by argument. To prevent on-memory database
+            #             corruption, Copy the note object before it is passed to simplenote library.
+            # https://github.com/cpbotha/nvpy/issues/181#issuecomment-489543782
+            o, err = self.simplenote.update_note(note.copy())
             self.waiting_for_simplenote = False
 
             if err == 0:
