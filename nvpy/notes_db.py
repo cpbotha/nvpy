@@ -756,7 +756,7 @@ class NotesDB(utils.SubjectMixin):
             #    In phase 2 to 5, synchronized all notes from server to client.
             self.notify_observers('progress:sync_full', utils.KeyValueObject(msg='Retrieving full note list from server, could take a while.'))
             self.waiting_for_simplenote = True
-            nl = self.simplenote.get_note_list()
+            nl = self.simplenote.get_note_list(data=False)
             self.waiting_for_simplenote = False
             if nl[1] == 0:
                 nl = nl[0]
