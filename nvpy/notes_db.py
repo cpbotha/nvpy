@@ -1085,5 +1085,8 @@ class Note(dict):
         return 'key' not in self or float(self['modifydate']) > float(self['syncdate'])
 
     def is_newer_than(self, other):
-        return float(self['modifydate']) > float(other['modifydate'])
+        try:
+            return float(self['modifydate']) > float(other['modifydate'])
+        except KeyError:
+            return self['version'] > other['version']
 
