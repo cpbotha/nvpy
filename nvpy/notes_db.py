@@ -1054,11 +1054,28 @@ class NotesDB(utils.SubjectMixin):
                             error_object=None,
                         )
 
-            return UpdateResult(
-                note=None,
-                is_updated=False,
-                error_object=o,
-            )
+                    else:
+                        # Local note and remote note are different.  But failed to update.
+                        logging.error('Could not update note %s to server: %s, local=%s, remote=%s' % (
+                            note['key'], update_error, local_note, remote_note))
+                        return UpdateResult(
+                            note=None,
+                            is_updated=False,
+                            error_object=update_error,
+                        )
+
+                else:
+                    get_error = o
+                    logging.error('Could not get/update note %s: update_error=%s, get_error=%s' % (
+                        note['key'], update_error, get_error))
+                    return UpdateResult(
+                        note=None,
+                        is_updated=False,
+                        error_object={
+                            'update_error': update_error,
+                            'get_error': get_error
+                        },
+                    )
 
         except httplib.HTTPException as e:
             # workaround for https://github.com/mrtazz/simplenote.py/issues/24
