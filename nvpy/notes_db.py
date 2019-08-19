@@ -878,11 +878,10 @@ class NotesDB(utils.SubjectMixin):
         self.notify_observers('change:note-status', utils.KeyValueObject(what='modifydate', key=key))
 
     def add_note_tags(self, key, comma_seperated_tags):
-        note = self.notes[key]
-        note_tags = note.get('tags')
         new_tags = utils.sanitise_tags(comma_seperated_tags)
-        note_tags.extend(new_tags)
-        note['tags'] = note_tags
+        note = self.notes[key]
+        tags_set = set(note.get('tags')) | set(new_tags)
+        note['tags'] = sorted(tags_set)
         note['modifydate'] = time.time()
         self.notify_observers('change:note-status', utils.KeyValueObject(what='modifydate', key=key))
 
