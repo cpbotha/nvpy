@@ -172,8 +172,8 @@ class SuggestionEntry(tk.Entry):
         self.orig_bind("<Return>", self.selection)
         self.orig_bind("<Up>", self.moveUp)
         self.orig_bind("<Down>", self.moveDown)
-        self.orig_bind("<FocusIn>", self.focusIn)
-        self.orig_bind("<FocusOut>", self.focusOut)
+        self.orig_bind("<FocusIn>", self.showSuggestions)
+        self.orig_bind("<FocusOut>", self.hideSuggestions)
 
     def new_bind(self, sequence=None, func=None, add=None):
         """
@@ -291,11 +291,11 @@ class SuggestionEntry(tk.Entry):
             index = str(int(oldIndex) + 1)
         self._select_listbox(index)
 
-    def focusIn(self, *args):
+    def showSuggestions(self, *args):
         self._create_listbox()
         self._update_listbox()
 
-    def focusOut(self, *args):
+    def hideSuggestions(self, *args):
         self._destroy_listbox()
 
 
