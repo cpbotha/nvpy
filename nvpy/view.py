@@ -261,7 +261,9 @@ class SuggestionEntry(tk.Entry):
         if self.listbox is None:
             return
 
-        self.var.set(self.listbox.get(tk.ACTIVE))
+        selected_tag = self.listbox.get(tk.ACTIVE)
+        if selected_tag:
+            self.var.set(selected_tag)
         self._destroy_listbox()
         self.icursor(tk.END)
 
