@@ -172,6 +172,7 @@ class SuggestionEntry(tk.Entry):
         self.orig_bind("<Return>", self.selection)
         self.orig_bind("<Up>", self.moveUp)
         self.orig_bind("<Down>", self.moveDown)
+        self.orig_bind("<Control-space>", self.showSuggestions)
         self.orig_bind("<FocusIn>", self.showSuggestions)
         self.orig_bind("<FocusOut>", self.hideSuggestions)
 
@@ -292,10 +293,16 @@ class SuggestionEntry(tk.Entry):
         self._select_listbox(index)
 
     def showSuggestions(self, *args):
+        if self.listbox is not None:
+            # The suggestion list is already displayed.
+            return
         self._create_listbox()
         self._update_listbox()
 
     def hideSuggestions(self, *args):
+        if self.listbox is None:
+            # The suggestion list is already hidden.
+            return
         self._destroy_listbox()
 
 
