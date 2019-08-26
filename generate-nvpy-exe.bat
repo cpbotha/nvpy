@@ -18,6 +18,10 @@ rem When you generate windows binary, you need the certifi package.
 rem See workaround code on nvpy.py for details.
 pip install --upgrade certifi
 
+rem Install dependencies.
+rem When build nvpy on the clean environment, this process is required.
+pip install --upgrade Markdown docutils simplenote
+
 python setup.py clean
 pyinstaller --onefile -i nvpy\icons\nvpy.ico --add-binary "nvpy\icons\nvpy.gif;icons" -n nvpy       --windowed start-nvpy.py
 pyinstaller --onefile -i nvpy\icons\nvpy.ico --add-binary "nvpy\icons\nvpy.gif;icons" -n nvpy-debug --console  start-nvpy.py
