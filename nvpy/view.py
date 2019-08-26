@@ -946,6 +946,7 @@ class View(utils.SubjectMixin):
 
         self.root = None
 
+        tk.Tk.report_callback_exception = self.handle_unexpected_error
         self._create_ui()
         self._bind_events()
 
@@ -960,6 +961,22 @@ class View(utils.SubjectMixin):
         #self.user_text.focus_set()
 
         self.search_entry.focus_set()
+
+    def handle_unexpected_error(self, *args):
+        # An unexpected error has occurred. The program MUST be stop immediately.
+        self.cancel_timers()
+
+        err = args[1]
+        if isinstance(err, tk.Ucs4NotSupportedError):
+            title, msg = 'UCS-4 not supported', str(err)
+        else:
+            import traceback
+            stackTrace = ''.join(traceback.format_exception(*args))
+            title, msg = "Unexpected Error", stackTrace
+
+        logging.error(msg)
+        self.show_error(title, msg)
+        exit(1)
 
     def askyesno(self, title, msg):
         return tkMessageBox.askyesno(title, msg)
