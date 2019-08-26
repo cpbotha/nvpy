@@ -22,17 +22,23 @@ class Ucs4NotSupportedError(BaseException):
         ).format(self.char)
 
 
-def handle_ucs4_error(fn):
+def with_ucs4_error_handling(fn):
     """ Catch the non-BMP character error and reraise the Ucs4NotSupportedError. """
-    try:
-        return fn()
-    except TclError as e:
-        import re
-        result = re.match(r'character (U\+[0-9a-f]+) is above the range \(U\+0000-U\+FFFF\) allowed by Tcl', str(e))
-        if result:
-            char = result.group(1)
-            raise Ucs4NotSupportedError(char)
-        raise
+    import functools
+
+    @functools.wraps(fn)
+    def wrapper(*args, **kwargs):
+        try:
+            return fn(*args, **kwargs)
+        except TclError as e:
+            import re
+            result = re.match(r'character (U\+[0-9a-f]+) is above the range \(U\+0000-U\+FFFF\) allowed by Tcl', str(e))
+            if result:
+                char = result.group(1)
+                raise Ucs4NotSupportedError(char)
+            raise
+
+    return wrapper
 
 
 ########################################################################
@@ -42,5 +48,6 @@ _Text = Text
 
 
 class Text(_Text):
+    @with_ucs4_error_handling
     def insert(self, *args, **kwargs):
-        handle_ucs4_error(lambda: _Text.insert(self, *args, **kwargs))
+        return _Text.insert(self, *args, **kwargs)

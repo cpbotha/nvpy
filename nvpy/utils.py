@@ -204,6 +204,7 @@ class SubjectMixin:
 
     def add_observer(self, evt_type, o):
         from .debug import wrap_buggy_function
+        o = tk.with_ucs4_error_handling(o)
         o = wrap_buggy_function(o)
 
         if evt_type not in self.observers:
@@ -241,11 +242,8 @@ class SubjectMixin:
             pass
 
     def __invoke_observer(self, observer, event_type, event):
-        def caller():
-            # invoke observers with ourselves as first param
-            observer(self, event_type, event)
-
-        tk.handle_ucs4_error(caller)
+        # invoke observers with ourselves as first param
+        observer(self, event_type, event)
 
     def mute(self, evt_type):
         self.mutes[evt_type] = True
