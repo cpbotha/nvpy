@@ -868,7 +868,7 @@ def main():
         controller = Controller(config)
         controller.main_loop()
     except tk.Ucs4NotSupportedError as e:
-        print(str(e))
+        logging.error(str(e))
         import tkMessageBox
         tkMessageBox.showerror('UCS-4 not supported', str(e))
         raise
