@@ -328,66 +328,70 @@ class Controller:
         # create the interface
         self.view = view.View(self.config, self.notes_list_model)
 
-        # read our database of notes into memory
-        # and sync with simplenote.
         try:
-            self.notes_db = NotesDB(self.config)
+            # read our database of notes into memory
+            # and sync with simplenote.
+            try:
+                self.notes_db = NotesDB(self.config)
+            except ReadError, e:
+                emsg = "Please check nvpy.log.\n" + str(e)
+                self.view.show_error('Sync error', emsg)
+                exit(1)
 
-        except ReadError, e:
-            emsg = "Please check nvpy.log.\n" + str(e)
-            self.view.show_error('Sync error', emsg)
-            exit(1)
+            self.notes_db.add_observer('synced:note', self.observer_notes_db_synced_note)
+            self.notes_db.add_observer('change:note-status', self.observer_notes_db_change_note_status)
 
-        self.notes_db.add_observer('synced:note', self.observer_notes_db_synced_note)
-        self.notes_db.add_observer('change:note-status', self.observer_notes_db_change_note_status)
+            if self.config.simplenote_sync:
+                self.notes_db.add_observer('progress:sync_full', self.observer_notes_db_sync_full)
+                self.notes_db.add_observer('error:sync_full', self.observer_notes_db_error_sync_full)
+                self.notes_db.add_observer('complete:sync_full', self.observer_notes_db_complete_sync_full)
 
-        if self.config.simplenote_sync:
-            self.notes_db.add_observer('progress:sync_full', self.observer_notes_db_sync_full)
-            self.notes_db.add_observer('error:sync_full', self.observer_notes_db_error_sync_full)
-            self.notes_db.add_observer('complete:sync_full', self.observer_notes_db_complete_sync_full)
+            # we want to be notified when the user does stuff
+            self.view.add_observer('click:notelink',
+                    self.observer_view_click_notelink)
+            self.view.add_observer('delete:note', self.observer_view_delete_note)
+            self.view.add_observer('select:note', self.observer_view_select_note)
+            self.view.add_observer('change:entry', self.observer_view_change_entry)
+            self.view.add_observer('change:text', self.observer_view_change_text)
+            self.view.add_observer('change:pinned', self.observer_view_change_pinned)
+            self.view.add_observer('create:note', self.observer_view_create_note)
+            self.view.add_observer('keep:house', self.observer_view_keep_house)
+            self.view.add_observer('command:markdown', self.observer_view_markdown)
+            self.view.add_observer('command:rest', self.observer_view_rest)
+            self.view.add_observer('delete:tag', self.observer_view_delete_tag)
+            self.view.add_observer('add:tag', self.observer_view_add_tag)
 
-        # we want to be notified when the user does stuff
-        self.view.add_observer('click:notelink',
-                self.observer_view_click_notelink)
-        self.view.add_observer('delete:note', self.observer_view_delete_note)
-        self.view.add_observer('select:note', self.observer_view_select_note)
-        self.view.add_observer('change:entry', self.observer_view_change_entry)
-        self.view.add_observer('change:text', self.observer_view_change_text)
-        self.view.add_observer('change:pinned', self.observer_view_change_pinned)
-        self.view.add_observer('create:note', self.observer_view_create_note)
-        self.view.add_observer('keep:house', self.observer_view_keep_house)
-        self.view.add_observer('command:markdown', self.observer_view_markdown)
-        self.view.add_observer('command:rest', self.observer_view_rest)
-        self.view.add_observer('delete:tag', self.observer_view_delete_tag)
-        self.view.add_observer('add:tag', self.observer_view_add_tag)
+            if self.config.simplenote_sync:
+                self.view.add_observer('command:sync_full', lambda v, et, e: self.sync_full())
+                self.view.add_observer('command:sync_current_note', self.observer_view_sync_current_note)
 
-        if self.config.simplenote_sync:
-            self.view.add_observer('command:sync_full', lambda v, et, e: self.sync_full())
-            self.view.add_observer('command:sync_current_note', self.observer_view_sync_current_note)
+            self.view.add_observer('close', self.observer_view_close)
 
-        self.view.add_observer('close', self.observer_view_close)
+            # setup UI to reflect our search mode and case sensitivity
+            self.view.set_cs(self.config.case_sensitive, silent=True)
+            self.view.set_search_mode(self.config.search_mode, silent=True)
 
-        # setup UI to reflect our search mode and case sensitivity
-        self.view.set_cs(self.config.case_sensitive, silent=True)
-        self.view.set_search_mode(self.config.search_mode, silent=True)
+            self.view.add_observer('change:cs', self.observer_view_change_cs)
+            self.view.add_observer('change:search_mode', self.observer_view_change_search_mode)
 
-        self.view.add_observer('change:cs', self.observer_view_change_cs)
-        self.view.add_observer('change:search_mode', self.observer_view_change_search_mode)
+            # nn is a list of (key, note) objects
+            nn, match_regexp, active_notes = self.notes_db.filter_notes()
+            # this will trigger the list_change event
+            self.notes_list_model.set_list(nn)
+            self.notes_list_model.match_regexp = match_regexp
+            self.view.set_note_tally(len(nn), active_notes, len(self.notes_db.notes))
 
-        # nn is a list of (key, note) objects
-        nn, match_regexp, active_notes = self.notes_db.filter_notes()
-        # this will trigger the list_change event
-        self.notes_list_model.set_list(nn)
-        self.notes_list_model.match_regexp = match_regexp
-        self.view.set_note_tally(len(nn), active_notes, len(self.notes_db.notes))
+            # we'll use this to keep track of the currently selected note
+            # we only use idx, because key could change from right under us.
+            self.selected_note_key = None
+            self.view.select_note(0)
 
-        # we'll use this to keep track of the currently selected note
-        # we only use idx, because key could change from right under us.
-        self.selected_note_key = None
-        self.view.select_note(0)
-
-        if self.config.simplenote_sync:
-            self.view.after(0, self.sync_full)
+            if self.config.simplenote_sync:
+                self.view.after(0, self.sync_full)
+        except BaseException:
+            # Initialization failed.  Stop all timers.
+            self.view.cancel_timers()
+            raise
 
     def main_loop(self):
         if not self.config.files_read:
@@ -405,7 +409,11 @@ class Controller:
             self.notes_db.handle_notifies()
 
         self.view.after(0, poll_notifies)
-        self.view.main_loop()
+        try:
+            self.view.main_loop()
+        finally:
+            # Cancel all timers before stop this program.
+            self.view.cancel_timers()
 
     def observer_notes_db_change_note_status(self, notes_db, evt_type, evt):
         skey = self.selected_note_key
