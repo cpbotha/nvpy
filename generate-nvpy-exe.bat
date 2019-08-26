@@ -9,6 +9,8 @@ rem Output:
 rem   dist\nvpy.exe
 rem   dist\nvpy-debug.exe
 
+rem Remove build cache and executable files before starting build.
+rmdir /q /s build
 del dist\nvpy.exe
 del dist\nvpy-debug.exe
 
