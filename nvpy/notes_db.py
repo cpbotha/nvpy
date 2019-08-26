@@ -756,7 +756,7 @@ class NotesDB(utils.SubjectMixin):
             #    In phase 2 to 5, synchronized all notes from server to client.
             self.notify_observers('progress:sync_full', utils.KeyValueObject(msg='Retrieving full note list from server, could take a while.'))
             self.waiting_for_simplenote = True
-            nl = self.simplenote.get_note_list()
+            nl = self.simplenote.get_note_list(data=False)
             self.waiting_for_simplenote = False
             if nl[1] == 0:
                 nl = nl[0]
@@ -878,11 +878,10 @@ class NotesDB(utils.SubjectMixin):
         self.notify_observers('change:note-status', utils.KeyValueObject(what='modifydate', key=key))
 
     def add_note_tags(self, key, comma_seperated_tags):
-        note = self.notes[key]
-        note_tags = note.get('tags')
         new_tags = utils.sanitise_tags(comma_seperated_tags)
-        note_tags.extend(new_tags)
-        note['tags'] = note_tags
+        note = self.notes[key]
+        tags_set = set(note.get('tags')) | set(new_tags)
+        note['tags'] = sorted(tags_set)
         note['modifydate'] = time.time()
         self.notify_observers('change:note-status', utils.KeyValueObject(what='modifydate', key=key))
 
@@ -1009,7 +1008,10 @@ class NotesDB(utils.SubjectMixin):
 
         try:
             self.waiting_for_simplenote = True
-            o, err = self.simplenote.update_note(note)
+            # WORKAROUND: simplenote <=v2.1.2 modifies the note passed by argument. To prevent on-memory database
+            #             corruption, Copy the note object before it is passed to simplenote library.
+            # https://github.com/cpbotha/nvpy/issues/181#issuecomment-489543782
+            o, err = self.simplenote.update_note(note.copy())
             self.waiting_for_simplenote = False
 
             if err == 0:
@@ -1051,11 +1053,28 @@ class NotesDB(utils.SubjectMixin):
                             error_object=None,
                         )
 
-            return UpdateResult(
-                note=None,
-                is_updated=False,
-                error_object=o,
-            )
+                    else:
+                        # Local note and remote note are different.  But failed to update.
+                        logging.error('Could not update note %s to server: %s, local=%s, remote=%s' % (
+                            note['key'], update_error, local_note, remote_note))
+                        return UpdateResult(
+                            note=None,
+                            is_updated=False,
+                            error_object=update_error,
+                        )
+
+                else:
+                    get_error = o
+                    logging.error('Could not get/update note %s: update_error=%s, get_error=%s' % (
+                        note['key'], update_error, get_error))
+                    return UpdateResult(
+                        note=None,
+                        is_updated=False,
+                        error_object={
+                            'update_error': update_error,
+                            'get_error': get_error
+                        },
+                    )
 
         except httplib.HTTPException as e:
             # workaround for https://github.com/mrtazz/simplenote.py/issues/24
@@ -1082,5 +1101,8 @@ class Note(dict):
         return 'key' not in self or float(self['modifydate']) > float(self['syncdate'])
 
     def is_newer_than(self, other):
-        return float(self['modifydate']) > float(other['modifydate'])
+        try:
+            return float(self['modifydate']) > float(other['modifydate'])
+        except KeyError:
+            return self['version'] > other['version']
 

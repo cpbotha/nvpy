@@ -172,23 +172,33 @@ class SuggestionEntry(tk.Entry):
         self.orig_bind("<Return>", self.selection)
         self.orig_bind("<Up>", self.moveUp)
         self.orig_bind("<Down>", self.moveDown)
-        self.orig_bind("<FocusIn>", self.focusIn)
-        self.orig_bind("<FocusOut>", self.focusOut)
+        self.orig_bind("<Control-space>", self.showSuggestions)
+        self.orig_bind("<FocusIn>", self.showSuggestions)
+        self.orig_bind("<FocusOut>", self.hideSuggestions)
 
     def new_bind(self, sequence=None, func=None, add=None):
         """
-        Hijack a key binding to "<Return>"
+        Hijack key bindings
         """
+        orig_func = func
         if sequence == '<Return>' and func is not None:
-            orig_func = func
-            def new_func(*args):
+            def handle_return(*args):
                 if self.listbox is not None:
                     # If completion word list is shown, call to self.selection() instead of func().
                     self.selection()
                     return
-                return orig_func()
+                return orig_func(*args)
 
-            func = new_func
+            func = handle_return
+        elif sequence == '<Escape>' and func is not None:
+            def handle_escape(*args):
+                if self.listbox is not None:
+                    # If completion word list is shown, close it.
+                    self._destroy_listbox()
+                    return
+                return orig_func(*args)
+
+            func = handle_escape
         return self.orig_bind(sequence, func, add)
 
     def _create_listbox(self):
@@ -252,7 +262,9 @@ class SuggestionEntry(tk.Entry):
         if self.listbox is None:
             return
 
-        self.var.set(self.listbox.get(tk.ACTIVE))
+        selected_tag = self.listbox.get(tk.ACTIVE)
+        if selected_tag:
+            self.var.set(selected_tag)
         self._destroy_listbox()
         self.icursor(tk.END)
 
@@ -280,11 +292,17 @@ class SuggestionEntry(tk.Entry):
             index = str(int(oldIndex) + 1)
         self._select_listbox(index)
 
-    def focusIn(self, *args):
+    def showSuggestions(self, *args):
+        if self.listbox is not None:
+            # The suggestion list is already displayed.
+            return
         self._create_listbox()
         self._update_listbox()
 
-    def focusOut(self, *args):
+    def hideSuggestions(self, *args):
+        if self.listbox is None:
+            # The suggestion list is already hidden.
+            return
         self._destroy_listbox()
 
 

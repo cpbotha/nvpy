@@ -2,10 +2,12 @@
 import json
 import os
 import glob
+import traceback
 
 cache_dir = os.path.expanduser('~/.nvpy')
 files = glob.glob(cache_dir + '/*.json')
 
+is_valid = True
 for file in files:
 	with open(file) as f:
 		obj = json.load(f)
@@ -20,14 +22,24 @@ for file in files:
 			assert 'tags' in obj       and type(obj['tags']) == list
 			assert 'content' in obj    and type(obj['content']) == unicode
 			# nvpy required fields.
-			assert 'savedate' in obj   and type(obj['savedate'] in [float, int])
+
+			# TODO: enable 'savedate' field validation
+			# NOTE: temporarily ignore 'savedate' field validation.
+			# assert 'savedate' in obj   and type(obj['savedate'] in [float, int])
 			assert 'syncdate' in obj   and type(obj['syncdate'] in [float, int])
 		except:
 			print('{}  Invalid'.format(file))
 			print(obj)
-			raise
+			print(traceback.format_exc())
+			print('')
+			is_valid = False
 		else:
 			print('{}  OK'.format(file))
 
-print('Done.  All notes are valid!')
+if is_valid:
+	print('Done.  All notes are valid!')
+else:
+	print('Done.  Some notes are broken :-(')
+	print('See above log for details.')
+	exit(1)
 

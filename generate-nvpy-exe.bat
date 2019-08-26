@@ -9,12 +9,18 @@ rem Output:
 rem   dist\nvpy.exe
 rem   dist\nvpy-debug.exe
 
+rem Remove build cache and executable files before starting build.
+rmdir /q /s build
 del dist\nvpy.exe
 del dist\nvpy-debug.exe
 
 rem When you generate windows binary, you need the certifi package.
 rem See workaround code on nvpy.py for details.
 pip install --upgrade certifi
+
+rem Install dependencies.
+rem When build nvpy on the clean environment, this process is required.
+pip install --upgrade Markdown docutils simplenote
 
 python setup.py clean
 pyinstaller --onefile -i nvpy\icons\nvpy.ico --add-binary "nvpy\icons\nvpy.gif;icons" -n nvpy       --windowed start-nvpy.py
