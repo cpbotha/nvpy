@@ -11,6 +11,7 @@ import tkFont
 import tkMessageBox
 import utils
 import webbrowser
+import threading
 
 
 class WidgetRedirector:
@@ -940,9 +941,12 @@ class View(utils.SubjectMixin):
 
         notes_list_model.add_observer('set:list', self.observer_notes_list)
         self.notes_list_model = notes_list_model
+        self.timer_ids_lock = threading.Lock()
+        self.timer_ids = set()
 
         self.root = None
 
+        tk.Tk.report_callback_exception = self.handle_unexpected_error
         self._create_ui()
         self._bind_events()
 
@@ -957,6 +961,22 @@ class View(utils.SubjectMixin):
         #self.user_text.focus_set()
 
         self.search_entry.focus_set()
+
+    def handle_unexpected_error(self, *args):
+        # An unexpected error has occurred. The program MUST be stop immediately.
+        self.cancel_timers()
+
+        err = args[1]
+        if isinstance(err, tk.Ucs4NotSupportedError):
+            title, msg = 'UCS-4 not supported', str(err)
+        else:
+            import traceback
+            stackTrace = ''.join(traceback.format_exception(*args))
+            title, msg = "Unexpected Error", stackTrace
+
+        logging.error(msg)
+        self.show_error(title, msg)
+        exit(1)
 
     def askyesno(self, title, msg):
         return tkMessageBox.askyesno(title, msg)
@@ -1154,7 +1174,7 @@ class View(utils.SubjectMixin):
 
         self.pinned_checkbutton_var.trace('w', self.handler_pinned_checkbutton)
 
-        self.root.after(self.config.housekeeping_interval_ms, self.handler_housekeeper)
+        self.after(self.config.housekeeping_interval_ms, self.handler_housekeeper)
 
     def _create_menu(self):
         """Utility function to setup main menu.
@@ -1658,7 +1678,7 @@ class View(utils.SubjectMixin):
             if refresh_notes_list:
                 self.refresh_notes_list()
 
-            self.root.after(self.config.housekeeping_interval_ms, self.handler_housekeeper)
+            self.after(self.config.housekeeping_interval_ms, self.handler_housekeeper)
         except Exception as e:
             self.show_error('Housekeeper error', 'An error occurred during housekeeping.\n' + str(e))
             raise
@@ -1843,9 +1863,9 @@ class View(utils.SubjectMixin):
             return True
 
         tags = note.get('tags', [])
-        
+
         # get list of string tags from ui
-        tag_elements = self.note_existing_tags_frame.children.values() 
+        tag_elements = self.note_existing_tags_frame.children.values()
         ui_tags = [element['text'].replace(' x', '') for element in tag_elements]
 
         if sorted(ui_tags) != sorted(tags):
@@ -2054,4 +2074,21 @@ class View(utils.SubjectMixin):
         self.show_info('Word Count', '%d words in total\n%d words in selection' % (tlen, slen))
 
     def after(self, ms, callback):
-        self.root.after(ms, callback)
+        timer_id = 'dummy_value'
+
+        def fn():
+            with self.timer_ids_lock:
+                # timer_id is updated to actual value by self.root.after().
+                self.timer_ids.remove(timer_id)
+
+            callback()
+
+        with self.timer_ids_lock:
+            timer_id = self.root.after(ms, fn)
+            self.timer_ids.add(timer_id)
+            return timer_id
+
+    def cancel_timers(self):
+        with self.timer_ids_lock:
+            for timer_id in self.timer_ids:
+                self.root.after_cancel(timer_id)
