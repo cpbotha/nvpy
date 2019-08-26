@@ -44,6 +44,7 @@ import threading
 import re
 import collections
 
+import tk
 from utils import KeyValueObject, SubjectMixin
 import view
 import webbrowser
@@ -855,8 +856,14 @@ def main():
 
     config = Config(appdir_full_path)
 
-    controller = Controller(config)
-    controller.main_loop()
+    try:
+        controller = Controller(config)
+        controller.main_loop()
+    except tk.Ucs4NotSupportedError as e:
+        print(str(e))
+        import tkMessageBox
+        tkMessageBox.showerror('UCS-4 not supported', str(e))
+        raise
 
 
 if __name__ == '__main__':

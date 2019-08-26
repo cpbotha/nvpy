@@ -10,6 +10,8 @@ import urllib2
 import threading
 from Queue import Queue, Empty as QueueEmpty
 
+import tk
+
 # first line with non-whitespace should be the title
 note_title_re = re.compile('\s*(.*)\n?')
 
@@ -216,8 +218,7 @@ class SubjectMixin:
 
         if threading.current_thread() == self.MAIN_THREAD:
             for o in self.observers[evt_type]:
-                # invoke observers with ourselves as first param
-                o(self, evt_type, evt)
+                self.__invoke_observer(o, evt_type, evt)
 
         else:
             # Tkinter is not thread safe. so, observers must be executed on MAIN_THREAD.
@@ -234,11 +235,17 @@ class SubjectMixin:
                 evt_type, evt = self.notifies.get_nowait()
 
                 for o in self.observers[evt_type]:
-                    # invoke observers with ourselves as first param
-                    o(self, evt_type, evt)
+                    self.__invoke_observer(o, evt_type, evt)
 
         except QueueEmpty:
             pass
+
+    def __invoke_observer(self, observer, event_type, event):
+        def caller():
+            # invoke observers with ourselves as first param
+            observer(self, event_type, event)
+
+        tk.handle_ucs4_error(caller)
 
     def mute(self, evt_type):
         self.mutes[evt_type] = True
