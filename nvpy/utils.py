@@ -22,7 +22,7 @@ else:
 
 import threading
 
-import tk
+from . import tk
 
 # first line with non-whitespace should be the title
 note_title_re = re.compile('\s*(.*)\n?')
