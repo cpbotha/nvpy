@@ -5,11 +5,16 @@
 import logging
 import os
 import re
-import search_entry
-import tk
-import tkFont
-import tkMessageBox
-import utils
+from . import search_entry
+from . import tk
+try:
+    import tkFont
+    import tkMessageBox
+except ImportError:
+    from tkinter import messagebox as tkMessageBox
+    import tkinter.font as tkFont
+
+from . import utils
 import webbrowser
 import threading
 
@@ -509,7 +514,7 @@ class NotesList(tk.Frame):
             self.text.insert(tk.END, ' ' + utils.human_date(modifydate), ("modifydate",))
 
             # tags can be None (newly created note) or [] or ['tag1', 'tag2']
-            if tags > 0:
+            if tags:
                 if config.tagfound:
                     self.text.insert(tk.END, ' ' + ','.join(tags), ("found",))
                 else:
@@ -1947,7 +1952,8 @@ class View(utils.SubjectMixin):
             # note is None - for tags machinery further down, we have empty list
             tags = []
 
-        for tag_button in self.note_existing_tags_frame.children.values():
+        tag_button_list = list(self.note_existing_tags_frame.children.values())
+        for tag_button in tag_button_list:
             tag_button.destroy()
 
         for tag in tags:

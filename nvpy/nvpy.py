@@ -29,26 +29,36 @@
 #   b) syncing with simplenote
 
 # to check if we're online
+import sys
+
+if sys.version_info.major == 2:
+    PYTHON2 = True
+else:
+    PYTHON2 = False
 
 import codecs
-import ConfigParser
+if PYTHON2:
+    import ConfigParser
+else:
+    import configparser as ConfigParser
+    from .p3port import unicode
+
 import logging
 from logging.handlers import RotatingFileHandler
-from notes_db import NotesDB, SyncError, ReadError, WriteError
+from .notes_db import NotesDB, SyncError, ReadError, WriteError
 import argparse
 import os
-import sys
 import time
 import traceback
 import threading
 import re
 import collections
 
-import tk
-from utils import KeyValueObject, SubjectMixin
-import view
+from . import tk
+from .utils import KeyValueObject, SubjectMixin
+from . import view
 import webbrowser
-from version import VERSION
+from .version import VERSION
 
 try:
     import markdown
@@ -135,8 +145,8 @@ class Config:
                     'debug': '1',
                     # Filename or filepath to a css file used style the rendered
                     # output; e.g. nvpy.css or /path/to/my.css
-                    'rest_css_path': None,
-                    'md_css_path': None,
+                    'rest_css_path': '',
+                    'md_css_path': '',
                     'md_extensions': '',
                     'keep_search_keyword': 'false',
                     'confirm_delete': 'true',
@@ -435,13 +445,13 @@ class Controller:
     def observer_notes_db_error_sync_full(self, notes_db, evt_type, evt):
         try:
             raise evt.error
-        except SyncError, e:
+        except SyncError as e:
             self.view.show_error('Sync error', e)
-        except WriteError, e:
+        except WriteError as e:
             emsg = "Please check nvpy.log.\n" + str(e)
             self.view.show_error('Sync error', emsg)
             exit(1)
-        except Exception, e:
+        except Exception as e:
             crash_log = ''.join(traceback.format_exception(*evt.exc_info))
             logging.error(crash_log)
             emsg = 'An unexpected error has occurred.\n'\

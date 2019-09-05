@@ -6,11 +6,13 @@
 Translated from Tcl code by Schelte Bron, http://wiki.tcl.tk/18188"""
 
 try:
+    # Python2
     import Tkinter
+    import ttk
 except ImportError:
+    # Python3
     import tkinter as Tkinter
-
-import ttk
+    from tkinter import ttk
 
 data = """
 R0lGODlhKgAaAOfnAFdZVllbWFpcWVtdWlxeW11fXF9hXmBiX2ZnZWhpZ2lraGxua25wbXJ0

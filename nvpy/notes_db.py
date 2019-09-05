@@ -1,29 +1,44 @@
 # nvPY: cross-platform note-taking app with simplenote syncing
 # copyright 2012 by Charl P. Botha <cpbotha@vxlabs.com>
 # new BSD license
+from __future__ import print_function
+import sys
+
+if sys.version_info.major == 2:
+    PYTHON2 = True
+else:
+    PYTHON2 = False
 
 import codecs
 import copy
 import glob
 import os
-import sys
 import json
 import logging
-from Queue import Queue, Empty
+if PYTHON2:
+    from Queue import Queue, Empty
+    from httplib import HTTPException
+else:
+    from queue import Queue, Empty
+    from http.client import HTTPException
+    from .p3port import unicode
+
 import re
 import base64
 import collections
-import httplib
 import simplenote
 from simplenote import Simplenote
 
 # API key provided for nvPY.
 # Please do not use for other software!
-simplenote.simplenote.API_KEY = ''.join(reversed(base64.b64decode('OTg0OTI4ZTg4YjY0NzMyOTZjYzQzY2IwMDI1OWFkMzg=')))
+if PYTHON2:
+    simplenote.simplenote.API_KEY = ''.join(reversed(base64.b64decode('OTg0OTI4ZTg4YjY0NzMyOTZjYzQzY2IwMDI1OWFkMzg=')))
+else:
+    simplenote.simplenote.API_KEY = bytes(reversed(base64.b64decode('OTg0OTI4ZTg4YjY0NzMyOTZjYzQzY2IwMDI1OWFkMzg=')))
 
 from threading import Thread, Lock
 import time
-import utils
+from . import utils
 
 ACTION_SAVE = 0
 ACTION_SYNC_PARTIAL_TO_SERVER = 1
@@ -114,11 +129,11 @@ class NotesDB(utils.SubjectMixin):
                             n['deleted'] = 1
                             n['modifydate'] = now
 
-            except IOError, e:
+            except IOError as e:
                 logging.error('NotesDB_init: Error opening %s: %s' % (fn, str(e)))
                 raise ReadError('Error opening note file')
 
-            except ValueError, e:
+            except ValueError as e:
                 logging.error('NotesDB_init: Error reading %s: %s' % (fn, str(e)))
                 raise ReadError('Error reading note file')
 
@@ -139,11 +154,11 @@ class NotesDB(utils.SubjectMixin):
                     with codecs.open(tfn, mode='rb', encoding='utf-8') as f:
                         c = f.read()
 
-                except IOError, e:
+                except IOError as e:
                     logging.error('NotesDB_init: Error opening %s: %s' % (fn, str(e)))
                     raise ReadError('Error opening note file')
 
-                except ValueError, e:
+                except ValueError as e:
                     logging.error('NotesDB_init: Error reading %s: %s' % (fn, str(e)))
                     raise ReadError('Error reading note file')
 
@@ -242,13 +257,13 @@ class NotesDB(utils.SubjectMixin):
                 # sort alphabetically on title
                 filtered_notes.sort(key=lambda o: utils.get_note_title(o.note))
             else:
-                filtered_notes.sort(utils.sort_by_title_pinned)
+                filtered_notes.sort(key=utils.sort_key_by_title_pinned)
         elif self.config.sort_mode == 2:
             if self.config.pinned_ontop == 0:
                 # last modified on top
                 filtered_notes.sort(key=lambda o: -float(o.note.get('createdate', 0)))
             else:
-                filtered_notes.sort(utils.sort_by_create_date_pinned, reverse=True)
+                filtered_notes.sort(key=utils.sort_key_by_create_date_pinned, reverse=True)
 
 
         else:
@@ -256,7 +271,7 @@ class NotesDB(utils.SubjectMixin):
                 # last modified on top
                 filtered_notes.sort(key=lambda o: -float(o.note.get('modifydate', 0)))
             else:
-                filtered_notes.sort(utils.sort_by_modify_date_pinned, reverse=True)
+                filtered_notes.sort(key=utils.sort_key_by_modify_date_pinned, reverse=True)
 
         return filtered_notes, match_regexp, active_notes
 
@@ -495,11 +510,11 @@ class NotesDB(utils.SubjectMixin):
                             c = unicode(c)
 
                         f.write(c)
-                except IOError, e:
+                except IOError as e:
                     logging.error('NotesDB_save: Error opening %s: %s' % (fn, str(e)))
                     raise WriteError('Error opening note file')
 
-                except ValueError, e:
+                except ValueError as e:
                     logging.error('NotesDB_save: Error writing %s: %s' % (fn, str(e)))
                     raise WriteError('Error writing note file')
 
@@ -514,7 +529,7 @@ class NotesDB(utils.SubjectMixin):
             if os.path.isfile(fn):
                 os.unlink(fn)
         else:
-            json.dump(note, open(fn, 'wb'), indent=2)
+            json.dump(note, codecs.open(fn, 'wb', encoding='utf-8'), indent=2)
 
         # record that we saved this to disc.
         note['savedate'] = time.time()
@@ -774,7 +789,7 @@ class NotesDB(utils.SubjectMixin):
                 k = n.get('key')
                 server_keys[k] = True
 
-            for lk in self.notes.keys():
+            for lk in list(self.notes.keys()):
                 if lk not in server_keys:
                     if self.notes[lk]['syncdate'] == 0:
                         # This note MUST NOT delete because it was created during phase 1 or phase 2.
@@ -933,9 +948,9 @@ class NotesDB(utils.SubjectMixin):
                 try:
                     self.helper_save_note(o.key, o.note)
 
-                except WriteError, e:
+                except WriteError as e:
                     logging.error('FATAL ERROR in access to file system')
-                    print "FATAL ERROR: Check the nvpy.log"
+                    print("FATAL ERROR: Check the nvpy.log")
                     os._exit(1)
 
                 else:
