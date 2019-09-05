@@ -41,11 +41,11 @@ if PYTHON2:
     import ConfigParser
 else:
     import configparser as ConfigParser
-    from p3port import unicode
+    from .p3port import unicode
 
 import logging
 from logging.handlers import RotatingFileHandler
-from notes_db import NotesDB, SyncError, ReadError, WriteError
+from .notes_db import NotesDB, SyncError, ReadError, WriteError
 import argparse
 import os
 import time
@@ -54,10 +54,10 @@ import threading
 import re
 import collections
 
-from utils import KeyValueObject, SubjectMixin
-import view
+from .utils import KeyValueObject, SubjectMixin
+from . import view
 import webbrowser
-from version import VERSION
+from .version import VERSION
 
 try:
     import markdown

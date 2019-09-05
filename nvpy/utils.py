@@ -18,7 +18,7 @@ if PYTHON2:
 else:
     from urllib.request import urlopen, URLError
     from queue import Queue, Empty as QueueEmpty
-    from p3port import unicode
+    from .p3port import unicode
 
 import threading
 
@@ -201,7 +201,7 @@ class SubjectMixin:
         self.notifies = Queue()
 
     def add_observer(self, evt_type, o):
-        from debug import wrap_buggy_function
+        from .debug import wrap_buggy_function
         o = wrap_buggy_function(o)
 
         if evt_type not in self.observers:

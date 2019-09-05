@@ -21,7 +21,7 @@ if PYTHON2:
 else:
     from queue import Queue, Empty
     from http.client import HTTPException
-    from p3port import unicode
+    from .p3port import unicode
 
 import re
 import base64
@@ -38,13 +38,13 @@ else:
 
 from threading import Thread, Lock
 import time
-import utils
+from . import utils
 
 ACTION_SAVE = 0
 ACTION_SYNC_PARTIAL_TO_SERVER = 1
 ACTION_SYNC_PARTIAL_FROM_SERVER = 2  # UNUSED.
 
-from debug import wrap_buggy_function
+from .debug import wrap_buggy_function
 
 
 class SyncError(RuntimeError):

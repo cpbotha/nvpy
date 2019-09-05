@@ -5,8 +5,8 @@
 import logging
 import os
 import re
-import search_entry
-import tk
+from . import search_entry
+from . import tk
 try:
     import tkFont
     import tkMessageBox
@@ -14,7 +14,7 @@ except ImportError:
     from tkinter import messagebox as tkMessageBox
     import tkinter.font as tkFont
 
-import utils
+from . import utils
 import webbrowser
 
 
