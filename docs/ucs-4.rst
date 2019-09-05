@@ -29,6 +29,8 @@ Rebuild the python2, tk, and tcl with :code:`CFLAGS=-DTCL_UTF_MAX=6` and :code:`
 
     # build.sh
     export CFLAGS=-DTCL_UTF_MAX=6
+    export PREFIX=/opt/nvpy
+    export LD_LIBRARY_PATH=$PREFIX/lib
 
     tar xf tcl8.6.9-src.tar.gz
     tar xf tk8.6.9-src.tar.gz
