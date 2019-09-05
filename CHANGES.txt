@@ -1,4 +1,4 @@
-v1.2.2, TBD -- Fixed database corruption bug. Fixed UI bugs. Fixed full-sync issue. Added TclError handling.
+v1.2.2, 2019-09-05 -- Fixed database corruption bug. Fixed UI bugs. Fixed full-sync issue. Added TclError handling.
 v1.2.1, 2019-04-29 -- Fixed freeze bug
 v1.2.0, 2019-04-25 -- Provide stand alone executable file (nvpy.exe) for Windows.
 v1.1.0, 2019-03-31 -- Improved reliability of save and sync, Added black theme, confirm exit, migrate to the simperium api, fixed some bug
