@@ -343,7 +343,7 @@ class Controller:
             # and sync with simplenote.
             try:
                 self.notes_db = NotesDB(self.config)
-            except ReadError, e:
+            except ReadError as e:
                 emsg = "Please check nvpy.log.\n" + str(e)
                 self.view.show_error('Sync error', emsg)
                 exit(1)

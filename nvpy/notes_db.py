@@ -859,7 +859,7 @@ class NotesDB(utils.SubjectMixin):
 
             self.notify_observers('complete:sync_full', utils.KeyValueObject(errors=sync_from_server_errors))
 
-        except Exception, e:
+        except Exception as e:
             # Report an error to UI thread.
             self.notify_observers('error:sync_full', utils.KeyValueObject(error=e, exc_info=sys.exc_info()))
 
