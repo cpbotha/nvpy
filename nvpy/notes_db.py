@@ -1091,7 +1091,7 @@ class NotesDB(utils.SubjectMixin):
                         },
                     )
 
-        except httplib.HTTPException as e:
+        except HTTPException as e:
             # workaround for https://github.com/mrtazz/simplenote.py/issues/24
             return UpdateResult(
                 note=None,
