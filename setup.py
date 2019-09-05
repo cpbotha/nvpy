@@ -33,7 +33,8 @@ setup(
     # because package_data is ignored during sdist
     include_package_data=True,
     classifiers=[
-        "Development Status :: 5 - Production/Stable",
+        # See https://pypi.org/classifiers/
+        "Development Status :: 3 - Alpha",
         "Environment :: X11 Applications",
         "Environment :: MacOS X",
         "Environment :: Win32 (MS Windows)",
