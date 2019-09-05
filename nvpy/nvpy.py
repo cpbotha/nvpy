@@ -144,8 +144,8 @@ class Config:
                     'debug': '1',
                     # Filename or filepath to a css file used style the rendered
                     # output; e.g. nvpy.css or /path/to/my.css
-                    'rest_css_path': None,
-                    'md_css_path': None,
+                    'rest_css_path': '',
+                    'md_css_path': '',
                     'md_extensions': '',
                     'keep_search_keyword': 'false',
                     'confirm_delete': 'true',
