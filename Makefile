@@ -1,3 +1,3 @@
 
 test:
-	PYTHONPATH=.:$$PYTHONPATH python -m unittest discover -s tests -p '*.py'
+	PYTHONPATH=.:$$PYTHONPATH python3 -m unittest discover -s tests -p '*.py'
