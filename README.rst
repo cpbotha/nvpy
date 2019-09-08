@@ -45,10 +45,7 @@ A note on automatic syncing
 Installation
 ============
 
-NOTE (L.Fini Apr. 2 2019): this is an experimental version working both
-                           in python 2.7 and in python 3.6
-
-nvPY works best on Python 2.7.x. It does not work on Python 3.x yet.
+nvPY works best on Python 3.6 or later.  If you want to work on python 2.7, please use nvPY v1.2.x.
 
 To install the latest development version from github, do::
 
@@ -224,7 +221,6 @@ Features
 Planned features
 ================
 
-* Port to Python 3.
 * sqlite storage backend.
 * Full(ish) screen mode.
 * Prettiness.
