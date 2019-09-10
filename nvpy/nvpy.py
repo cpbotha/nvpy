@@ -141,7 +141,6 @@ class Config:
                     'sn_username': '',
                     'sn_password': '',
                     'simplenote_sync': '1',
-                    'background_full_sync': 'true',
                     'debug': '1',
                     # Filename or filepath to a css file used style the rendered
                     # output; e.g. nvpy.css or /path/to/my.css
@@ -187,7 +186,6 @@ class Config:
         self.sn_username = cp.get(cfg_sec, 'sn_username', raw=True)
         self.sn_password = cp.get(cfg_sec, 'sn_password', raw=True)
         self.simplenote_sync = cp.getint(cfg_sec, 'simplenote_sync')
-        self.background_full_sync = cp.get(cfg_sec, 'background_full_sync')
         # make logic to find in $HOME if not set
         self.db_path = cp.get(cfg_sec, 'db_path')
         #  0 = alpha sort, 1 = last modified first
@@ -230,6 +228,10 @@ class Config:
         self.keep_search_keyword = cp.getboolean(cfg_sec, 'keep_search_keyword')
         self.confirm_delete = cp.getboolean(cfg_sec, 'confirm_delete')
         self.confirm_exit = cp.getboolean(cfg_sec, 'confirm_exit')
+
+        # Show warnings when using obsoleted option.
+        if cp.has_option(cfg_sec, 'background_full_sync'):
+            logging.warning('"background_full_sync" option is obsoleted.')
 
     def parse_cmd_line_opts(self):
         if __name__ != '__main__':
@@ -832,10 +834,7 @@ class Controller:
         self.view.unmute_note_data_changes()
 
     def sync_full(self):
-        if self.config.background_full_sync:
-            self.notes_db.sync_full_threaded()
-        else:
-            self.notes_db.sync_full_unthreaded()
+        self.notes_db.sync_full_threaded()
 
     def update_note_status(self):
         skey = self.selected_note_key
