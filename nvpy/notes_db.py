@@ -72,6 +72,13 @@ class _BackgroundTask(typing.NamedTuple):
     note: typing.Any
 
 
+class _BackgroundTaskReslt(typing.NamedTuple):
+    action: int
+    key: str
+    note: typing.Any
+    error: int
+
+
 class NotesDB(utils.SubjectMixin):
     """NotesDB will take care of the local notes database and syncing with SN.
     """
@@ -982,6 +989,7 @@ class NotesDB(utils.SubjectMixin):
         self.syncing_lock.acquire()
 
         while True:
+            o: _BackgroundTask
             if self.q_sync.empty():
                 self.syncing_lock.release()
                 o = self.q_sync.get()
@@ -1004,16 +1012,17 @@ class NotesDB(utils.SubjectMixin):
 
                 if result.error_object is None:
                     if not result.is_updated:
-                        o.error = 0
-                        self.q_sync_res.put(o)
+                        res = _BackgroundTaskReslt(error=0, **o._asdict())
+                        self.q_sync_res.put(res)
                         continue
 
-                    n = result.note
+                    remote_note = result.note
+                    local_note = o.note
 
-                    if not n.get('content', None):
+                    if not remote_note.get('content', None):
                         # if note has not been changed, we don't get content back
                         # delete our own copy too.
-                        del o.note['content']
+                        del local_note['content']
 
                     # syncdate was set when the note was copied into our queue
                     # we rely on that to determine when a returned note should
@@ -1021,17 +1030,15 @@ class NotesDB(utils.SubjectMixin):
 
                     # store the actual note back into o
                     # in-place update of our existing note copy
-                    o.note.update(n)
+                    local_note.update(remote_note)
 
-                    # success!
-                    o.error = 0
-
-                    # and put it on the result queue
-                    self.q_sync_res.put(o)
+                    # put result on the queue
+                    res = _BackgroundTaskReslt(action=o.action, key=o.key, note=local_note, error=0)
+                    self.q_sync_res.put(res)
 
                 else:
-                    o.error = 1
-                    self.q_sync_res.put(o)
+                    res = _BackgroundTaskReslt(error=1, **o._asdict())
+                    self.q_sync_res.put(res)
 
     def update_note_to_server(self, note):
         """Update the note to simplenote server.
