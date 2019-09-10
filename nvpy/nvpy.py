@@ -517,7 +517,7 @@ class Controller:
 
         # then try to select after the one that is to be deleted
         nidx = evt.sel + 1
-        if nidx >= 0 and nidx < self.view.get_number_of_notes():
+        if 0 <= nidx < self.view.get_number_of_notes():
             self.view.select_note(nidx)
 
         # finally delete the note
