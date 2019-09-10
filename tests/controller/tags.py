@@ -2,7 +2,7 @@ import unittest
 from nvpy.nvpy import Controller
 from nvpy.nvpy import Config
 import os
-from nvpy import utils
+from nvpy import events
 import shutil
 
 
@@ -30,7 +30,7 @@ class Tags(unittest.TestCase):
 
     def test_tag_buttons_are_updated_when_updating_tags_on_a_note(self):
         self.controller.observer_view_create_note(self.controller.view, "create:note",
-                                                  utils.KeyValueObject(title='aNote'))
+                                                  events.NoteCreatedEvent(title='aNote'))
 
         self.controller.view.tags_entry_var.set('atag,anotherTag')
         self.controller.view.handler_add_tags_to_selected_note()
@@ -40,7 +40,7 @@ class Tags(unittest.TestCase):
 
     def test_tag_is_deleted_from_note_when_tag_button_is_clicked(self):
         self.controller.observer_view_create_note(self.controller.view, "create:note",
-                                                  utils.KeyValueObject(title='aNote'))
+                                                  events.NoteCreatedEvent(title='aNote'))
 
         self.controller.view.tags_entry_var.set('aTag')
         self.controller.view.handler_add_tags_to_selected_note()
@@ -52,7 +52,7 @@ class Tags(unittest.TestCase):
 
     def test_tag_can_be_added_to_note(self):
         self.controller.observer_view_create_note(self.controller.view, "create:note",
-                                                  utils.KeyValueObject(title='aNote'))
+                                                  events.NoteCreatedEvent(title='aNote'))
 
         self.controller.view.tags_entry_var.set('aTag')
         self.controller.view.handler_add_tags_to_selected_note()

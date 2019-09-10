@@ -12,6 +12,8 @@ import tkinter.font as tkFont
 from . import utils
 import webbrowser
 import threading
+from . import events
+import typing
 
 
 class WidgetRedirector:
@@ -395,6 +397,16 @@ class StatusBar(tk.Frame):
         self.status.update_idletasks()
 
 
+class NotesListConfig(typing.NamedTuple):
+    colors: str
+    layout: str
+    print_columns: int
+
+
+class NoteConfig(typing.NamedTuple):
+    tagfound: int
+
+
 class NotesList(tk.Frame):
     """
     @ivar note_headers: list containing tuples with each note's title, tags,
@@ -407,7 +419,7 @@ class NotesList(tk.Frame):
     PINNED_COL = 3
     CREATEDATE_COL = 4
 
-    def __init__(self, master, font_family, font_size, config):
+    def __init__(self, master, font_family, font_size, config: NotesListConfig):
         tk.Frame.__init__(self, master)
 
         yscrollbar = tk.Scrollbar(self)
@@ -992,7 +1004,7 @@ class View(utils.SubjectMixin):
 
     def cmd_notes_list_select(self, evt=None):
         sidx = self.notes_list.selected_idx
-        self.notify_observers('select:note', utils.KeyValueObject(sel=sidx))
+        self.notify_observers('select:note', events.NoteSelectionChangedEvent(sel=sidx))
 
     def cmd_root_delete(self, evt=None):
         is_delete = False
@@ -1009,11 +1021,11 @@ class View(utils.SubjectMixin):
 
         if is_delete:
             sidx = self.notes_list.selected_idx
-            self.notify_observers('delete:note', utils.KeyValueObject(sel=sidx))
+            self.notify_observers('delete:note', events.NoteSelectionChangedEvent(sel=sidx))
 
     def cmd_root_new(self, evt=None):
         # this'll get caught by a controller event handler
-        self.notify_observers('create:note', utils.KeyValueObject(title=self.get_search_entry_text()))
+        self.notify_observers('create:note', events.NoteCreatedEvent(title=self.get_search_entry_text()))
         # the note will be created synchronously, so we can focus the text area already
         self.text_note.focus()
 
@@ -1360,9 +1372,9 @@ class View(utils.SubjectMixin):
 
         # the paned window ##############################################
 
-        notes_list_config = utils.KeyValueObject(colors=self.config.colors,
-                                                 layout=self.config.layout,
-                                                 print_columns=self.config.print_columns)
+        notes_list_config = NotesListConfig(colors=self.config.colors,
+                                            layout=self.config.layout,
+                                            print_columns=self.config.print_columns)
 
         if self.config.layout == "horizontal":
             paned_window = tk.PanedWindow(self.root, orient=tk.HORIZONTAL)
@@ -1576,7 +1588,7 @@ class View(utils.SubjectMixin):
             f.configure(size=f['size'] + inc_size)
 
     def handler_cs_checkbutton(self, *args):
-        self.notify_observers('change:cs', utils.KeyValueObject(value=self.cs_checkbutton_var.get()))
+        self.notify_observers('change:cs', events.CheckboxChangedEvent(value=self.cs_checkbutton_var.get()))
 
     def handler_housekeeper(self):
         try:
@@ -1682,7 +1694,7 @@ class View(utils.SubjectMixin):
         self.handler_pinned_checkbutton()
 
     def handler_pinned_checkbutton(self, *args):
-        self.notify_observers('change:pinned', utils.KeyValueObject(value=self.pinned_checkbutton_var.get()))
+        self.notify_observers('change:pinned', events.CheckboxChangedEvent(value=self.pinned_checkbutton_var.get()))
 
     def handler_search_enter(self, evt):
         # user has pressed enter whilst searching
@@ -1695,12 +1707,12 @@ class View(utils.SubjectMixin):
 
         else:
             # nothing selected
-            self.notify_observers('create:note', utils.KeyValueObject(title=self.get_search_entry_text()))
+            self.notify_observers('create:note', events.NoteCreatedEvent(title=self.get_search_entry_text()))
             # the note will be created synchronously, so we can focus the text area already
             self.text_note.focus()
 
     def handler_search_entry(self, *args):
-        self.notify_observers('change:entry', utils.KeyValueObject(value=self.search_entry_var.get()))
+        self.notify_observers('change:entry', events.TextBoxChangedEvent(value=self.search_entry_var.get()))
 
     def handler_search_mode(self, *args):
         """
@@ -1711,11 +1723,10 @@ class View(utils.SubjectMixin):
         @param args:
         @return:
         """
-
-        self.notify_observers('change:search_mode', utils.KeyValueObject(value=self.search_mode_var.get()))
+        self.notify_observers('change:search_mode', events.CheckboxChangedEvent(value=self.search_mode_var.get()))
 
     def handler_add_tags_to_selected_note(self, evt=None):
-        self.notify_observers('add:tag', utils.KeyValueObject(tags=self.tags_entry_var.get()))
+        self.notify_observers('add:tag', events.TagsAddedEvent(tags=self.tags_entry_var.get()))
 
     def handler_click_link(self, link):
         if link.startswith('[['):
@@ -1901,7 +1912,7 @@ class View(utils.SubjectMixin):
         self.statusbar.set_status(txt)
 
     def handler_delete_tag_from_selected_note(self, tag_name):
-        self.notify_observers('delete:tag', utils.KeyValueObject(tag=tag_name))
+        self.notify_observers('delete:tag', events.TagRemovedEvent(tag=tag_name))
 
     def set_note_data(self, note, reset_undo=True, content_unchanged=False):
         """Replace text in editor with content.
@@ -1962,7 +1973,7 @@ class View(utils.SubjectMixin):
             if tags:
                 taglist += tags
 
-            self.notes_list.append(o.note, utils.KeyValueObject(tagfound=o.tagfound))
+            self.notes_list.append(o.note, NoteConfig(tagfound=o.tagfound))
             # find first non-empty line, and append to titlelist.
             for title in o.note["content"].splitlines():
                 slim_title = title.strip()

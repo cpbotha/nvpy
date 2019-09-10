@@ -168,16 +168,6 @@ def check_internet_on():
     return False
 
 
-class KeyValueObject:
-    """Store key=value pairs in this object and retrieve with o.key.
-
-    You should also be able to do MiscObject(**your_dict) for the same effect.
-    """
-
-    def __init__(self, **kwargs):
-        self.__dict__.update(kwargs)
-
-
 class SubjectMixin:
     """Maintain a list of callables for each event type.
 
