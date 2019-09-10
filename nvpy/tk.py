@@ -6,12 +6,8 @@
 # module namespace. I don't like that, so first pulling into this module
 # tk, then can use tk.whatever in main module.
 
-try:
-    from Tkinter import *
-    from ttk import *
-except ImportError:
-    from tkinter import *
-    from tkinter.ttk import *
+from tkinter import *
+from tkinter.ttk import *
 
 
 class Ucs4NotSupportedError(BaseException):

@@ -3,25 +3,15 @@
 # new BSD license
 from __future__ import print_function
 import sys
-
-if sys.version_info.major == 2:
-    PYTHON2 = True
-else:
-    PYTHON2 = False
-
 import codecs
 import copy
 import glob
 import os
 import json
 import logging
-if PYTHON2:
-    from Queue import Queue, Empty
-    from httplib import HTTPException
-else:
-    from queue import Queue, Empty
-    from http.client import HTTPException
-    from .p3port import unicode
+from queue import Queue, Empty
+from http.client import HTTPException
+from .p3port import unicode
 
 import re
 import base64
@@ -31,10 +21,7 @@ from simplenote import Simplenote
 
 # API key provided for nvPY.
 # Please do not use for other software!
-if PYTHON2:
-    simplenote.simplenote.API_KEY = ''.join(reversed(base64.b64decode('OTg0OTI4ZTg4YjY0NzMyOTZjYzQzY2IwMDI1OWFkMzg=')))
-else:
-    simplenote.simplenote.API_KEY = bytes(reversed(base64.b64decode('OTg0OTI4ZTg4YjY0NzMyOTZjYzQzY2IwMDI1OWFkMzg=')))
+simplenote.simplenote.API_KEY = bytes(reversed(base64.b64decode('OTg0OTI4ZTg4YjY0NzMyOTZjYzQzY2IwMDI1OWFkMzg=')))
 
 from threading import Thread, Lock
 import time

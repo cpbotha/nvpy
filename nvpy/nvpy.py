@@ -30,18 +30,9 @@
 
 # to check if we're online
 import sys
-
-if sys.version_info.major == 2:
-    PYTHON2 = True
-else:
-    PYTHON2 = False
-
 import codecs
-if PYTHON2:
-    import ConfigParser
-else:
-    import configparser as ConfigParser
-    from .p3port import unicode
+import configparser as ConfigParser
+from .p3port import unicode
 
 import logging
 from logging.handlers import RotatingFileHandler

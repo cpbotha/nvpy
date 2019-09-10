@@ -2,23 +2,13 @@
 # copyright 2012 by Charl P. Botha <cpbotha@vxlabs.com>
 # new BSD license
 import sys
-
-if sys.version_info.major == 2:
-    PYTHON2 = True
-else:
-    PYTHON2 = False
-
 import datetime
 import random
 import re
 import string
-if PYTHON2:
-    from urllib2 import urlopen, URLError
-    from Queue import Queue, Empty as QueueEmpty
-else:
-    from urllib.request import urlopen, URLError
-    from queue import Queue, Empty as QueueEmpty
-    from .p3port import unicode
+from urllib.request import urlopen, URLError
+from queue import Queue, Empty as QueueEmpty
+from .p3port import unicode
 
 import threading
 

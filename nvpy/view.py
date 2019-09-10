@@ -7,13 +7,8 @@ import os
 import re
 from . import search_entry
 from . import tk
-try:
-    import tkFont
-    import tkMessageBox
-except ImportError:
-    from tkinter import messagebox as tkMessageBox
-    import tkinter.font as tkFont
-
+from tkinter import messagebox as tkMessageBox
+import tkinter.font as tkFont
 from . import utils
 import webbrowser
 import threading
