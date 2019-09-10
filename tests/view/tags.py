@@ -6,8 +6,8 @@ from nvpy.nvpy import Config
 import os
 import shutil
 
-class Tags(unittest.TestCase):
 
+class Tags(unittest.TestCase):
     def setUp(self):
         if os.path.isdir('/tmp/.nvpyUnitTests'):
             shutil.rmtree('/tmp/.nvpyUnitTests')
@@ -46,7 +46,8 @@ class Tags(unittest.TestCase):
 
         for element in tag_elements:
             self.assertEqual(element.__class__.__name__, 'Button', "Tag element was not a button")
-            self.assertTrue(element['text'] in ['atag x', 'anotherTag x'], "Didn't expect to find a tag with text %s" % element['text'] )
+            self.assertTrue(element['text'] in ['atag x', 'anotherTag x'],
+                            "Didn't expect to find a tag with text %s" % element['text'])
 
         self.assertEqual(len(tag_elements), 2)
         view.close()
@@ -98,7 +99,6 @@ class Tags(unittest.TestCase):
 
         view.set_note_data(note)
 
-
         self.assertTrue(view.is_note_different(new_note))
 
         view.close()
@@ -133,6 +133,7 @@ class Tags(unittest.TestCase):
         self.assertTrue(view.is_note_different(new_note))
 
         view.close()
+
 
 if __name__ == '__main__':
     unittest.main()

@@ -1,6 +1,5 @@
 # pretty style for entry widget, adapted from
 # http://python-ttk.googlecode.com/svn/trunk/pyttk-samples/mac_searchentry.py
-
 """Mac style search widget
 
 Translated from Tcl code by Schelte Bron, http://wiki.tcl.tk/18188"""
@@ -64,15 +63,19 @@ def make_style():
 
     style = ttk.Style()
 
-    style.element_create("Search.field", "image", "search1",
-        ("focus", "search2"), border=[22, 7, 14], sticky="ew")
+    style.element_create("Search.field", "image", "search1", ("focus", "search2"), border=[22, 7, 14], sticky="ew")
 
     style.layout("Search.entry", [
-        ("Search.field", {"sticky": "nswe", "border": 1, "children":
-            [("Entry.padding", {"sticky": "nswe", "children":
-                [("Entry.textarea", {"sticky": "nswe"})]
+        ("Search.field", {
+            "sticky": "nswe",
+            "border": 1,
+            "children": [("Entry.padding", {
+                "sticky": "nswe",
+                "children": [("Entry.textarea", {
+                    "sticky": "nswe"
+                })]
             })]
-        })]
-    )
+        })
+    ])
 
     #style.configure("Search.entry", background="#b2b2b2")

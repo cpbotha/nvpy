@@ -84,7 +84,6 @@ except ImportError:
 else:
     HAVE_DOCUTILS = True
 
-
 ColorConfig = collections.namedtuple('ColorConfig', (
     'text',
     'selected_note',
@@ -101,6 +100,7 @@ class Config:
     @ivar files_read: list of config files that were parsed.
     @ivar ok: True if config files had a default section, False otherwise.
     """
+
     def __init__(self, app_dir):
         """
         @param app_dir: the directory containing nvpy.py
@@ -110,58 +110,61 @@ class Config:
         # cross-platform way of getting home dir!
         # http://stackoverflow.com/a/4028943/532513
         home = os.path.abspath(os.path.expanduser('~'))
-        defaults = {'app_dir': app_dir,
-                    'appdir': app_dir,
-                    'home': home,
-                    'notes_as_txt': '0',
-                    'read_txt_extensions': 'txt,mkdn,md,mdown,markdown',
-                    'housekeeping_interval': '2',
-                    'search_mode': 'gstyle',
-                    'case_sensitive': '1',
-                    'search_tags': '1',
-                    'sort_mode': '1',
-                    'pinned_ontop': '1',
-                    'db_path': os.path.join(home, '.nvpy'),
-                    'txt_path': os.path.join(home, '.nvpy/notes'),
-                    'theme': 'default',
-                    'font_family': 'Courier',  # monospaced on all platforms
-                    'font_size': '10',
-                    'list_font_family': 'Helvetica',  # sans on all platforms
-                    'list_font_family_fixed': 'Courier',  # monospace on all platforms
-                    'list_font_size': '10',
-                    'layout': 'horizontal',
-                    'print_columns': '0',
-                    'text_color': 'black',
-                    'selected_note_color': 'light blue',
-                    'note_info_color': 'dark gray',
-                    'highlight_note_info_color': 'lightyellow',
-                    'url_color': '#03f',
-                    'background_color': 'white',
-                    'highlight_background_color': 'yellow',
-                    'sn_username': '',
-                    'sn_password': '',
-                    'simplenote_sync': '1',
-                    'debug': '1',
-                    # Filename or filepath to a css file used style the rendered
-                    # output; e.g. nvpy.css or /path/to/my.css
-                    'rest_css_path': '',
-                    'md_css_path': '',
-                    'md_extensions': '',
-                    'keep_search_keyword': 'false',
-                    'confirm_delete': 'true',
-                    'confirm_exit': 'false',
-                   }
+        defaults = {
+            'app_dir': app_dir,
+            'appdir': app_dir,
+            'home': home,
+            'notes_as_txt': '0',
+            'read_txt_extensions': 'txt,mkdn,md,mdown,markdown',
+            'housekeeping_interval': '2',
+            'search_mode': 'gstyle',
+            'case_sensitive': '1',
+            'search_tags': '1',
+            'sort_mode': '1',
+            'pinned_ontop': '1',
+            'db_path': os.path.join(home, '.nvpy'),
+            'txt_path': os.path.join(home, '.nvpy/notes'),
+            'theme': 'default',
+            'font_family': 'Courier',  # monospaced on all platforms
+            'font_size': '10',
+            'list_font_family': 'Helvetica',  # sans on all platforms
+            'list_font_family_fixed': 'Courier',  # monospace on all platforms
+            'list_font_size': '10',
+            'layout': 'horizontal',
+            'print_columns': '0',
+            'text_color': 'black',
+            'selected_note_color': 'light blue',
+            'note_info_color': 'dark gray',
+            'highlight_note_info_color': 'lightyellow',
+            'url_color': '#03f',
+            'background_color': 'white',
+            'highlight_background_color': 'yellow',
+            'sn_username': '',
+            'sn_password': '',
+            'simplenote_sync': '1',
+            'debug': '1',
+            # Filename or filepath to a css file used style the rendered
+            # output; e.g. nvpy.css or /path/to/my.css
+            'rest_css_path': '',
+            'md_css_path': '',
+            'md_extensions': '',
+            'keep_search_keyword': 'false',
+            'confirm_delete': 'true',
+            'confirm_exit': 'false',
+        }
 
         # parse command-line arguments
         args = self.parse_cmd_line_opts()
 
         # later config files overwrite earlier files
         # try a number of alternatives
-        cfg_files = [os.path.join(app_dir, 'nvpy.cfg'),
-                     os.path.join(home, 'nvpy.cfg'),
-                     os.path.join(home, '.nvpy.cfg'),
-                     os.path.join(home, '.nvpy'),
-                     os.path.join(home, '.nvpyrc')]
+        cfg_files = [
+            os.path.join(app_dir, 'nvpy.cfg'),
+            os.path.join(home, 'nvpy.cfg'),
+            os.path.join(home, '.nvpy.cfg'),
+            os.path.join(home, '.nvpy'),
+            os.path.join(home, '.nvpyrc')
+        ]
 
         # user has specified either a specific path to a CFG file, or a
         # path relative to the nvpy.py location. specific takes precedence.
@@ -238,8 +241,7 @@ class Config:
             return None
 
         parser = argparse.ArgumentParser()
-        parser.add_argument('--cfg', '-c', default='', dest='cfg',
-                            metavar='nvpy.cfg', help='path to config file')
+        parser.add_argument('--cfg', '-c', default='', dest='cfg', metavar='nvpy.cfg', help='path to config file')
         args = parser.parse_args()
         return args
 
@@ -248,6 +250,7 @@ class NotesListModel(SubjectMixin):
     """
     @ivar list: List of (str key, dict note) objects.
     """
+
     def __init__(self):
         # call mixin ctor
         SubjectMixin.__init__(self)
@@ -308,7 +311,7 @@ class Controller:
         # this will go to the root logger
         logging.debug('nvpy logging initialized')
 
-        logging.debug('config read from %s' % (str(self.config.files_read),))
+        logging.debug('config read from %s' % (str(self.config.files_read), ))
 
         if self.config.sn_username == '':
             self.config.simplenote_sync = 0
@@ -317,8 +320,7 @@ class Controller:
         if rst_css:
             if rst_css.startswith("~/"):
                 # On Mac, paths that start with '~/' aren't found by path.exists
-                rst_css = rst_css.replace(
-                    "~", os.path.abspath(os.path.expanduser('~')), 1)
+                rst_css = rst_css.replace("~", os.path.abspath(os.path.expanduser('~')), 1)
                 self.config.rest_css_path = rst_css
             if not os.path.exists(rst_css):
                 # Couldn't find the user-defined css file. Use docutils css instead.
@@ -327,14 +329,12 @@ class Controller:
         if md_css:
             if md_css.startswith("~/"):
                 # On Mac, paths that start with '~/' aren't found by path.exists
-                md_css = md_css.replace(
-                    "~", os.path.abspath(os.path.expanduser('~')), 1)
+                md_css = md_css.replace("~", os.path.abspath(os.path.expanduser('~')), 1)
                 self.config.md_css_path = md_css
             if not os.path.exists(md_css):
                 # Couldn't find the user-defined css file.
                 # Do not use css styling for markdown.
                 self.config.md_css_path = None
-
 
         self.notes_list_model = NotesListModel()
         # create the interface
@@ -359,8 +359,7 @@ class Controller:
                 self.notes_db.add_observer('complete:sync_full', self.observer_notes_db_complete_sync_full)
 
             # we want to be notified when the user does stuff
-            self.view.add_observer('click:notelink',
-                    self.observer_view_click_notelink)
+            self.view.add_observer('click:notelink', self.observer_view_click_notelink)
             self.view.add_observer('delete:note', self.observer_view_delete_note)
             self.view.add_observer('select:note', self.observer_view_select_note)
             self.view.add_observer('change:entry', self.observer_view_change_entry)
@@ -407,8 +406,9 @@ class Controller:
 
     def main_loop(self):
         if not self.config.files_read:
-            self.view.show_warning('No config file',
-                                  'Could not read any configuration files. See https://github.com/cpbotha/nvpy for details.')
+            self.view.show_warning(
+                'No config file',
+                'Could not read any configuration files. See https://github.com/cpbotha/nvpy for details.')
 
         elif not self.config.ok:
             wmsg = ('Please rename [default] to [nvpy] in %s. ' + \
@@ -468,7 +468,9 @@ class Controller:
     def observer_notes_db_complete_sync_full(self, notes_db, evt_type, evt):
         sync_from_server_errors = evt.errors
         if sync_from_server_errors > 0:
-            self.view.show_error('Error syncing notes from server', 'Error syncing %d notes from server. Please check nvpy.log for details.' % (sync_from_server_errors,))
+            self.view.show_error(
+                'Error syncing notes from server',
+                'Error syncing %d notes from server. Please check nvpy.log for details.' % (sync_from_server_errors, ))
 
         # return normal status from "Full syning".
         self.update_note_status()
@@ -527,9 +529,9 @@ class Controller:
         if self.selected_note_key:
             key = self.selected_note_key
             c = self.notes_db.get_note_content(key)
-            logging.debug("Trying to convert %s to html." % (key,))
+            logging.debug("Trying to convert %s to html." % (key, ))
             if HAVE_MARKDOWN:
-                logging.debug("Convert note %s to html." % (key,))
+                logging.debug("Convert note %s to html." % (key, ))
                 exts = re.split("\\s", self.config.md_extensions.strip()) if self.config.md_extensions else []
                 exts += list(DEFAULT_MARKDOWN_EXTS)
                 # remove duplicate items on exts.
@@ -538,8 +540,8 @@ class Controller:
                 html = markdown.markdown(c, extensions=exts)
                 logging.debug("Convert done.")
                 if self.config.md_css_path:
-                    css = u"""<link rel="stylesheet" href="%s">""" % (self.config.md_css_path,)
-                    html = u"""<div class="markdown-body">%s</div>""" % (html,)
+                    css = u"""<link rel="stylesheet" href="%s">""" % (self.config.md_css_path, )
+                    html = u"""<div class="markdown-body">%s</div>""" % (html, )
                 else:
                     css = u""""""
 
@@ -562,9 +564,11 @@ class Controller:
 %s
 </body>
 </html>
-            """ % ('<meta http-equiv="refresh" content="5">' if self.view.get_continuous_rendering() else "",
-                   css if self.config.md_css_path else "",
-                   html,)
+            """ % (
+                '<meta http-equiv="refresh" content="5">' if self.view.get_continuous_rendering() else "",
+                css if self.config.md_css_path else "",
+                html,
+            )
             f.write(s)
             f.close()
             return fn
@@ -578,8 +582,7 @@ class Controller:
                 if self.config.rest_css_path:
                     settings['stylesheet_path'] = self.config.rest_css_path
                 # this gives the whole document
-                html = docutils.core.publish_string(
-                    c, writer_name='html', settings_overrides=settings)
+                html = docutils.core.publish_string(c, writer_name='html', settings_overrides=settings)
                 # publish_parts("*anurag*",writer_name='html')['body']
                 # gives just the desired part of the tree
 
@@ -596,7 +599,7 @@ class Controller:
             # "'ascii' codec can't decode byte" error
             s = u"""
 %s
-            """ % (unicode(html, 'utf8'),)
+            """ % (unicode(html, 'utf8'), )
 
             f.write(s)
             f.close()
@@ -627,8 +630,8 @@ class Controller:
         else:
             syncn = wfsn = 0
 
-        savet = 'Saving %d notes.' % (saven,) if saven > 0 else ''
-        synct = 'Waiting to sync %d notes.' % (syncn,) if syncn > 0 else ''
+        savet = 'Saving %d notes.' % (saven, ) if saven > 0 else ''
+        synct = 'Waiting to sync %d notes.' % (syncn, ) if syncn > 0 else ''
         wfsnt = 'Syncing with simplenote server.' if wfsn else ''
 
         return ' '.join([i for i in [savet, synct, wfsnt] if i])
@@ -659,18 +662,14 @@ class Controller:
             # this call will update our in-memory version if necessary
             ret = self.notes_db.sync_note_unthreaded(key)
             if ret and ret[1] == True:
-                self.view.update_selected_note_data(
-                        self.notes_db.notes[key])
-                self.view.set_status_text(
-                'Synced updated note from server.')
+                self.view.update_selected_note_data(self.notes_db.notes[key])
+                self.view.set_status_text('Synced updated note from server.')
 
             elif ret[1] == False:
-                self.view.set_status_text(
-                        'Server had nothing newer for this note.')
+                self.view.set_status_text('Server had nothing newer for this note.')
 
             elif ret is None:
-                self.view.set_status_text(
-                        'Unable to sync with server. Offline?')
+                self.view.set_status_text('Unable to sync with server. Offline?')
 
     def observer_view_change_cs(self, view, evt_type, evt):
         # evt.value is the new value
@@ -718,7 +717,7 @@ class Controller:
             # currently being displayed. this could happen if a sync gets
             # a new note of the server to replace the currently displayed one.
             if self.view.is_note_different(new_note):
-                logging.debug("Currently selected note %s replaced by newer from server." % (k,))
+                logging.debug("Currently selected note %s replaced by newer from server." % (k, ))
                 # carefully update currently selected note
                 # restore cursor position, search and link highlights
                 self.view.update_selected_note_data(new_note)

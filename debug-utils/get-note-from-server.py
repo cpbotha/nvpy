@@ -11,14 +11,13 @@ import simplenote
 
 note_id = sys.argv[1]
 
-
 home = os.path.abspath(os.path.expanduser('~'))
 cfg_files = [
-	# os.path.join(app_dir, 'nvpy.cfg'),
-	os.path.join(home, 'nvpy.cfg'),
-	os.path.join(home, '.nvpy.cfg'),
-	os.path.join(home, '.nvpy'),
-	os.path.join(home, '.nvpyrc'),
+    # os.path.join(app_dir, 'nvpy.cfg'),
+    os.path.join(home, 'nvpy.cfg'),
+    os.path.join(home, '.nvpy.cfg'),
+    os.path.join(home, '.nvpy'),
+    os.path.join(home, '.nvpyrc'),
 ]
 
 cp = ConfigParser.SafeConfigParser()
@@ -29,6 +28,6 @@ passwd = cp.get('nvpy', 'sn_password', raw=True)
 sn = simplenote.Simplenote(user, passwd)
 note, status = sn.get_note(note_id)
 if status == 0:
-	print(json.dumps(note))
+    print(json.dumps(note))
 else:
-	print(str(note))
+    print(str(note))

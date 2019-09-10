@@ -20,7 +20,6 @@ import threading
 
 
 class WidgetRedirector:
-
     """Support for redirecting arbitrary widget subcommands."""
 
     def __init__(self, widget):
@@ -33,8 +32,7 @@ class WidgetRedirector:
         tk.createcommand(w, self.dispatch)
 
     def __repr__(self):
-        return "WidgetRedirector(%s<%s>)" % (self.widget.__class__.__name__,
-                                             self.widget._w)
+        return "WidgetRedirector(%s<%s>)" % (self.widget.__class__.__name__, self.widget._w)
 
     def close(self):
         for name in self.dict:
@@ -84,7 +82,6 @@ class WidgetRedirector:
 
 
 class OriginalCommand:
-
     def __init__(self, redir, name):
         self.redir = redir
         self.name = name
@@ -188,6 +185,7 @@ class SuggestionEntry(tk.Entry):
         """
         orig_func = func
         if sequence == '<Return>' and func is not None:
+
             def handle_return(*args):
                 if self.listbox is not None:
                     # If completion word list is shown, call to self.selection() instead of func().
@@ -197,6 +195,7 @@ class SuggestionEntry(tk.Entry):
 
             func = handle_return
         elif sequence == '<Escape>' and func is not None:
+
             def handle_escape(*args):
                 if self.listbox is not None:
                     # If completion word list is shown, close it.
@@ -213,8 +212,10 @@ class SuggestionEntry(tk.Entry):
         self.listbox.bind("<Right>", self.selection)
         self.listbox.place(
             in_=self.master,
-            relx=0.0, rely=0.0,
-            x=self.winfo_x(), y=self.winfo_y() - self.listbox.winfo_reqheight(),
+            relx=0.0,
+            rely=0.0,
+            x=self.winfo_x(),
+            y=self.winfo_y() - self.listbox.winfo_reqheight(),
         )
 
     def _update_listbox(self):
@@ -230,8 +231,10 @@ class SuggestionEntry(tk.Entry):
 
         self.listbox.place(
             in_=self.master,
-            relx=0.0, rely=0.0,
-            x=self.winfo_x(), y=self.winfo_y() - self.listbox.winfo_reqheight(),
+            relx=0.0,
+            rely=0.0,
+            x=self.winfo_x(),
+            y=self.winfo_y() - self.listbox.winfo_reqheight(),
         )
 
         try:
@@ -252,7 +255,6 @@ class SuggestionEntry(tk.Entry):
         self.listbox.selection_set(first=index)
         self.listbox.see(index)
         self.listbox.activate(index)
-
 
     def _destroy_listbox(self):
         if self.listbox is None:
@@ -330,8 +332,8 @@ class TagList(tk.Toplevel):
 
         button = tk.Button(self, text="Dismiss", command=self.destroy)
         button.pack()
-        x = parent.winfo_x()+100
-        y = parent.winfo_y()+100
+        x = parent.winfo_x() + 100
+        y = parent.winfo_y() + 100
 
         self.geometry("+%d+%d" % (x, y))  # Put me over root window
 
@@ -420,13 +422,15 @@ class NotesList(tk.Frame):
         # tkFont.families(root) returns list of available font family names
         # this determines the width of the complete interface (yes)
         # size=-self.config.font_size
-        self.text = tk.Text(self, height=25, width=30,
-            wrap=tk.NONE,
-            font=f,
-            yscrollcommand=yscrollbar.set,
-            undo=False,
-            foreground=config.colors.text,
-            background=config.colors.background)
+        self.text = tk.Text(self,
+                            height=25,
+                            width=30,
+                            wrap=tk.NONE,
+                            font=f,
+                            yscrollcommand=yscrollbar.set,
+                            undo=False,
+                            foreground=config.colors.text,
+                            background=config.colors.background)
         # change default font at runtime with:
         #text.config(font=f)
 
@@ -450,7 +454,10 @@ class NotesList(tk.Frame):
         italic_font = tkFont.Font(self.text, self.text.cget("font"))
         italic_font.configure(slant="italic")
         self.text.tag_config("tags", font=italic_font, foreground=config.colors.note_info)
-        self.text.tag_config("found", font=italic_font, foreground=config.colors.note_info, background=config.colors.highlight_note_info)
+        self.text.tag_config("found",
+                             font=italic_font,
+                             foreground=config.colors.note_info,
+                             background=config.colors.highlight_note_info)
 
         self.text.tag_config("modifydate", foreground=config.colors.note_info)
 
@@ -495,30 +502,32 @@ class NotesList(tk.Frame):
 
             if tags > 0:
                 if config.tagfound:
-                    self.text.insert(tk.END, u'{0:<{w}}'.format(','.join(tags)[:cellwidth - 1], w=cellwidth), ("found",))
+                    self.text.insert(tk.END, u'{0:<{w}}'.format(','.join(tags)[:cellwidth - 1], w=cellwidth),
+                                     ("found", ))
                 else:
-                    self.text.insert(tk.END, u'{0:<{w}}'.format(','.join(tags)[:cellwidth - 1], w=cellwidth), ("tags",))
+                    self.text.insert(tk.END, u'{0:<{w}}'.format(','.join(tags)[:cellwidth - 1], w=cellwidth),
+                                     ("tags", ))
 
-            self.text.insert(tk.END, ' ' + utils.human_date(createdate), ("createdate",))
+            self.text.insert(tk.END, ' ' + utils.human_date(createdate), ("createdate", ))
 
             # tags can be None (newly created note) or [] or ['tag1', 'tag2']
         else:
             self.text.insert(tk.END, title, ("title,"))
 
             if pinned:
-                self.text.insert(tk.END, ' *', ("pinned",))
+                self.text.insert(tk.END, ' *', ("pinned", ))
 
             # latest modified first is the default mode
             # we could consider showing createddate here IF the sort mode
             # is configured to be latest created first
-            self.text.insert(tk.END, ' ' + utils.human_date(modifydate), ("modifydate",))
+            self.text.insert(tk.END, ' ' + utils.human_date(modifydate), ("modifydate", ))
 
             # tags can be None (newly created note) or [] or ['tag1', 'tag2']
             if tags:
                 if config.tagfound:
-                    self.text.insert(tk.END, ' ' + ','.join(tags), ("found",))
+                    self.text.insert(tk.END, ' ' + ','.join(tags), ("found", ))
                 else:
-                    self.text.insert(tk.END, ' ' + ','.join(tags), ("tags",))
+                    self.text.insert(tk.END, ' ' + ','.join(tags), ("tags", ))
 
         self.text.insert(tk.END, '\n')
 
@@ -641,8 +650,8 @@ class NotesList(tk.Frame):
 
         # tkinter text first line is 1, but first column is 0
         row = idx + 1
-        start = "%d.0" % (row,)
-        end = "%d.end" % (row,)
+        start = "%d.0" % (row, )
+        end = "%d.end" % (row, )
 
         return (start, end)
 
@@ -692,6 +701,7 @@ class NotesList(tk.Frame):
 
         elif new_idx < 0:
             self.select(0, silent)
+
 
 tkinter_umlauts = ['odiaeresis', 'adiaeresis', 'udiaeresis', 'Odiaeresis', 'Adiaeresis', 'Udiaeresis', 'ssharp']
 
@@ -857,7 +867,6 @@ class TriggeredcompleteText(RedirectedText):
         except ValueError:
             # when press "ctrl+space" key on a line not including of "[[", str.index() will be occur ValueError.
             return
-
 
         if self.cycle:
             self._hit_index += 1
@@ -1118,10 +1127,11 @@ class View(utils.SubjectMixin):
             s = 'synced'
             self.statusbar.set_note_status_color(0)
 
-        self.statusbar.set_note_status('Current note %s' % (s,))
+        self.statusbar.set_note_status('Current note %s' % (s, ))
 
     def set_note_tally(self, filtered_notes, active_notes, total_notes):
-        self.statusbar.set_centre_status('Listing %d / %d active notes (%d total)' % (filtered_notes, active_notes, total_notes))
+        self.statusbar.set_centre_status('Listing %d / %d active notes (%d total)' %
+                                         (filtered_notes, active_notes, total_notes))
 
     def set_search_entry_text(self, text):
         self.search_entry_var.set(text)
@@ -1143,27 +1153,19 @@ class View(utils.SubjectMixin):
         # search entry value as name
         self.notes_list.text.bind("<Return>", self.handler_search_enter)
 
-        self.search_entry.bind("<Escape>", lambda e:
-                self.search_entry.delete(0, tk.END))
-        self.search_entry.bind("<Control-bracketleft>", lambda e:
-                self.search_entry.delete(0, tk.END))
+        self.search_entry.bind("<Escape>", lambda e: self.search_entry.delete(0, tk.END))
+        self.search_entry.bind("<Control-bracketleft>", lambda e: self.search_entry.delete(0, tk.END))
         # this will either focus current content, or
         # if there's no selection, create a new note.
         self.search_entry.bind("<Return>", self.handler_search_enter)
 
-        self.search_entry.bind("<Up>", lambda e:
-            self.notes_list.select_prev(silent=False))
-        self.search_entry.bind("<Control-k>", lambda e:
-            self.notes_list.select_prev(silent=False))
-        self.search_entry.bind("<Prior>", lambda e:
-            self.notes_list.select_prev(silent=False, delta=10))
+        self.search_entry.bind("<Up>", lambda e: self.notes_list.select_prev(silent=False))
+        self.search_entry.bind("<Control-k>", lambda e: self.notes_list.select_prev(silent=False))
+        self.search_entry.bind("<Prior>", lambda e: self.notes_list.select_prev(silent=False, delta=10))
 
-        self.search_entry.bind("<Down>", lambda e:
-            self.notes_list.select_next(silent=False))
-        self.search_entry.bind("<Control-j>", lambda e:
-            self.notes_list.select_next(silent=False))
-        self.search_entry.bind("<Next>", lambda e:
-            self.notes_list.select_next(silent=False, delta=10))
+        self.search_entry.bind("<Down>", lambda e: self.notes_list.select_next(silent=False))
+        self.search_entry.bind("<Control-j>", lambda e: self.notes_list.select_next(silent=False))
+        self.search_entry.bind("<Next>", lambda e: self.notes_list.select_next(silent=False, delta=10))
 
         self.text_note.bind("<<Change>>", self.handler_text_change)
 
@@ -1195,86 +1197,85 @@ class View(utils.SubjectMixin):
         menu.add_cascade(label="File", underline='0', menu=file_menu)
 
         # FILE ##########################################################
-        file_menu.add_command(label="New note", underline=0,
-                              command=self.cmd_root_new, accelerator="Ctrl+N")
+        file_menu.add_command(label="New note", underline=0, command=self.cmd_root_new, accelerator="Ctrl+N")
         self.root.bind_all("<Control-n>", self.cmd_root_new)
 
-        file_menu.add_command(label="Delete note", underline=0,
-                              command=self.cmd_root_delete, accelerator="Ctrl+D")
+        file_menu.add_command(label="Delete note", underline=0, command=self.cmd_root_delete, accelerator="Ctrl+D")
         self.root.bind_all("<Control-d>", self.cmd_root_delete)
 
         file_menu.add_separator()
 
-        file_menu.add_command(label="Sync full", underline=5,
-                              command=self.cmd_sync_full)
+        file_menu.add_command(label="Sync full", underline=5, command=self.cmd_sync_full)
         file_menu.add_command(label="Sync current note",
-                underline=0, command=self.cmd_sync_current_note,
-                accelerator="Ctrl+S")
+                              underline=0,
+                              command=self.cmd_sync_current_note,
+                              accelerator="Ctrl+S")
         self.root.bind_all("<Control-s>", self.cmd_sync_current_note)
 
         file_menu.add_separator()
 
-        file_menu.add_command(label="Render Markdown to HTML", underline=7,
-                command=self.cmd_markdown, accelerator="Ctrl+M")
+        file_menu.add_command(label="Render Markdown to HTML",
+                              underline=7,
+                              command=self.cmd_markdown,
+                              accelerator="Ctrl+M")
         self.root.bind_all("<Control-m>", self.cmd_markdown)
 
         self.continuous_rendering = tk.BooleanVar()
         self.continuous_rendering.set(False)
         file_menu.add_checkbutton(label="Continuous Markdown to HTML rendering",
-                onvalue=True, offvalue=False,
-                variable=self.continuous_rendering)
+                                  onvalue=True,
+                                  offvalue=False,
+                                  variable=self.continuous_rendering)
 
-        file_menu.add_command(label="Render reST to HTML", underline=7,
-                command=self.cmd_rest, accelerator="Ctrl+R")
+        file_menu.add_command(label="Render reST to HTML", underline=7, command=self.cmd_rest, accelerator="Ctrl+R")
         self.root.bind_all("<Control-r>", self.cmd_rest)
 
         file_menu.add_separator()
 
-        file_menu.add_command(label="Exit", underline=1,
-                              command=self.handler_close, accelerator="Ctrl+Q")
+        file_menu.add_command(label="Exit", underline=1, command=self.handler_close, accelerator="Ctrl+Q")
         self.root.bind_all("<Control-q>", self.handler_close)
 
         # EDIT ##########################################################
         edit_menu = tk.Menu(menu, tearoff=False)
         menu.add_cascade(label="Edit", underline=0, menu=edit_menu)
 
-        edit_menu.add_command(label="Undo", accelerator="Ctrl+Z",
-                              underline=0, command=lambda: self.text_note.edit_undo())
+        edit_menu.add_command(label="Undo",
+                              accelerator="Ctrl+Z",
+                              underline=0,
+                              command=lambda: self.text_note.edit_undo())
         self.root.bind_all("<Control-z>", lambda e: self.text_note.edit_undo())
 
-        edit_menu.add_command(label="Redo", accelerator="Ctrl+Y",
-                              underline=0, command=lambda: self.text_note.edit_redo())
+        edit_menu.add_command(label="Redo",
+                              accelerator="Ctrl+Y",
+                              underline=0,
+                              command=lambda: self.text_note.edit_redo())
         self.root.bind_all("<Control-y>", lambda e: self.text_note.edit_redo())
 
         edit_menu.add_separator()
 
-        edit_menu.add_command(label="Cut", accelerator="Ctrl+X",
-                              underline=2, command=self.cmd_cut)
-        edit_menu.add_command(label="Copy", accelerator="Ctrl+C",
-                              underline=0, command=self.cmd_copy)
-        edit_menu.add_command(label="Paste", accelerator="Ctrl+V",
-                              underline=0, command=self.cmd_paste)
+        edit_menu.add_command(label="Cut", accelerator="Ctrl+X", underline=2, command=self.cmd_cut)
+        edit_menu.add_command(label="Copy", accelerator="Ctrl+C", underline=0, command=self.cmd_copy)
+        edit_menu.add_command(label="Paste", accelerator="Ctrl+V", underline=0, command=self.cmd_paste)
 
-        edit_menu.add_command(label="Select All", accelerator="Ctrl+A",
-                              underline=7, command=self.cmd_select_all)
+        edit_menu.add_command(label="Select All", accelerator="Ctrl+A", underline=7, command=self.cmd_select_all)
         # FIXME: ctrl-a is usually bound to start-of-line. What's a
         # better binding for select all then?
 
         edit_menu.add_separator()
 
-        edit_menu.add_command(label="Find", accelerator="Ctrl+F",
-                              underline=0, command=lambda: self.search_entry.focus())
+        edit_menu.add_command(label="Find",
+                              accelerator="Ctrl+F",
+                              underline=0,
+                              command=lambda: self.search_entry.focus())
         self.root.bind_all("<Control-f>", self.search)
 
         # TOOLS ########################################################
         tools_menu = tk.Menu(menu, tearoff=False)
         menu.add_cascade(label="Tools", underline=0, menu=tools_menu)
 
-        tools_menu.add_command(label="Word Count",
-            underline=0, command=self.word_count)
+        tools_menu.add_command(label="Word Count", underline=0, command=self.word_count)
 
-        tools_menu.add_command(label="List tags",
-            underline=0, command=self.cmd_list_tags)
+        tools_menu.add_command(label="List tags", underline=0, command=self.cmd_list_tags)
 
         # the internet thinks that multiple modifiers should work, but this didn't
         # want to.
@@ -1284,11 +1285,8 @@ class View(utils.SubjectMixin):
         help_menu = tk.Menu(menu, tearoff=False)
         menu.add_cascade(label="Help", underline='0', menu=help_menu)
 
-        help_menu.add_command(label="About", underline=0,
-                              command=self.cmd_help_about)
-        help_menu.add_command(label="Bindings", underline=0,
-                              command=self.cmd_help_bindings,
-                              accelerator="Ctrl+?")
+        help_menu.add_command(label="About", underline=0, command=self.cmd_help_about)
+        help_menu.add_command(label="Bindings", underline=0, command=self.cmd_help_bindings, accelerator="Ctrl+?")
 
         # END MENU ######################################################
 
@@ -1316,8 +1314,7 @@ class View(utils.SubjectMixin):
 
         # with iconphoto we have to use gif, also on windows
         icon_fn = 'nvpy.gif'
-        iconpath = os.path.join(
-            self.config.app_dir, 'icons', icon_fn)
+        iconpath = os.path.join(self.config.app_dir, 'icons', icon_fn)
 
         self.icon = tk.PhotoImage(file=iconpath)
         self.root.tk.call('wm', 'iconphoto', self.root._w, self.icon)
@@ -1340,7 +1337,10 @@ class View(utils.SubjectMixin):
 
         search_entry.make_style()
         self.search_entry_var = tk.StringVar()
-        self.search_entry = TriggeredcompleteEntry(search_frame, self.config.case_sensitive, textvariable=self.search_entry_var, style="Search.entry")
+        self.search_entry = TriggeredcompleteEntry(search_frame,
+                                                   self.config.case_sensitive,
+                                                   textvariable=self.search_entry_var,
+                                                   style="Search.entry")
         self.search_entry_var.trace('w', self.handler_search_entry)
 
         cs_label = tk.Label(search_frame, text="CS ")
@@ -1351,8 +1351,8 @@ class View(utils.SubjectMixin):
         self.search_mode_options = ("gstyle", "regexp")
         self.search_mode_var = tk.StringVar()
         # I'm working with ttk.OptionVar, which has that extra default param!
-        self.search_mode_cb = tk.OptionMenu(search_frame, self.search_mode_var,
-            self.search_mode_options[0], *self.search_mode_options)
+        self.search_mode_cb = tk.OptionMenu(search_frame, self.search_mode_var, self.search_mode_options[0],
+                                            *self.search_mode_options)
         self.search_mode_cb.config(width=6)
         self.search_mode_var.trace('w', self.handler_search_mode)
 
@@ -1365,10 +1365,9 @@ class View(utils.SubjectMixin):
 
         # the paned window ##############################################
 
-        notes_list_config = utils.KeyValueObject(
-            colors=self.config.colors,
-            layout=self.config.layout,
-            print_columns=self.config.print_columns)
+        notes_list_config = utils.KeyValueObject(colors=self.config.colors,
+                                                 layout=self.config.layout,
+                                                 print_columns=self.config.print_columns)
 
         if self.config.layout == "horizontal":
             paned_window = tk.PanedWindow(self.root, orient=tk.HORIZONTAL)
@@ -1377,11 +1376,8 @@ class View(utils.SubjectMixin):
             list_frame = tk.Frame(paned_window, width=100)
             paned_window.add(list_frame)
 
-            self.notes_list = NotesList(
-                list_frame,
-                self.config.list_font_family,
-                self.config.list_font_size,
-                notes_list_config)
+            self.notes_list = NotesList(list_frame, self.config.list_font_family, self.config.list_font_size,
+                                        notes_list_config)
             self.notes_list.pack(fill=tk.BOTH, expand=1)
 
             note_frame = tk.Frame(paned_window, width=400)
@@ -1399,11 +1395,7 @@ class View(utils.SubjectMixin):
             else:
                 font_family = self.config.list_font_family
 
-            self.notes_list = NotesList(
-                list_frame,
-                font_family,
-                self.config.list_font_size,
-                notes_list_config)
+            self.notes_list = NotesList(list_frame, font_family, self.config.list_font_size, notes_list_config)
             self.notes_list.pack(fill=tk.X, expand=1)
 
             note_frame = tk.Frame(paned_window)
@@ -1445,13 +1437,17 @@ class View(utils.SubjectMixin):
             yscrollbar.pack(side=tk.RIGHT, fill=tk.Y)
 
             #f = tkFont.nametofont('TkFixedFont')
-            f = tkFont.Font(family=self.config.font_family,
-                            size=self.config.font_size)
+            f = tkFont.Font(family=self.config.font_family, size=self.config.font_size)
             # tkFont.families(root) returns list of available font family names
             # this determines the width of the complete interface (yes)
-            text = TriggeredcompleteText(master, self.config.case_sensitive, height=25, width=TEXT_WIDTH,
+            text = TriggeredcompleteText(master,
+                                         self.config.case_sensitive,
+                                         height=25,
+                                         width=TEXT_WIDTH,
                                          wrap=tk.WORD,
-                                         font=f, tabs=(4 * f.measure(0), 'left'), tabstyle='wordprocessor',
+                                         font=f,
+                                         tabs=(4 * f.measure(0), 'left'),
+                                         tabstyle='wordprocessor',
                                          yscrollcommand=yscrollbar.set,
                                          undo=True,
                                          foreground=self.config.colors.text,
@@ -1557,12 +1553,11 @@ class View(utils.SubjectMixin):
 
     def cmd_help_about(self):
 
-        tkMessageBox.showinfo(
-            'Help | About',
-            'nvPY %s is copyright 2012-2016 by Charl P. Botha '
-            '<http://charlbotha.com/>\n\n'
-            'A rather ugly but cross-platform simplenote client.' % (self.config.app_version,),
-            parent=self.root)
+        tkMessageBox.showinfo('Help | About',
+                              'nvPY %s is copyright 2012-2016 by Charl P. Botha '
+                              '<http://charlbotha.com/>\n\n'
+                              'A rather ugly but cross-platform simplenote client.' % (self.config.app_version, ),
+                              parent=self.root)
 
     def cmd_list_tags(self):
         l = TagList(self.root, self.taglist)
@@ -1586,8 +1581,7 @@ class View(utils.SubjectMixin):
             f.configure(size=f['size'] + inc_size)
 
     def handler_cs_checkbutton(self, *args):
-        self.notify_observers('change:cs',
-            utils.KeyValueObject(value=self.cs_checkbutton_var.get()))
+        self.notify_observers('change:cs', utils.KeyValueObject(value=self.cs_checkbutton_var.get()))
 
     def handler_housekeeper(self):
         try:
@@ -1606,7 +1600,7 @@ class View(utils.SubjectMixin):
                 ot = self.notes_list.get_title(i)
                 # if we strike a note with an out-of-date title, redo.
                 if nt != ot:
-                    logging.debug('title "%s" resync' % (nt,))
+                    logging.debug('title "%s" resync' % (nt, ))
                     refresh_notes_list = True
                     break
 
@@ -1617,7 +1611,7 @@ class View(utils.SubjectMixin):
                 ocd = self.notes_list.get_createdate(i)
                 if cd != ocd:
                     # we log the title
-                    logging.debug('createdate "%s" resync, %d - %d' % (nt,cd,ocd))
+                    logging.debug('createdate "%s" resync, %d - %d' % (nt, cd, ocd))
                     refresh_notes_list = True
                     break
 
@@ -1625,7 +1619,7 @@ class View(utils.SubjectMixin):
                 omd = self.notes_list.get_modifydate(i)
                 if abs(md - omd) > 60:
                     # we log the title
-                    logging.debug('modifydate "%s" resync' % (nt,))
+                    logging.debug('modifydate "%s" resync' % (nt, ))
                     refresh_notes_list = True
                     break
 
@@ -1633,7 +1627,7 @@ class View(utils.SubjectMixin):
                 old_pinned = self.notes_list.get_pinned(i)
                 if pinned != old_pinned:
                     # we log the title
-                    logging.debug('pinned "%s" resync' % (nt,))
+                    logging.debug('pinned "%s" resync' % (nt, ))
                     refresh_notes_list = True
                     break
 
@@ -1641,7 +1635,7 @@ class View(utils.SubjectMixin):
                 old_tags = self.notes_list.get_tags(i)
                 if tags != old_tags:
                     # we log the title
-                    logging.debug('tags "%s" resync' % (nt,))
+                    logging.debug('tags "%s" resync' % (nt, ))
                     refresh_notes_list = True
                     break
 
@@ -1693,8 +1687,7 @@ class View(utils.SubjectMixin):
         self.handler_pinned_checkbutton()
 
     def handler_pinned_checkbutton(self, *args):
-        self.notify_observers('change:pinned',
-            utils.KeyValueObject(value=self.pinned_checkbutton_var.get()))
+        self.notify_observers('change:pinned', utils.KeyValueObject(value=self.pinned_checkbutton_var.get()))
 
     def handler_search_enter(self, evt):
         # user has pressed enter whilst searching
@@ -1712,8 +1705,7 @@ class View(utils.SubjectMixin):
             self.text_note.focus()
 
     def handler_search_entry(self, *args):
-        self.notify_observers('change:entry',
-                              utils.KeyValueObject(value=self.search_entry_var.get()))
+        self.notify_observers('change:entry', utils.KeyValueObject(value=self.search_entry_var.get()))
 
     def handler_search_mode(self, *args):
         """
@@ -1725,8 +1717,7 @@ class View(utils.SubjectMixin):
         @return:
         """
 
-        self.notify_observers('change:search_mode',
-            utils.KeyValueObject(value=self.search_mode_var.get()))
+        self.notify_observers('change:search_mode', utils.KeyValueObject(value=self.search_mode_var.get()))
 
     def handler_add_tags_to_selected_note(self, evt=None):
         self.notify_observers('add:tag', utils.KeyValueObject(tags=self.tags_entry_var.get()))
@@ -1769,12 +1760,11 @@ class View(utils.SubjectMixin):
         for mo in pat.finditer(t.get('1.0', 'end')):
 
             # start creating a new tkinter text tag
-            tag = 'search-%d' % (len(self.text_tags_search),)
+            tag = 'search-%d' % (len(self.text_tags_search), )
             t.tag_config(tag, background=self.config.colors.highlight_background)
 
             # mo.start(), mo.end() or mo.span() in one go
-            t.tag_add(tag, '1.0+%dc' % (mo.start(),), '1.0+%dc' %
-                    (mo.end(),))
+            t.tag_add(tag, '1.0+%dc' % (mo.start(), ), '1.0+%dc' % (mo.end(), ))
 
             # record the tag name so we can delete it later
             self.text_tags_search.append(tag)
@@ -1807,20 +1797,16 @@ class View(utils.SubjectMixin):
                 ul = 1
 
             # start creating a new tkinter text tag
-            tag = 'web-%d' % (len(self.text_tags_links),)
+            tag = 'web-%d' % (len(self.text_tags_links), )
             t.tag_config(tag, foreground=self.config.colors.url, underline=ul)
             # hovering should give us the finger (cursor) hehe
-            t.tag_bind(tag, '<Enter>',
-                    lambda e: t.config(cursor="hand2"))
-            t.tag_bind(tag, '<Leave>',
-                    lambda e: t.config(cursor=""))
+            t.tag_bind(tag, '<Enter>', lambda e: t.config(cursor="hand2"))
+            t.tag_bind(tag, '<Leave>', lambda e: t.config(cursor=""))
             # and clicking on it should do something sensible
-            t.tag_bind(tag, '<Button-1>', lambda e, link=link:
-                    self.handler_click_link(link))
+            t.tag_bind(tag, '<Button-1>', lambda e, link=link: self.handler_click_link(link))
 
             # mo.start(), mo.end() or mo.span() in one go
-            t.tag_add(tag, '1.0+%dc' % (mo.start(),), '1.0+%dc' %
-                    (mo.end(),))
+            t.tag_add(tag, '1.0+%dc' % (mo.start(), ), '1.0+%dc' % (mo.end(), ))
 
             # record the tag name so we can delete it later
             self.text_tags_links.append(tag)
@@ -1837,18 +1823,14 @@ class View(utils.SubjectMixin):
         # non whitespace line, wherever it is:
         mo = utils.note_title_re.match(content)
         if mo:
-            t.tag_add('md-bold',
-                      '1.0+{0}c'.format(mo.start()),
-                      '1.0+{0}c'.format(mo.end()))
+            t.tag_add('md-bold', '1.0+{0}c'.format(mo.start()), '1.0+{0}c'.format(mo.end()))
 
         # then do headings
         pat = re.compile(r"^#.*$", re.MULTILINE)
 
         for mo in pat.finditer(content):
             # mo.start(), mo.end() or mo.span() in one go
-            t.tag_add('md-bold',
-                      '1.0+{0}c'.format(mo.start()),
-                      '1.0+{0}c'.format(mo.end()))
+            t.tag_add('md-bold', '1.0+{0}c'.format(mo.start()), '1.0+{0}c'.format(mo.end()))
 
     def handler_text_change(self, evt):
         self.notify_observers('change:text', None)
@@ -1923,7 +1905,7 @@ class View(utils.SubjectMixin):
     def set_status_text(self, txt):
         self.statusbar.set_status(txt)
 
-    def handler_delete_tag_from_selected_note(self,tag_name):
+    def handler_delete_tag_from_selected_note(self, tag_name):
         self.notify_observers('delete:tag', utils.KeyValueObject(tag=tag_name))
 
     def set_note_data(self, note, reset_undo=True, content_unchanged=False):
@@ -1957,10 +1939,10 @@ class View(utils.SubjectMixin):
             tag_button.destroy()
 
         for tag in tags:
-            tag_button = tk.Button(
-                    self.note_existing_tags_frame, width=0, text=tag + " x",
-                    command=lambda tag=tag:
-                    self.handler_delete_tag_from_selected_note(tag))
+            tag_button = tk.Button(self.note_existing_tags_frame,
+                                   width=0,
+                                   text=tag + " x",
+                                   command=lambda tag=tag: self.handler_delete_tag_from_selected_note(tag))
             tag_button.pack(side=tk.LEFT)
 
         if note is not None:
