@@ -26,12 +26,6 @@ class TagRemovedEvent(typing.NamedTuple):
     tag: str
 
 
-class FoundNoteEvent(typing.NamedTuple):
-    key: str
-    note: typing.Any
-    tagfound: int
-
-
 class NoteStatusChangedEvent(typing.NamedTuple):
     what: str
     key: str

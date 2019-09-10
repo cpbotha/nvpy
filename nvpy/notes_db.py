@@ -60,6 +60,12 @@ class NoteStatus(typing.NamedTuple):
     full_syncing: bool
 
 
+class NoteInfo(typing.NamedTuple):
+    key: str
+    note: typing.Any
+    tagfound: int
+
+
 class _BackgroundTask(typing.NamedTuple):
     action: int
     key: str
@@ -340,7 +346,7 @@ class NotesDB(utils.SubjectMixin):
                 n = self.notes[k]
                 if not n.get('deleted'):
                     active_notes += 1
-                    filtered_notes.append(events.FoundNoteEvent(key=k, note=n, tagfound=0))
+                    filtered_notes.append(NoteInfo(key=k, note=n, tagfound=0))
 
             return filtered_notes, [], active_notes
 
@@ -383,7 +389,7 @@ class NotesDB(utils.SubjectMixin):
                     # tagmatch == 2 if no tag was specced (so all notes go through)
                     tagfound = 1 if tagmatch == 1 else 0
                     # we have to store our local key also
-                    filtered_notes.append(events.FoundNoteEvent(key=k, note=n, tagfound=tagfound))
+                    filtered_notes.append(NoteInfo(key=k, note=n, tagfound=tagfound))
 
         return filtered_notes, '|'.join(tms_pats[1] + tms_pats[2]), active_notes
 
@@ -429,19 +435,19 @@ class NotesDB(utils.SubjectMixin):
                     # either be first matching element or None (second param)
                     if t and next((ti for ti in t if sspat.search(ti)), None) is not None:
                         # we have to store our local key also
-                        filtered_notes.append(events.FoundNoteEvent(key=k, note=n, tagfound=1))
+                        filtered_notes.append(NoteInfo(key=k, note=n, tagfound=1))
 
                     elif sspat.search(c):
                         # we have to store our local key also
-                        filtered_notes.append(events.FoundNoteEvent(key=k, note=n, tagfound=0))
+                        filtered_notes.append(NoteInfo(key=k, note=n, tagfound=0))
 
                 else:
                     # we have to store our local key also
-                    filtered_notes.append(events.FoundNoteEvent(key=k, note=n, tagfound=0))
+                    filtered_notes.append(NoteInfo(key=k, note=n, tagfound=0))
             else:
                 if (not sspat or sspat.search(c)):
                     # we have to store our local key also
-                    filtered_notes.append(events.FoundNoteEvent(key=k, note=n, tagfound=0))
+                    filtered_notes.append(NoteInfo(key=k, note=n, tagfound=0))
 
         match_regexp = search_string if sspat else ''
 
