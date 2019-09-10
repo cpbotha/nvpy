@@ -989,36 +989,34 @@ class NotesDB(utils.SubjectMixin):
         self.syncing_lock.acquire()
 
         while True:
-            o: _BackgroundTask
+            task: _BackgroundTask
             if self.q_sync.empty():
                 self.syncing_lock.release()
-                o = self.q_sync.get()
+                task = self.q_sync.get()
                 self.syncing_lock.acquire()
 
             else:
-                o = self.q_sync.get()
+                task = self.q_sync.get()
 
-            if o.key not in self.threaded_syncing_keys:
+            if task.key not in self.threaded_syncing_keys:
                 # this note was already synced by sync_full thread.
                 continue
 
-            if o.action == ACTION_SYNC_PARTIAL_TO_SERVER:
-                if 'key' in o.note:
-                    logging.debug('Updating note %s (local key %s) to server.' % (o.note['key'], o.key))
+            if task.action == ACTION_SYNC_PARTIAL_TO_SERVER:
+                local_note = task.note
+                if 'key' in local_note:
+                    logging.debug('Updating note %s (local key %s) to server.' % (local_note['key'], task.key))
                 else:
-                    logging.debug('Sending new note (local key %s) to server.' % (o.key, ))
+                    logging.debug('Sending new note (local key %s) to server.' % (task.key, ))
 
-                result = self.update_note_to_server(o.note)
-
+                result = self.update_note_to_server(task.note)
                 if result.error_object is None:
                     if not result.is_updated:
-                        res = _BackgroundTaskReslt(error=0, **o._asdict())
+                        res = _BackgroundTaskReslt(action=task.action, key=task.key, note=task.note, error=0)
                         self.q_sync_res.put(res)
                         continue
 
                     remote_note = result.note
-                    local_note = o.note
-
                     if not remote_note.get('content', None):
                         # if note has not been changed, we don't get content back
                         # delete our own copy too.
@@ -1028,16 +1026,16 @@ class NotesDB(utils.SubjectMixin):
                     # we rely on that to determine when a returned note should
                     # overwrite a note in the main list.
 
-                    # store the actual note back into o
+                    # store the actual note back into local_note
                     # in-place update of our existing note copy
                     local_note.update(remote_note)
 
                     # put result on the queue
-                    res = _BackgroundTaskReslt(action=o.action, key=o.key, note=local_note, error=0)
+                    res = _BackgroundTaskReslt(action=task.action, key=task.key, note=local_note, error=0)
                     self.q_sync_res.put(res)
 
                 else:
-                    res = _BackgroundTaskReslt(error=1, **o._asdict())
+                    res = _BackgroundTaskReslt(action=task.action, key=task.key, note=task.note, error=1)
                     self.q_sync_res.put(res)
 
     def update_note_to_server(self, note):
