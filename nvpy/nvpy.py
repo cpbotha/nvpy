@@ -42,8 +42,7 @@ import os
 import traceback
 import threading
 import re
-import collections
-
+import typing
 from . import tk
 from .utils import SubjectMixin
 from . import view
@@ -74,15 +73,22 @@ except ImportError:
 else:
     HAVE_DOCUTILS = True
 
-ColorConfig = collections.namedtuple('ColorConfig', (
-    'text',
-    'selected_note',
-    'note_info',
-    'highlight_note_info',
-    'url',
-    'background',
-    'highlight_background',
-))
+
+class ColorConfig(typing.NamedTuple):
+    # Text color.
+    text: str
+    # Background color of selected note.
+    selected_note: str
+    # Text color for note info (title, tags, updated date, etc).
+    note_info: str
+    # Text color for highlighted note info.
+    highlight_note_info: str
+    # Text color for URL.
+    url: str
+    # Background color.
+    background: str
+    # Background color of highlighted area.
+    highlight_background: str
 
 
 class Config:

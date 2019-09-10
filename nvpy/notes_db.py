@@ -11,10 +11,9 @@ import logging
 from queue import Queue, Empty
 from http.client import HTTPException
 from .p3port import unicode
-
+import typing
 import re
 import base64
-import collections
 import simplenote
 from simplenote import Simplenote
 
@@ -45,11 +44,12 @@ class WriteError(RuntimeError):
     pass
 
 
-UpdateResult = collections.namedtuple('UpdateResult', (
-    'note',
-    'is_updated',
-    'error_object',
-))
+class UpdateResult(typing.NamedTuple):
+    # Note object
+    note: typing.Any
+    is_updated: bool
+    # Usually, error_object is None.  When failed to update, it have an error object.
+    error_object: typing.Optional[typing.Any]
 
 
 class NotesDB(utils.SubjectMixin):
