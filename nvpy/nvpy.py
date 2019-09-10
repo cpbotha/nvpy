@@ -39,14 +39,13 @@ from logging.handlers import RotatingFileHandler
 from .notes_db import NotesDB, SyncError, ReadError, WriteError
 import argparse
 import os
-import time
 import traceback
 import threading
 import re
 import collections
 
 from . import tk
-from .utils import KeyValueObject, SubjectMixin
+from .utils import SubjectMixin
 from . import view
 import webbrowser
 from .version import VERSION

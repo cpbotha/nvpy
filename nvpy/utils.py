@@ -1,11 +1,9 @@
 # nvPY: cross-platform note-taking app with simplenote syncing
 # copyright 2012 by Charl P. Botha <cpbotha@vxlabs.com>
 # new BSD license
-import sys
 import datetime
 import random
 import re
-import string
 from urllib.request import urlopen, URLError
 from queue import Queue, Empty as QueueEmpty
 from .p3port import unicode
