@@ -31,7 +31,7 @@
 # to check if we're online
 import sys
 import codecs
-import configparser as ConfigParser
+from configparser import ConfigParser
 from .p3port import unicode
 
 import logging
@@ -161,7 +161,7 @@ class Config:
         if args is not None and args.cfg is not None:
             cfg_files.extend([os.path.join(app_dir, args.cfg), args.cfg])
 
-        cp = ConfigParser.SafeConfigParser(defaults)
+        cp = ConfigParser(defaults)
         self.files_read = cp.read(cfg_files)
 
         cfg_sec = 'nvpy'
