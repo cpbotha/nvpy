@@ -1,4 +1,4 @@
-#!/usr/bin/env python2
+#!/usr/bin/env python3
 import json
 import os
 import glob
@@ -13,14 +13,14 @@ for file in files:
         obj = json.load(f)
         try:
             # See https://simplenotepy.readthedocs.io/en/latest/api.html#simperium-api-note-object
-            assert 'key' in obj and type(obj['key']) == unicode
+            assert 'key' in obj and type(obj['key']) == str
             assert 'deleted' in obj and type(obj['deleted']) in [bool, int]
             assert 'modifydate' in obj and type(obj['modifydate']) in [float, int]
             assert 'createdate' in obj and type(obj['createdate']) in [float, int]
             assert 'version' in obj and type(obj['version']) == int
             assert 'systemtags' in obj and type(obj['systemtags']) == list
             assert 'tags' in obj and type(obj['tags']) == list
-            assert 'content' in obj and type(obj['content']) == unicode
+            assert 'content' in obj and type(obj['content']) == str
             # nvpy required fields.
 
             # TODO: enable 'savedate' field validation

@@ -1,11 +1,11 @@
-#!/usr/bin/env python2
+#!/usr/bin/env python3
 # Usage:
 #   ./get-note-from-server.py note_id
 
 import json
 import os
 import sys
-import ConfigParser
+from configparser import ConfigParser
 
 import simplenote
 
@@ -20,7 +20,7 @@ cfg_files = [
     os.path.join(home, '.nvpyrc'),
 ]
 
-cp = ConfigParser.SafeConfigParser()
+cp = ConfigParser()
 cp.read(cfg_files)
 user = cp.get('nvpy', 'sn_username', raw=True)
 passwd = cp.get('nvpy', 'sn_password', raw=True)
