@@ -149,7 +149,7 @@ class NotesDB(utils.SubjectMixin):
 
         if self.config.notes_as_txt:
             for fn in txtlist:
-                logging.debug('New text note found : %s' % (fn), )
+                logging.debug('New text note found : %s' % (fn, ))
                 tfn = os.path.join(self.config.txt_path, fn)
                 try:
                     with codecs.open(tfn, mode='rb', encoding='utf-8') as f:
