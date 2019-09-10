@@ -33,7 +33,6 @@ import sys
 import codecs
 from configparser import ConfigParser
 from .p3port import unicode
-
 import logging
 from logging.handlers import RotatingFileHandler
 from .notes_db import NotesDB, SyncError, ReadError, WriteError
@@ -48,6 +47,7 @@ from .utils import SubjectMixin
 from . import view
 import webbrowser
 from .version import VERSION
+from . import events
 
 try:
     import markdown
@@ -430,12 +430,12 @@ class Controller:
             # Cancel all timers before stop this program.
             self.view.cancel_timers()
 
-    def observer_notes_db_change_note_status(self, notes_db, evt_type, evt):
+    def observer_notes_db_change_note_status(self, notes_db, evt_type, evt: events.NoteStatusChangedEvent):
         skey = self.selected_note_key
         if skey == evt.key:
             self.view.set_note_status(self.notes_db.get_note_status(skey))
 
-    def observer_notes_db_sync_full(self, notes_db, evt_type, evt):
+    def observer_notes_db_sync_full(self, notes_db, evt_type, evt: events.SyncProgressEvent):
         logging.debug(evt.msg)
         self.view.set_status_text(evt.msg)
 
@@ -447,7 +447,7 @@ class Controller:
         # change status to "Full syncing"
         self.update_note_status()
 
-    def observer_notes_db_error_sync_full(self, notes_db, evt_type, evt):
+    def observer_notes_db_error_sync_full(self, notes_db, evt_type, evt: events.SyncFailedEvent):
         try:
             raise evt.error
         except SyncError as e:
@@ -468,7 +468,7 @@ class Controller:
         # return normal status from "Full syning".
         self.update_note_status()
 
-    def observer_notes_db_complete_sync_full(self, notes_db, evt_type, evt):
+    def observer_notes_db_complete_sync_full(self, notes_db, evt_type, evt: events.SyncCompletedEvent):
         sync_from_server_errors = evt.errors
         if sync_from_server_errors > 0:
             self.view.show_error(
@@ -478,7 +478,7 @@ class Controller:
         # return normal status from "Full syning".
         self.update_note_status()
 
-    def observer_notes_db_synced_note(self, notes_db, evt_type, evt):
+    def observer_notes_db_synced_note(self, notes_db, evt_type, evt: events.NoteSyncedEvent):
         """This observer gets called only when a note returns from
         a sync that's more recent than our most recent mod to that note.
         """
@@ -495,7 +495,7 @@ class Controller:
                 self.view.unmute_note_data_changes()
         self.view.refresh_notes_list()
 
-    def observer_view_click_notelink(self, view, evt_type, note_name):
+    def observer_view_click_notelink(self, view, evt_type, note_name: str):
         # find note_name in titles, try to jump to that note
         # if not in current list, change search string in case
         # it's somewhere else
@@ -508,7 +508,7 @@ class Controller:
             # to be a new regular expression to search for in the notes db.
             self.view.set_search_entry_text(note_name)
 
-    def observer_view_delete_note(self, view, evt_type, evt):
+    def observer_view_delete_note(self, view, evt_type, evt: events.NoteSelectionChangedEvent):
         # delete note from notes_db
         # remove the note from the notes_list_model.list
 
@@ -656,7 +656,7 @@ class Controller:
         if self.view.get_continuous_rendering():
             self.helper_markdown_to_html()
 
-    def observer_view_select_note(self, view, evt_type, evt):
+    def observer_view_select_note(self, view, evt_type, evt: events.NoteSelectionChangedEvent):
         self.select_note(evt.sel)
 
     def observer_view_sync_current_note(self, view, evt_type, evt):
@@ -674,19 +674,19 @@ class Controller:
             elif ret is None:
                 self.view.set_status_text('Unable to sync with server. Offline?')
 
-    def observer_view_change_cs(self, view, evt_type, evt):
+    def observer_view_change_cs(self, view, evt_type, evt: events.CheckboxChangedEvent):
         # evt.value is the new value
         # only do something if user has really toggled
         if evt.value != self.config.case_sensitive:
             self.config.case_sensitive = evt.value
             self.view.refresh_notes_list()
 
-    def observer_view_change_search_mode(self, view, evt_type, evt):
+    def observer_view_change_search_mode(self, view, evt_type, evt: events.CheckboxChangedEvent):
         if evt.value != self.config.search_mode:
             self.config.search_mode = evt.value
             self.view.refresh_notes_list()
 
-    def observer_view_change_entry(self, view, evt_type, evt):
+    def observer_view_change_entry(self, view, evt_type, evt: events.TextBoxChangedEvent):
         # store the currently selected note key
         k = self.selected_note_key
         # for each new evt.value coming in, get a new list from the notes_db
@@ -743,16 +743,16 @@ class Controller:
             self.notes_db.set_note_tags(self.selected_note_key, evt.value)
             self.view.cmd_notes_list_select()
 
-    def observer_view_delete_tag(self, view, evt_type, evt):
+    def observer_view_delete_tag(self, view, evt_type, evt: events.TagRemovedEvent):
         self.notes_db.delete_note_tag(self.selected_note_key, evt.tag)
         self.view.cmd_notes_list_select()
 
-    def observer_view_add_tag(self, view, evt_type, evt):
+    def observer_view_add_tag(self, view, evt_type, evt: events.TagsAddedEvent):
         self.notes_db.add_note_tags(self.selected_note_key, evt.tags)
         self.view.cmd_notes_list_select()
         self.view.tags_entry_var.set('')
 
-    def observer_view_change_pinned(self, view, evt_type, evt):
+    def observer_view_change_pinned(self, view, evt_type, evt: events.CheckboxChangedEvent):
         # get new text and update our database
         if self.selected_note_key:
             self.notes_db.set_note_pinned(self.selected_note_key, evt.value)
@@ -788,7 +788,7 @@ class Controller:
 
             self.view.close()
 
-    def observer_view_create_note(self, view, evt_type, evt):
+    def observer_view_create_note(self, view, evt_type, evt: events.NoteCreatedEvent):
         # create the note
         new_key = self.notes_db.create_note(evt.title)
         # clear the search entry, this should trigger a new list being returned
