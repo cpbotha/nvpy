@@ -1,7 +1,6 @@
 # nvPY: cross-platform note-taking app with simplenote syncing
 # copyright 2012 by Charl P. Botha <cpbotha@vxlabs.com>
 # new BSD license
-from __future__ import print_function
 import sys
 import codecs
 import copy
