@@ -24,7 +24,7 @@ setup(
     install_requires=['Markdown', 'docutils', 'simplenote>=2.1.2'],
     extras_require={
         # development and test requirements.
-        'dev': ['mock'],
+        'dev': ['mock', 'yapf'],
     },
     entry_points={
         'gui_scripts': ['nvpy = nvpy.nvpy:main']
