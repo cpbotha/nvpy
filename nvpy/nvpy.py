@@ -222,9 +222,10 @@ class Config:
         self.confirm_delete = cp.getboolean(cfg_sec, 'confirm_delete')
         self.confirm_exit = cp.getboolean(cfg_sec, 'confirm_exit')
 
-        # Show warnings when using obsoleted option.
+        self.warnings = []
         if cp.has_option(cfg_sec, 'background_full_sync'):
-            logging.warning('"background_full_sync" option is obsoleted.')
+            w = lambda: logging.warning('"background_full_sync" option is removed.')
+            self.warnings.append(w)
 
     def parse_cmd_line_opts(self):
         if __name__ != '__main__':
@@ -234,6 +235,11 @@ class Config:
         parser.add_argument('--cfg', '-c', default='', dest='cfg', metavar='nvpy.cfg', help='path to config file')
         args = parser.parse_args()
         return args
+
+    def show_warnings(self):
+        """ Show warnings when using obsoleted option. """
+        for w in self.warnings:
+            w()
 
 
 class NotesListModel(SubjectMixin):
@@ -302,6 +308,7 @@ class Controller:
         logging.debug('nvpy logging initialized')
 
         logging.debug('config read from %s' % (str(self.config.files_read), ))
+        self.config.show_warnings()
 
         if self.config.sn_username == '':
             self.config.simplenote_sync = 0
