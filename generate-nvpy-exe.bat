@@ -14,6 +14,9 @@ rmdir /q /s build
 del dist\nvpy.exe
 del dist\nvpy-debug.exe
 
+rem Upgrade pyinstaller.
+pip install --upgrade pyinstaller
+
 rem When you generate windows binary, you need the certifi package.
 rem See workaround code on nvpy.py for details.
 pip install --upgrade certifi
