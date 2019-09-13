@@ -24,8 +24,14 @@ setup(
     url="https://github.com/cpbotha/nvpy",
     packages=['nvpy'],
     long_description=read('README.rst'),
-    # these are in reality not hard requirements of nvpy
-    install_requires=['Markdown', 'docutils', 'simplenote>=2.1.2'],
+    install_requires=[
+        # These are in reality not hard requirements of nvpy.  If these packages are not installed,
+        # the Markdown/reStructuredText rendering feature will not work.  But basic functions should work.
+        'Markdown',
+        'docutils',
+        # This is hard requirements of nvpy.
+        'simplenote>=2.1.2',
+    ],
     extras_require={
         # development and test requirements.
         'dev': ['mock', 'yapf'],
