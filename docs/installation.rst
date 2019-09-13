@@ -86,7 +86,7 @@ You can install nvPY from a git repository. ::
 
     git clone git://github.com/cpbotha/nvpy.git
     cd nvpy
-    pip3 install -U -e .
+    pip3 install -U -e '.[dev]'
 
 Don't forget to create :code:`~/.nvpy.cfg` while referring to `nvpy-example.cfg <https://github.com/cpbotha/nvpy/blob/master/nvpy/nvpy-example.cfg>`_.
 
