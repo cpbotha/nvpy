@@ -35,6 +35,8 @@ Note that current version tcl/tk is not fully support unicode.  This solution is
     tar xf tk8.6.9-src.tar.gz
     tar xf Python-3.7.4.tgz
 
+    sudo apt build-dep -y tcl tk python3.7
+
     cd tcl8.6.9/unix
     ./configure --enable-threads --enable-shared --enable-symbols --enable-64bit --enable-langinfo --enable-man-symlinks
     make
