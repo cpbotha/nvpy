@@ -32,6 +32,5 @@ rem NOTE:
 rem   The one-file bundles have a start-up performance issue.  Therefore, the one-file bundle is no longer provided.
 py -3 -m PyInstaller -i nvpy\icons\nvpy.ico --add-binary "nvpy\icons\nvpy.gif;icons" -n nvpy       --windowed start-nvpy.py
 py -3 -m PyInstaller -i nvpy\icons\nvpy.ico --add-binary "nvpy\icons\nvpy.gif;icons" -n nvpy-debug --console  start-nvpy.py
-powershell -Command 'Compress-Archive dist/nvpy dist/nvpy-windows.zip'
-powershell -Command 'Compress-Archive dist/nvpy-debug dist/nvpy-windows-debug.zip'
-
+echo Compress-Archive dist/nvpy dist/nvpy-windows.zip             |powershell -Command -
+echo Compress-Archive dist/nvpy-debug dist/nvpy-windows-debug.zip |powershell -Command -
