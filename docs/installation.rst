@@ -22,7 +22,7 @@ Following this recipe, install the nvPY to your computer.
 5. Wait a little for full synchronization to complete.
 6. Consider creating a shortcut to :code:`nvpy.exe` on your desktop or in your start menu.
 
-To upgrade an existing installation of nvpy, just replace the :code:`nvpy.exe` file with the newer version.
+To upgrade an existing installation of nvpy, just replace the :code:`nvpy` folder with the newer version.
 
 
 Windows step-by-step for experts
