@@ -42,7 +42,7 @@ setup(
     include_package_data=True,
     classifiers=[
         # See https://pypi.org/classifiers/
-        "Development Status :: 4 - Beta",
+        "Development Status :: 5 - Production/Stable",
         "Environment :: X11 Applications",
         "Environment :: MacOS X",
         "Environment :: Win32 (MS Windows)",
