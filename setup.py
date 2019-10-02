@@ -30,7 +30,7 @@ setup(
         'Markdown',
         'docutils',
         # This is hard requirements of nvpy.
-        'simplenote>=2.1.2',
+        'simplenote>=2.1.4',
     ],
     extras_require={
         # development and test requirements.
