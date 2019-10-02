@@ -1043,84 +1043,75 @@ class NotesDB(utils.SubjectMixin):
         :return: UpdateResult object
         """
 
-        try:
+        self.waiting_for_simplenote = True
+        # WORKAROUND: simplenote <=v2.1.2 modifies the note passed by argument. To prevent on-memory database
+        #             corruption, Copy the note object before it is passed to simplenote library.
+        # https://github.com/cpbotha/nvpy/issues/181#issuecomment-489543782
+        o, err = self.simplenote.update_note(note.copy())
+        self.waiting_for_simplenote = False
+
+        if err == 0:
+            # success!
+
+            # Keeps the internal fields of nvpy.
+            new_note = dict(note)
+            new_note.update(o)
+
+            logging.debug('Server replies with updated note ' + new_note['key'])
+            return UpdateResult(
+                note=new_note,
+                is_updated=True,
+                error_object=None,
+            )
+
+        elif 'key' in note:
+            update_error = o
+
+            # note has already been saved on the simplenote server.
             self.waiting_for_simplenote = True
-            # WORKAROUND: simplenote <=v2.1.2 modifies the note passed by argument. To prevent on-memory database
-            #             corruption, Copy the note object before it is passed to simplenote library.
-            # https://github.com/cpbotha/nvpy/issues/181#issuecomment-489543782
-            o, err = self.simplenote.update_note(note.copy())
+            o, err = self.simplenote.get_note(note['key'])
             self.waiting_for_simplenote = False
 
             if err == 0:
-                # success!
+                local_note = note
+                remote_note = o
 
-                # Keeps the internal fields of nvpy.
-                new_note = dict(note)
-                new_note.update(o)
-
-                logging.debug('Server replies with updated note ' + new_note['key'])
-                return UpdateResult(
-                    note=new_note,
-                    is_updated=True,
-                    error_object=None,
-                )
-
-            elif 'key' in note:
-                update_error = o
-
-                # note has already been saved on the simplenote server.
-                self.waiting_for_simplenote = True
-                o, err = self.simplenote.get_note(note['key'])
-                self.waiting_for_simplenote = False
-
-                if err == 0:
-                    local_note = note
-                    remote_note = o
-
-                    if not self.is_different_note(local_note, remote_note):
-                        # got an error response when updating the note.
-                        # however, the remote note has been updated.
-                        # this phenomenon is rarely occurs.
-                        # if it occurs, housekeeper's is going to repeatedly update this note.
-                        # regard updating error as success for prevent this problem.
-                        logging.info('Regard updating error (local key %s, error object %s) as success.' %
-                                     (o.key, repr(update_error)))
-                        return UpdateResult(
-                            note=local_note,
-                            is_updated=False,
-                            error_object=None,
-                        )
-
-                    else:
-                        # Local note and remote note are different.  But failed to update.
-                        logging.error('Could not update note %s to server: %s, local=%s, remote=%s' %
-                                      (note['key'], update_error, local_note, remote_note))
-                        return UpdateResult(
-                            note=None,
-                            is_updated=False,
-                            error_object=update_error,
-                        )
+                if not self.is_different_note(local_note, remote_note):
+                    # got an error response when updating the note.
+                    # however, the remote note has been updated.
+                    # this phenomenon is rarely occurs.
+                    # if it occurs, housekeeper's is going to repeatedly update this note.
+                    # regard updating error as success for prevent this problem.
+                    logging.info('Regard updating error (local key %s, error object %s) as success.' %
+                                 (o.key, repr(update_error)))
+                    return UpdateResult(
+                        note=local_note,
+                        is_updated=False,
+                        error_object=None,
+                    )
 
                 else:
-                    get_error = o
-                    logging.error('Could not get/update note %s: update_error=%s, get_error=%s' %
-                                  (note['key'], update_error, get_error))
+                    # Local note and remote note are different.  But failed to update.
+                    logging.error('Could not update note %s to server: %s, local=%s, remote=%s' %
+                                  (note['key'], update_error, local_note, remote_note))
                     return UpdateResult(
                         note=None,
                         is_updated=False,
-                        error_object={
-                            'update_error': update_error,
-                            'get_error': get_error
-                        },
+                        error_object=update_error,
                     )
 
-        except HTTPException as e:
-            # workaround for https://github.com/mrtazz/simplenote.py/issues/24
-            return UpdateResult(
-                note=None,
-                is_updated=False,
-                error_object=e,
-            )
+            else:
+                get_error = o
+                logging.error('Could not get/update note %s: update_error=%s, get_error=%s' %
+                              (note['key'], update_error, get_error))
+                return UpdateResult(
+                    note=None,
+                    is_updated=False,
+                    error_object={
+                        'update_error': update_error,
+                        'get_error': get_error
+                    },
+                )
 
 
 class Note(dict):
