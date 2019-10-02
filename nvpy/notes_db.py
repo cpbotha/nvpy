@@ -1113,6 +1113,16 @@ class NotesDB(utils.SubjectMixin):
                     },
                 )
 
+        # Failed to create new note.
+        assert err
+        assert 'key' not in note
+        return UpdateResult(
+            note=None,
+            is_updated=False,
+            error_object=update_error
+        )
+
+
 
 class Note(dict):
     @property
