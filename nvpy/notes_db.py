@@ -11,26 +11,25 @@ import logging
 from queue import Queue, Empty
 from http.client import HTTPException
 from .p3port import unicode
+from threading import Thread, Lock
+import time
 import typing
 import re
 import base64
 import simplenote
 from simplenote import Simplenote
 from . import events
+from . import utils
+from .debug import wrap_buggy_function
 
 # API key provided for nvPY.
 # Please do not use for other software!
 simplenote.simplenote.API_KEY = bytes(reversed(base64.b64decode('OTg0OTI4ZTg4YjY0NzMyOTZjYzQzY2IwMDI1OWFkMzg=')))
 
-from threading import Thread, Lock
-import time
-from . import utils
 
 ACTION_SAVE = 0
 ACTION_SYNC_PARTIAL_TO_SERVER = 1
 ACTION_SYNC_PARTIAL_FROM_SERVER = 2  # UNUSED.
-
-from .debug import wrap_buggy_function
 
 
 class SyncError(RuntimeError):
