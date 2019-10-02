@@ -48,6 +48,7 @@ from . import view
 import webbrowser
 from .version import VERSION
 from . import events
+from http.client import HTTPException
 
 try:
     import markdown
@@ -450,7 +451,7 @@ class Controller:
     def observer_notes_db_error_sync_full(self, notes_db, evt_type, evt: events.SyncFailedEvent):
         try:
             raise evt.error
-        except SyncError as e:
+        except (SyncError, HTTPException) as e:
             self.view.show_error('Sync error', e)
         except WriteError as e:
             emsg = "Please check nvpy.log.\n" + str(e)
@@ -668,7 +669,7 @@ class Controller:
                 self.view.update_selected_note_data(self.notes_db.notes[key])
                 self.view.set_status_text('Synced updated note from server.')
 
-            elif ret[1] == False:
+            elif ret and ret[1] == False:
                 self.view.set_status_text('Server had nothing newer for this note.')
 
             elif ret is None:

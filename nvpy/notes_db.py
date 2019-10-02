@@ -17,7 +17,6 @@ import typing
 import re
 import base64
 import simplenote
-from simplenote import Simplenote
 from . import events
 from . import utils
 from .debug import wrap_buggy_function
@@ -25,6 +24,37 @@ from .debug import wrap_buggy_function
 # API key provided for nvPY.
 # Please do not use for other software!
 simplenote.simplenote.API_KEY = bytes(reversed(base64.b64decode('OTg0OTI4ZTg4YjY0NzMyOTZjYzQzY2IwMDI1OWFkMzg=')))
+
+
+# workaround for https://github.com/cpbotha/nvpy/issues/191
+class Simplenote(simplenote.Simplenote):
+    def get_token(self):
+        if self.token is None:
+            self.token = self.authenticate(self.username, self.password)
+            if self.token is None:
+                raise HTTPException('failed to connect to the server')
+        try:
+            return str(self.token, 'utf-8')
+        except TypeError:
+            return self.token
+
+    def get_note(self, *args, **kwargs):
+        try:
+            return super().get_note(*args, **kwargs)
+        except HTTPException as e:
+            return e, -1
+
+    def update_note(self, *args, **kwargs):
+        try:
+            return super().update_note(*args, **kwargs)
+        except HTTPException as e:
+            return e, -1
+
+    def get_note_list(self, *args, **kwargs):
+        try:
+            return super().get_note_list(*args, **kwargs)
+        except HTTPException as e:
+            return e, -1
 
 
 ACTION_SAVE = 0
@@ -1064,10 +1094,11 @@ class NotesDB(utils.SubjectMixin):
                 error_object=None,
             )
 
-        elif 'key' in note:
-            update_error = o
+        update_error = o
 
-            # note has already been saved on the simplenote server.
+        if 'key' in note:
+            # Note has already been saved on the simplenote server.
+            # Try to recover the update error.
             self.waiting_for_simplenote = True
             o, err = self.simplenote.get_note(note['key'])
             self.waiting_for_simplenote = False
