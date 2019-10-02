@@ -1,3 +1,4 @@
+v2.0.1, 2019-10-03 -- Fixed crash bug when offline.
 v2.0.0, 2019-09-15 -- Ported to Python3. Dropped Python2 support. Removed background_full_sync option.
                       (Windows) Improved startup performance of nvpy.exe.
 v1.2.2, 2019-09-05 -- Fixed database corruption bug. Fixed UI bugs. Fixed full-sync issue. Added TclError handling.
