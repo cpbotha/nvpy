@@ -1792,12 +1792,12 @@ class View(utils.SubjectMixin):
 
         # List of Regex patterns to match various link types to be activated
         re_list = [
-            r"(\[\[[^][]*\]\])", # Inter-note Links
-            r"((?:https?|ftp|file)://[-A-Za-z0-9+&@#/%?=~_|!:,.;\(\)]*[A-Za-z0-9+&@#/%=~_|])", # Http(s) / FTP / File Links
-            r"(mailto:[a-zA-Z0-9_.+-]+@[a-zA-Z0-9-]+\.[a-zA-Z0-9-.]+)", # Mailto Links
-            r"((?:tel|mid):[^\s]+)", # Tel / Mid Links
-            r"((?:thunderlink|irc|ircs|irc6)://[^\s]+)", # Thunderbird and IRC Links
-            r"(message:(?://)?(?:%3c|<).*(?:%3e|>))" # Leopard Mail Message Links
+            r"(\[\[[^][]*\]\])",  # Inter-note Links
+            r"((?:https?|ftp|file)://[-A-Za-z0-9+&@#/%?=~_|!:,.;\(\)]*[A-Za-z0-9+&@#/%=~_|])",  # Http(s) / FTP / File Links
+            r"(mailto:[a-zA-Z0-9_.+-]+@[a-zA-Z0-9-]+\.[a-zA-Z0-9-.]+)",  # Mailto Links
+            r"((?:tel|mid):[^\s]+)",  # Tel / Mid Links
+            r"((?:thunderlink|irc|ircs|irc6)://[^\s]+)",  # Thunderbird and IRC Links
+            r"(message:(?://)?(?:%3c|<).*(?:%3e|>))"  # Leopard Mail Message Links
         ]
 
         # Compile Regex into single pattern
@@ -1809,7 +1809,7 @@ class View(utils.SubjectMixin):
                 link = mo.groups()[0]
                 ul = 0
             else:
-                link = list( filter(None, mo.groups()) )[0]
+                link = list(filter(None, mo.groups()))[0]
                 ul = 1
 
             # Create a new Tkinter Tag
@@ -1828,7 +1828,6 @@ class View(utils.SubjectMixin):
 
             # mo.start(), mo.end() or mo.span() in one go
             t.tag_add(tag, '1.0+%dc' % (mo.start(), ), '1.0+%dc' % (mo.end(), ))
-
 
     def activate_markdown_highlighting(self):
         t = self.text_note
