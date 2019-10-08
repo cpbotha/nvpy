@@ -10,10 +10,11 @@ from . import tk
 from tkinter import messagebox as tkMessageBox
 import tkinter.font as tkFont
 from . import utils
-import webbrowser
 import threading
 from . import events
 import typing
+import subprocess
+import platform
 
 
 class WidgetRedirector:
@@ -1734,7 +1735,12 @@ class View(utils.SubjectMixin):
             self.notify_observers('click:notelink', link)
 
         else:
-            webbrowser.open(link)
+            if platform.system().lower() == 'windows':
+                os.startfile(link)
+            elif platform.system().lower() == 'darwin':
+                subprocess.call(('open', link))
+            else:
+                subprocess.call(('xdg-open', link))
 
     def activate_search_string_highlights(self):
         # no note selected, so no highlights.
