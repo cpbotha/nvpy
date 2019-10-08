@@ -1783,39 +1783,52 @@ class View(utils.SubjectMixin):
         """
 
         t = self.text_note
-        # the last group matches [[bla bla]] inter-note links
-        pat = \
-        r"\b((https?|ftp|file)://[-A-Za-z0-9+&@#/%?=~_|!:,.;\(\)]*[A-Za-z0-9+&@#/%=~_|])|(\[\[[^][]*\]\])"
 
-        # remove all existing tags
+        # Remove all existing tags
         for tag in self.text_tags_links:
             t.tag_remove(tag, '1.0', 'end')
 
         del self.text_tags_links[:]
 
+        # List of Regex patterns to match various link types to be activated
+        re_list = [
+            r"(\[\[[^][]*\]\])", # Inter-note Links
+            r"((?:https?|ftp|file)://[-A-Za-z0-9+&@#/%?=~_|!:,.;\(\)]*[A-Za-z0-9+&@#/%=~_|])", # Http(s) / FTP / File Links
+            r"(mailto:[a-zA-Z0-9_.+-]+@[a-zA-Z0-9-]+\.[a-zA-Z0-9-.]+)", # Mailto Links
+            r"((?:tel|mid):[^\s]+)", # Tel / Mid Links
+            r"((?:thunderlink|irc|ircs|irc6)://[^\s]+)", # Thunderbird and IRC Links
+            r"(message:(?://)?(?:%3c|<).*(?:%3e|>))" # Leopard Mail Message Links
+        ]
+
+        # Compile Regex into single pattern
+        pat = re.compile('|'.join(re_list))
+
         for mo in re.finditer(pat, t.get('1.0', 'end')):
-            # extract the link from the match object
-            if mo.groups()[2] is not None:
-                link = mo.groups()[2]
+            # Any Match in Group 0 is a Note Link
+            if mo.groups()[0] is not None:
+                link = mo.groups()[0]
                 ul = 0
             else:
-                link = mo.groups()[0]
+                link = list( filter(None, mo.groups()) )[0]
                 ul = 1
 
-            # start creating a new tkinter text tag
+            # Create a new Tkinter Tag
             tag = 'web-%d' % (len(self.text_tags_links), )
             t.tag_config(tag, foreground=self.config.colors.url, underline=ul)
-            # hovering should give us the finger (cursor) hehe
+
+            # Hovering over link changes cursor to hand
             t.tag_bind(tag, '<Enter>', lambda e: t.config(cursor="hand2"))
             t.tag_bind(tag, '<Leave>', lambda e: t.config(cursor=""))
-            # and clicking on it should do something sensible
+
+            # Clicking link calls link handler method
             t.tag_bind(tag, '<Button-1>', lambda e, link=link: self.handler_click_link(link))
+
+            # record the tag name so we can delete it later
+            self.text_tags_links.append(tag)
 
             # mo.start(), mo.end() or mo.span() in one go
             t.tag_add(tag, '1.0+%dc' % (mo.start(), ), '1.0+%dc' % (mo.end(), ))
 
-            # record the tag name so we can delete it later
-            self.text_tags_links.append(tag)
 
     def activate_markdown_highlighting(self):
         t = self.text_note
