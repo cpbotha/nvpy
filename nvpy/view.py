@@ -126,7 +126,7 @@ class HelpBindings(tk.Toplevel):
         tk.Toplevel.__init__(self, parent)
         self.title("Help | Bindings")
 
-        import bindings
+        from . import bindings
 
         msg = tk.Text(self, width=80, wrap=tk.NONE)
         msg.insert(tk.END, bindings.description)
