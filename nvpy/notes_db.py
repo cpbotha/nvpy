@@ -426,7 +426,8 @@ class NotesDB(utils.SubjectMixin):
                     # we have to store our local key also
                     filtered_notes.append(NoteInfo(key=k, note=n, tagfound=tagfound))
 
-        return filtered_notes, '|'.join(tms_pats[1] + tms_pats[2]), active_notes
+        match_regexp = '|'.join(re.escape(p) for p in tms_pats[1] + tms_pats[2])
+        return filtered_notes, match_regexp, active_notes
 
     def filter_notes_regexp(self, search_string=None):
         """Return list of notes filtered with search_string,
