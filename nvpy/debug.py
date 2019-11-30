@@ -24,7 +24,6 @@ def format_all_tracebacks():
 
 def wrap_buggy_function(fn):
     """ wrap_buggy_function handles any exception and start pdb in interactive mode. """
-
     @functools.wraps(fn)
     def wrapper(*args, **kwargs):
         try:

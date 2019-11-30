@@ -111,7 +111,6 @@ class _BackgroundTaskReslt(typing.NamedTuple):
 class NotesDB(utils.SubjectMixin):
     """NotesDB will take care of the local notes database and syncing with SN.
     """
-
     def __init__(self, config):
         utils.SubjectMixin.__init__(self)
 

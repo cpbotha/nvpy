@@ -19,7 +19,6 @@ import platform
 
 class WidgetRedirector:
     """Support for redirecting arbitrary widget subcommands."""
-
     def __init__(self, widget):
         self.dict = {}
         self.widget = widget
@@ -102,7 +101,6 @@ class RedirectedText(tk.Text):
     This magic is encapsulated in the idlelib.WidgetRedirector class which
     we use here.
     """
-
     def __init__(self, master=None, cnf=None, **kw):
         tk.Text.__init__(self, master, cnf or {}, **kw)
 
@@ -150,7 +148,6 @@ class SuggestionEntry(tk.Entry):
     args:
         completion_func(searchWord) - returns a list of matching tags.
     """
-
     def __init__(self, completion_func, *args, **kwargs):
         if "textvariable" in kwargs:
             self.var = kwargs["textvariable"]
@@ -730,7 +727,6 @@ class TriggeredcompleteEntry(tk.Entry):
 
     @ivar cycle: if 1, then we're cycling through alternative completions.
     """
-
     def __init__(self, master, case_sensitive, **kw):
         tk.Entry.__init__(self, master, **kw)
         self.case_sensitive = case_sensitive
@@ -816,7 +812,6 @@ class TriggeredcompleteText(RedirectedText):
     TriggeredcompleteText completes the note title when I press "[[".
     This class behaves like the TriggeredcompleteEntry.
     """
-
     def __init__(self, master, case_sensitive, **kwargs):
         RedirectedText.__init__(self, master, **kwargs)
         self.case_sensitive = case_sensitive
@@ -954,7 +949,6 @@ class TriggeredcompleteText(RedirectedText):
 class View(utils.SubjectMixin):
     """Main user interface class.
     """
-
     def __init__(self, config, notes_list_model):
         utils.SubjectMixin.__init__(self)
 
