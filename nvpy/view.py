@@ -1554,11 +1554,11 @@ class View(utils.SubjectMixin):
         self.text_note.event_generate('<<Paste>>')
 
     def cmd_help_about(self):
-
         tkMessageBox.showinfo('Help | About',
-                              'nvPY %s is copyright 2012-2016 by Charl P. Botha '
-                              '<http://charlbotha.com/>\n\n'
-                              'A rather ugly but cross-platform simplenote client.' % (self.config.app_version, ),
+                              'nvPY %s - A rather ugly but cross-platform simplenote client.\n\n'
+                              'Copyright 2017-2019 yuuki0xff <https://yuuki0xff.jp/>\n'
+                              'Copyright 2012-2016 Charl P. Botha <http://charlbotha.com/>\n' %
+                              (self.config.app_version, ),
                               parent=self.root)
 
     def cmd_list_tags(self):
