@@ -50,10 +50,12 @@ To upgrade an existing installation of nvpy, do the following::
 Ubuntu / Mint / Debian step-by-step
 ===================================
 
-On Debian-flavoured systems with apt, this generally works::
+On Debian-flavoured systems with apt, current releases of nypy require Python 3.6 or later. If you are running Debian-buster, Ubuntu-bionic, or later, which have a compatible release of Python as the default for `python3`, this generally works::
 
     sudo apt-get install python3 python3-tk python3-pip
     sudo pip3 install -U nvpy
+
+Older releases may require manual installation of python 3.6 or later. 
 
 Create a file in your home directory called .nvpy.cfg with just the following contents::
 
