@@ -45,7 +45,7 @@ A note on automatic syncing
 Installation
 ============
 
-nvPY works best on Python 3.6 or later.  If you want to work on python 2.7, please use nvPY v1.2.x.
+nvPY works only on Python 3.6 or later.  If you want to work on python 2.7, please use nvPY v1.2.x.
 
 To install the latest development version from github, do::
 
@@ -53,12 +53,12 @@ To install the latest development version from github, do::
 
 OR, to install the version currently on pypi, do::
 
-    pip install nvpy
+    pip3 install nvpy
     
 If already have nvpy installed, but you want to upgrade, try the following::
 
-    sudo pip uninstall nvpy
-    sudo pip install --upgrade nvpy
+    sudo pip3 uninstall nvpy
+    sudo pip3 install --upgrade nvpy
 
 OR, you can of course use easy\_install instead::
 
