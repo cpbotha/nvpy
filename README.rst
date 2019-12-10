@@ -60,10 +60,6 @@ If already have nvpy installed, but you want to upgrade, try the following::
     sudo pip3 uninstall nvpy
     sudo pip3 install --upgrade nvpy
 
-OR, you can of course use easy\_install instead::
-
-    easy_install nvpy
-
 github always has the latest development version, whereas I upload
 tagged snapshots (v0.9 for example) to pypi.
 
