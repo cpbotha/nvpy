@@ -322,17 +322,17 @@ class TagList(tk.Toplevel):
     def __init__(self, parent, taglist, view):
         tk.Toplevel.__init__(self, parent)
         self.title("List all tags")
-        self.bind("<Escape>",lambda a : self.destroy())
+        self.bind("<Escape>", lambda a: self.destroy())
 
-        box = tk.Listbox(self, width=30, selectmode = tk.BROWSE)
+        box = tk.Listbox(self, width=30, selectmode=tk.BROWSE)
         if taglist:
             alltags = list(set(taglist))
             alltags.sort(key=lambda x: x.upper())
             for item in alltags:
-                box.insert(tk.END,item)
+                box.insert(tk.END, item)
             # bind double click and Enter (on box)
-            box.bind("<Double-Button-1>", lambda a : self.tagsel(box,view))
-            box.bind("<Return>", lambda a : self.tagsel(box,view))
+            box.bind("<Double-Button-1>", lambda a: self.tagsel(box, view))
+            box.bind("<Return>", lambda a: self.tagsel(box, view))
             box.focus()
         else:
             box.insert(tk.END, "No tags defined")
@@ -345,6 +345,7 @@ class TagList(tk.Toplevel):
         y = parent.winfo_y() + 100
 
         self.geometry("+%d+%d" % (x, y))  # Put me over root window
+
 
 #########################################################################
 class StatusBar(tk.Frame):
