@@ -310,20 +310,34 @@ class SuggestionEntry(tk.Entry):
 
 
 class TagList(tk.Toplevel):
-    def __init__(self, parent, taglist):
+    # search tag callback
+    def tagsel(self, box, view):
+        sel = box.curselection()
+        if len(sel) != 1: return
+        for idx in sel:
+            item = box.get(idx)
+            view.set_search_entry_text("t:%s" % item)
+        self.destroy()
+
+    def __init__(self, parent, taglist, view):
         tk.Toplevel.__init__(self, parent)
         self.title("List all tags")
+        self.bind("<Escape>",lambda a : self.destroy())
+
+        box = tk.Listbox(self, width=30, selectmode = tk.BROWSE)
         if taglist:
             alltags = list(set(taglist))
             alltags.sort(key=lambda x: x.upper())
-            tagtxt = '\n'.join(alltags)
+            for item in alltags:
+                box.insert(tk.END,item)
+            # bind double click and Enter (on box)
+            box.bind("<Double-Button-1>", lambda a : self.tagsel(box,view))
+            box.bind("<Return>", lambda a : self.tagsel(box,view))
+            box.focus()
         else:
-            tagtxt = "No tags defined"
+            box.insert(tk.END, "No tags defined")
 
-        msg = tk.Text(self, width=30, wrap=tk.NONE)
-        msg.insert(tk.END, tagtxt)
-        msg.config(state=tk.DISABLED)
-        msg.pack()
+        box.pack()
 
         button = tk.Button(self, text="Dismiss", command=self.destroy)
         button.pack()
@@ -331,7 +345,6 @@ class TagList(tk.Toplevel):
         y = parent.winfo_y() + 100
 
         self.geometry("+%d+%d" % (x, y))  # Put me over root window
-
 
 #########################################################################
 class StatusBar(tk.Frame):
@@ -1562,7 +1575,7 @@ class View(utils.SubjectMixin):
                               parent=self.root)
 
     def cmd_list_tags(self):
-        l = TagList(self.root, self.taglist)
+        l = TagList(self.root, self.taglist, self)
         self.root.wait_window(l)
 
     def cmd_help_bindings(self):
