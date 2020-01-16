@@ -533,7 +533,7 @@ class Controller:
             logging.debug("Trying to convert %s to html." % (key, ))
             if HAVE_MARKDOWN:
                 logging.debug("Convert note %s to html." % (key, ))
-                exts = re.split("\\s", self.config.md_extensions.strip()) if self.config.md_extensions else []
+                exts = re.split('\s+', self.config.md_extensions.strip()) if self.config.md_extensions else []
                 exts += list(DEFAULT_MARKDOWN_EXTS)
                 # remove duplicate items on exts.
                 exts = list(set(exts))
