@@ -556,7 +556,7 @@ class NotesList(tk.Frame):
         # Text widget events ##########################################
 
         self.text.bind("<Button 1>", self.cmd_text_button1)
-
+        self.text.bind("<Control-c>", self.cmd_text_copy)
         # same deal as for pageup
         # we have to stop the text widget class event handler from firing
         def cmd_up(e):
@@ -593,6 +593,15 @@ class NotesList(tk.Frame):
         # go from event coordinate to tkinter text INDEX to note idx!
         idx = int(text_index.split('.')[0]) - 1
         self.select(idx, silent=False)
+
+    def cmd_text_copy(self, event):
+        # find line that was clicked on
+        text_index = self.text.index("@%d,%d" % (event.x, event.y))
+        # go from event coordinate to tkinter text INDEX to note idx!
+        idx = int(text_index.split('.')[0]) - 1
+        self.text.clipboard_clear()
+        self.text.clipboard_append(self.get_title(idx))
+        return "break"
 
     def clear(self):
         """
@@ -1190,6 +1199,7 @@ class View(utils.SubjectMixin):
         self.text_note.bind("<Control-bracketleft>", lambda e: self.notes_list.text.focus())
         # <Key>
 
+        self.text_note.bind("<Control-BackSpace>", self.handler_control_backspace)
         self.text_note.bind("<Control-a>", self.cmd_select_all)
 
         self.tags_entry.bind("<Return>", self.handler_add_tags_to_selected_note)
@@ -1864,6 +1874,30 @@ class View(utils.SubjectMixin):
             # mo.start(), mo.end() or mo.span() in one go
             t.tag_add('md-bold', '1.0+{0}c'.format(mo.start()), '1.0+{0}c'.format(mo.end()))
 
+    def handler_control_backspace(self, evt):
+        if self.text_note.index("insert-1c")!="1.0" and self.text_note.index(tk.INSERT)!="1.0":
+            if self.text_note.index("insert wordstart-1c")=="1.0":
+                i=0
+                while self.text_note.index(tk.INSERT)!="1.0" and i<25:
+                    self.text_note.delete("insert-1c")
+                    i+=1
+            else:
+                insertm1c=self.text_note.get("insert-1c")
+                if insertm1c in "\n\t.?!,@#…¿/\\\"'—–" and insertm1c!="":
+                    i=0
+                    while (insertm1c in "\n\t.?!,@#…¿/\\\"'—–" and insertm1c!="") and i<25:
+                        self.text_note.delete("insert-1c")
+                        insertm1c=self.text_note.get("insert-1c")
+                        i+=1
+                else:
+                    while insertm1c not in "\n\t  .?!,@#…¿/\\\"'—–" and insertm1c!="":
+                        self.text_note.delete("insert-1c")
+                        insertm1c=self.text_note.get("insert-1c")
+                    while insertm1c in "  " and insertm1c!="":
+                        self.text_note.delete("insert-1c")
+                        insertm1c=self.text_note.get("insert-1c")
+        return "break"
+        
     def handler_text_change(self, evt):
         self.notify_observers('change:text', None)
         # FIXME: consider having this called from the housekeeping
