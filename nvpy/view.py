@@ -1200,6 +1200,7 @@ class View(utils.SubjectMixin):
         # <Key>
 
         self.text_note.bind("<Control-BackSpace>", self.handler_control_backspace)
+        self.text_note.bind("<Control-Delete>", self.hanler_control_delete)
         self.text_note.bind("<Control-a>", self.cmd_select_all)
 
         self.tags_entry.bind("<Return>", self.handler_add_tags_to_selected_note)
@@ -1883,21 +1884,47 @@ class View(utils.SubjectMixin):
                     i+=1
             else:
                 insertm1c=self.text_note.get("insert-1c")
-                if insertm1c in "\n\t.?!,@#…¿/\\\"'—–" and insertm1c!="":
+                while insertm1c in "  " and insertm1c!="":
+                    self.text_note.delete("insert-1c")
+                    insertm1c=self.text_note.get("insert-1c")
+                if insertm1c in "\n\t.?!,@#â€¦Â¿/\\\"'â€”â€“" and insertm1c!="":
                     i=0
-                    while (insertm1c in "\n\t.?!,@#…¿/\\\"'—–" and insertm1c!="") and i<25:
+                    while (insertm1c in "\n\t.?!,@#â€¦Â¿/\\\"'â€”â€“" and insertm1c!="") and i<25:
                         self.text_note.delete("insert-1c")
                         insertm1c=self.text_note.get("insert-1c")
                         i+=1
                 else:
-                    while insertm1c not in "\n\t  .?!,@#…¿/\\\"'—–" and insertm1c!="":
-                        self.text_note.delete("insert-1c")
-                        insertm1c=self.text_note.get("insert-1c")
-                    while insertm1c in "  " and insertm1c!="":
+                    while insertm1c not in "\n\t  .?!,@#â€¦Â¿/\\\"'â€”â€“" and insertm1c!="":
                         self.text_note.delete("insert-1c")
                         insertm1c=self.text_note.get("insert-1c")
         return "break"
-        
+
+    def handler_control_delete(self, evt):
+        insert=self.text_note.get(tk.INSERT)
+        if insert in "  " and insert!="":
+            while insert in "  " and insert!="":
+                self.text_note.delete(tk.INSERT)
+                insert=self.text_note.get(tk.INSERT)
+        elif insert not in "\n\t  .?!,@#â€¦Â¿/\\\"'â€”â€“":
+            while insert not in "\n\t  .?!,@#â€¦Â¿/\\\"'â€”â€“":
+                self.text_note.delete(tk.INSERT)
+                insert=self.text_note.get(tk.INSERT)
+            if insert in "  ":
+                while insert in "  " and insert!="":
+                    self.text_note.delete(tk.INSERT)
+                    insert=self.text_note.get(tk.INSERT)
+        else:
+            if insert in "\n\t" and insert!="":
+                if self.text_note.get(tk.INSERT, tk.END).strip()=="" and self.text_note.index(tk.INSERT)!=self.text_note.index(tk.END):
+                    self.text_note.delete(tk.INSERT, tk.END)
+                else:
+                    while insert in "\n\t  " and insert!="":
+                        self.text_note.delete(tk.INSERT)
+                        insert=self.text_note.get(tk.INSERT)
+            else:
+                self.text_note.delete(tk.INSERT)
+        return "break"
+
     def handler_text_change(self, evt):
         self.notify_observers('change:text', None)
         # FIXME: consider having this called from the housekeeping
