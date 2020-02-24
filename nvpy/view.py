@@ -595,12 +595,8 @@ class NotesList(tk.Frame):
         self.select(idx, silent=False)
 
     def cmd_text_copy(self, event):
-        # find line that was clicked on
-        text_index = self.text.index("@%d,%d" % (event.x, event.y))
-        # go from event coordinate to tkinter text INDEX to note idx!
-        idx = int(text_index.split('.')[0]) - 1
         self.text.clipboard_clear()
-        self.text.clipboard_append(self.get_title(idx))
+        self.text.clipboard_append(self.get_title(self.selected_idx))
         return "break"
 
     def clear(self):
