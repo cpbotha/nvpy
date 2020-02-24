@@ -1200,7 +1200,7 @@ class View(utils.SubjectMixin):
         # <Key>
 
         self.text_note.bind("<Control-BackSpace>", self.handler_control_backspace)
-        self.text_note.bind("<Control-Delete>", self.hanler_control_delete)
+        self.text_note.bind("<Control-Delete>", self.handler_control_delete)
         self.text_note.bind("<Control-a>", self.cmd_select_all)
 
         self.tags_entry.bind("<Return>", self.handler_add_tags_to_selected_note)
