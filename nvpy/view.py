@@ -1828,7 +1828,10 @@ class View(utils.SubjectMixin):
 
             # Create a new Tkinter Tag
             tag = 'web-%d' % (len(self.text_tags_links), )
-            t.tag_config(tag, foreground=self.config.colors.url, underline=ul)
+            t.tag_config(tag,
+                         foreground=self.config.colors.url,
+                         selectbackground=self.config.colors.url_selection_background,
+                         underline=ul)
 
             # Hovering over link changes cursor to hand
             t.tag_bind(tag, '<Enter>', lambda e: t.config(cursor="hand2"))

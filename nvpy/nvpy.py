@@ -86,6 +86,8 @@ class ColorConfig(typing.NamedTuple):
     highlight_note_info: str
     # Text color for URL.
     url: str
+    # Background color for URL selection.
+    url_selection_background: str
     # Background color.
     background: str
     # Background color of highlighted area.
@@ -133,6 +135,7 @@ class Config:
             'note_info_color': 'dark gray',
             'highlight_note_info_color': 'lightyellow',
             'url_color': '#03f',
+            'url_selection_background_color': 'yellow',
             'background_color': 'white',
             'highlight_background_color': 'yellow',
             'sn_username': '',
@@ -216,6 +219,7 @@ class Config:
             note_info=cp.get(cfg_sec, 'note_info_color'),
             highlight_note_info=cp.get(cfg_sec, 'highlight_note_info_color'),
             url=cp.get(cfg_sec, 'url_color'),
+            url_selection_background=cp.get(cfg_sec, 'url_selection_background_color'),
             background=cp.get(cfg_sec, 'background_color'),
             highlight_background=cp.get(cfg_sec, 'highlight_background_color'),
         )
