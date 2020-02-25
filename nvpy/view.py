@@ -596,8 +596,9 @@ class NotesList(tk.Frame):
         self.select(idx, silent=False)
 
     def cmd_text_copy(self, event):
-        self.text.clipboard_clear()
-        self.text.clipboard_append(self.get_title(self.selected_idx))
+        if self.selected_idx >= 0:
+            self.text.clipboard_clear()
+            self.text.clipboard_append(self.get_title(self.selected_idx))
         return "break"
 
     def clear(self):
