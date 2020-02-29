@@ -413,6 +413,8 @@ class NotesListConfig(typing.NamedTuple):
     colors: str
     layout: str
     print_columns: int
+    hide_time: int
+    hide_tags: int
 
 
 class NoteConfig(typing.NamedTuple):
@@ -489,6 +491,8 @@ class NotesList(tk.Frame):
         self.note_headers = []
 
         self.layout = config.layout
+        self.hide_time = config.hide_time
+        self.hide_tags = config.hide_tags
         self.print_columns = config.print_columns
         if bold_font.measure(' ') > f.measure(' '):
             self.cwidth = bold_font.measure(' ')
@@ -512,14 +516,22 @@ class NotesList(tk.Frame):
 
         if self.layout == "vertical" and self.print_columns == 1:
             nrchars, rem = divmod((self.text.winfo_width()), self.cwidth)
-            cellwidth = (int(nrchars) - 8) / 2
+            if self.hide_time:
+                nrchars=(int(nrchars))
+            else:
+                nrchars=(int(nrchars))-8
+
+            if self.hide_tags:
+                cellwidth = (int(nrchars))
+            else:
+                cellwidth = (int(nrchars))/2
 
             if pinned:
                 title += ' *'
 
             self.text.insert(tk.END, u'{0:<{w}}'.format(title[:cellwidth - 1], w=cellwidth), ("title,"))
 
-            if tags > 0:
+            if tags > 0 and not self.hide_tags:
                 if config.tagfound:
                     self.text.insert(tk.END, u'{0:<{w}}'.format(','.join(tags)[:cellwidth - 1], w=cellwidth),
                                      ("found", ))
@@ -527,7 +539,8 @@ class NotesList(tk.Frame):
                     self.text.insert(tk.END, u'{0:<{w}}'.format(','.join(tags)[:cellwidth - 1], w=cellwidth),
                                      ("tags", ))
 
-            self.text.insert(tk.END, ' ' + utils.human_date(createdate), ("createdate", ))
+            if not self.hide_time:
+                self.text.insert(tk.END, ' ' + utils.human_date(createdate), ("createdate", ))
 
             # tags can be None (newly created note) or [] or ['tag1', 'tag2']
         else:
@@ -539,10 +552,11 @@ class NotesList(tk.Frame):
             # latest modified first is the default mode
             # we could consider showing createddate here IF the sort mode
             # is configured to be latest created first
-            self.text.insert(tk.END, ' ' + utils.human_date(modifydate), ("modifydate", ))
+            if not self.hide_time:
+                self.text.insert(tk.END, ' ' + utils.human_date(modifydate), ("modifydate", ))
 
             # tags can be None (newly created note) or [] or ['tag1', 'tag2']
-            if tags:
+            if tags and not self.hide_tags:
                 if config.tagfound:
                     self.text.insert(tk.END, ' ' + ','.join(tags), ("found", ))
                 else:
@@ -1392,6 +1406,8 @@ class View(utils.SubjectMixin):
 
         notes_list_config = NotesListConfig(colors=self.config.colors,
                                             layout=self.config.layout,
+                                            hide_time=self.config.list_hide_time,
+                                            hide_tags=self.config.list_hide_tags,
                                             print_columns=self.config.print_columns)
 
         if self.config.layout == "horizontal":
