@@ -531,7 +531,7 @@ class NotesList(tk.Frame):
 
             self.text.insert(tk.END, u'{0:<{w}}'.format(title[:cellwidth - 1], w=cellwidth), ("title,"))
 
-            if tags > 0 and not self.hide_tags:
+            if tags and not self.hide_tags:
                 if config.tagfound:
                     self.text.insert(tk.END, u'{0:<{w}}'.format(','.join(tags)[:cellwidth - 1], w=cellwidth),
                                      ("found", ))
