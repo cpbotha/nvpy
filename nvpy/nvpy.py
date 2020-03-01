@@ -128,6 +128,8 @@ class Config:
             'list_font_family': 'Helvetica',  # sans on all platforms
             'list_font_family_fixed': 'Courier',  # monospace on all platforms
             'list_font_size': '10',
+            'list_hide_time': '0',
+            'list_hide_tags': '0',
             'layout': 'horizontal',
             'print_columns': '0',
             'text_color': 'black',
@@ -209,6 +211,9 @@ class Config:
         self.list_font_family = cp.get(cfg_sec, 'list_font_family')
         self.list_font_family_fixed = cp.get(cfg_sec, 'list_font_family_fixed')
         self.list_font_size = cp.getint(cfg_sec, 'list_font_size')
+
+        self.list_hide_time = cp.getint(cfg_sec, 'list_hide_time')
+        self.list_hide_tags = cp.getint(cfg_sec, 'list_hide_tags')
 
         self.layout = cp.get(cfg_sec, 'layout')
         self.print_columns = cp.getint(cfg_sec, 'print_columns')
