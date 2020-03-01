@@ -515,16 +515,16 @@ class NotesList(tk.Frame):
         self.enable_text()
 
         if self.layout == "vertical" and self.print_columns == 1:
-            nrchars, rem = divmod((self.text.winfo_width()), self.cwidth)
+            nrchars, rem = divmod(self.text.winfo_width(), self.cwidth)
             if self.hide_time:
-                nrchars=(int(nrchars))
+                nrchars = int(nrchars)
             else:
-                nrchars=(int(nrchars))-8
+                nrchars = int(nrchars) - 8
 
             if self.hide_tags:
-                cellwidth = (int(nrchars))
+                cellwidth = int(nrchars)
             else:
-                cellwidth = (int(nrchars))/2
+                cellwidth = int(nrchars) / 2
 
             if pinned:
                 title += ' *'

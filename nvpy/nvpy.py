@@ -128,8 +128,8 @@ class Config:
             'list_font_family': 'Helvetica',  # sans on all platforms
             'list_font_family_fixed': 'Courier',  # monospace on all platforms
             'list_font_size': '10',
-            'list_hide_time' : '0',
-            'list_hide_tags' : '0',
+            'list_hide_time': '0',
+            'list_hide_tags': '0',
             'layout': 'horizontal',
             'print_columns': '0',
             'text_color': 'black',
