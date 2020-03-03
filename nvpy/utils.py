@@ -32,11 +32,12 @@ def get_note_title(note):
         return ''
 
 
-def get_note_title_file(note):
+def get_note_title_file(note, replace_filename_spaces):
     mo = note_title_re.match(note.get('content', ''))
     if mo:
         fn = mo.groups()[0]
-        fn = fn.replace(' ', '_')
+        if replace_filename_spaces:
+            fn = fn.replace(' ', '_')
         fn = fn.replace('/', '_')
         if not fn:
             return ''

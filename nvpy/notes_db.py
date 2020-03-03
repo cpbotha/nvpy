@@ -150,7 +150,7 @@ class NotesDB(utils.SubjectMixin):
             try:
                 n = json.load(open(fn, 'rb'))
                 if self.config.notes_as_txt:
-                    nt = utils.get_note_title_file(n)
+                    nt = utils.get_note_title_file(n, self.config.replace_filename_spaces)
                     tfn = os.path.join(self.config.txt_path, nt)
                     if os.path.isfile(tfn):
                         self.titlelist[n.get('key')] = nt
@@ -527,7 +527,7 @@ class NotesDB(utils.SubjectMixin):
         """
 
         if self.config.notes_as_txt:
-            t = utils.get_note_title_file(note)
+            t = utils.get_note_title_file(note, self.config.replace_filename_spaces)
             if t and not note.get('deleted'):
                 if k in self.titlelist:
                     logging.debug('Writing note : %s %s' % (t, self.titlelist[k]))
@@ -845,7 +845,7 @@ class NotesDB(utils.SubjectMixin):
                         continue
 
                     if self.config.notes_as_txt:
-                        tfn = os.path.join(self.config.txt_path, utils.get_note_title_file(self.notes[lk]))
+                        tfn = os.path.join(self.config.txt_path, utils.get_note_title_file(self.notes[lk], self.config.replace_filename_spaces))
                         if os.path.isfile(tfn):
                             os.unlink(tfn)
                     del self.notes[lk]
