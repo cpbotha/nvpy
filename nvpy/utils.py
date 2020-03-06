@@ -36,7 +36,7 @@ def get_note_title_file(note, replace_filename_spaces):
     mo = note_title_re.match(note.get('content', ''))
     if mo:
         fn = mo.groups()[0]
-        if replace_filename_spaces:
+        if replace_filename_spaces == 1:
             fn = fn.replace(' ', '_')
         fn = fn.replace('/', '_')
         if not fn:
