@@ -51,7 +51,7 @@ To install the latest development version from github, do::
 
     pip3 install --upgrade 'git+https://github.com/cpbotha/nvpy.git#egg=nvpy'
 
-OR, to install the version currently on pypi, do::
+OR, to install the latest stable version from pypi, do::
 
     pip3 install --upgrade nvpy
     
