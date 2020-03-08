@@ -1,3 +1,5 @@
+v2.1.0, 2020-03-08 -- Added keyboard shortcuts, list_hide_time and list_hide_tags options.
+                      Improve the TagList dialog. Fixed crash when md_extensions contains multiple spaces.
 v2.0.2, 2019-12-01 -- Added support for more URL schemes. Fixed crash when opening the help dialog. Fixed highlight.
 v2.0.1, 2019-10-03 -- Fixed crash bug when offline.
 v2.0.0, 2019-09-15 -- Ported to Python3. Dropped Python2 support. Removed background_full_sync option.
