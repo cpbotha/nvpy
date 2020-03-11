@@ -80,6 +80,32 @@ First edit the file to check and optionally customize the Exec and Icon entries,
 
     xdg-desktop-menu install vxlabs-nvpy.desktop
 
+Alternative method
+==================
+
+Some operating systems will present you with the dependency problems when you install programs using pip without creating a virtual environment. 
+
+One solution is to use `virtualenvwrapper <https://virtualenvwrapper.readthedocs.io/en/latest/index.html>`_.
+
+Another way to install it could be with `Conda or Miniconda <https://conda.io/en/latest/miniconda.html>`_, some distibutions provide conda in their repositories. 
+
+This example shows you how to install Conda on Fedora, standard Bash setup - change it if you use other shell. If your distribution provides the conda package, use your package manager (zypper, pacman etc), otherwise follow the official Conda documentation::
+
+    sudo dnf install conda
+    conda init bash
+    conda install pip
+    conda create -n nvpy
+    conda activate nvpy
+    pip install nvpy
+
+The resulting installation will end up in :code:`~/.conda/envs/nvpy/bin`. Now symlink it or create an alias for easier access to nvpy binary.
+
+The distribution agnostinc Nix package manager also provides `Conda < https://nixos.org/nixos/packages.html?query=conda>`_, to install::
+
+    nix-env -iA nixos.conda
+
+Then follow the setup above.
+
 Advanced users
 ==============
 
