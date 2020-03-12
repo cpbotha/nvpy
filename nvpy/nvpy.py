@@ -122,6 +122,7 @@ class Config:
             'pinned_ontop': '1',
             'db_path': os.path.join(home, '.nvpy'),
             'txt_path': os.path.join(home, '.nvpy/notes'),
+            'replace_filename_spaces': '1',
             'theme': 'default',
             'font_family': 'Courier',  # monospaced on all platforms
             'font_size': '10',
@@ -196,6 +197,7 @@ class Config:
         self.notes_as_txt = cp.getint(cfg_sec, 'notes_as_txt')
         self.read_txt_extensions = cp.get(cfg_sec, 'read_txt_extensions')
         self.txt_path = os.path.join(home, cp.get(cfg_sec, 'txt_path'))
+        self.replace_filename_spaces = cp.getint(cfg_sec, 'replace_filename_spaces')
         self.search_mode = cp.get(cfg_sec, 'search_mode')
         self.case_sensitive = cp.getint(cfg_sec, 'case_sensitive')
         self.search_tags = cp.getint(cfg_sec, 'search_tags')
