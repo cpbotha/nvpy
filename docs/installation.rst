@@ -100,7 +100,7 @@ This example shows you how to install Conda on Fedora, standard Bash setup - cha
 
 The resulting installation will end up in :code:`~/.conda/envs/nvpy/bin`. Now symlink it or create an alias for easier access to nvpy binary.
 
-The distribution agnostinc Nix package manager also provides `Conda < https://nixos.org/nixos/packages.html?query=conda>`_, to install::
+For example NixOS distribution also provides `Conda < https://nixos.org/nixos/packages.html?query=conda>`_, to install::
 
     nix-env -iA nixos.conda
 
