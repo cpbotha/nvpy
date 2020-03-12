@@ -47,18 +47,17 @@ Installation
 
 nvPY works only on Python 3.6 or later.  If you want to work on python 2.7, please use nvPY v1.2.x.
 
-To install the latest development version from github, do::
+For beginners, also for detailed installation recipes, see the `nvPY installation guide <https://github.com/cpbotha/nvpy/blob/master/docs/installation.rst>`_.
 
+For experts and contributors, run following commands::
+
+    # Install dependencies. This example works on debian-like distributions.
+    sudo apt-get install python3 python3-tk python3-pip
+
+    # Install latest development version from github.
     pip3 install --upgrade 'git+https://github.com/cpbotha/nvpy.git#egg=nvpy'
-
-OR, to install the latest stable version from pypi, do::
-
-    pip3 install --upgrade nvpy
-    
-github always has the latest development version, whereas I upload
-tagged snapshots (v0.9 for example) to pypi.
-
-For more detailed installation recipes, also for beginners, and for instructions on how to integrate nvPY with your Linux desktop environment, see the `nvPY installation guide <https://github.com/cpbotha/nvpy/blob/master/docs/installation.rst>`_.
+    # Install latest stable version from pypi.
+    # pip3 install --upgrade nvpy
 
 How to run for the first time
 =============================
