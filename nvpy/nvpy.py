@@ -108,6 +108,11 @@ class Config:
         # cross-platform way of getting home dir!
         # http://stackoverflow.com/a/4028943/532513
         home = os.path.abspath(os.path.expanduser('~'))
+
+        # the file that we write user settings to, which is different
+        # from the configuration files
+        self.settings_file = os.path.join(home, '.nvpy_settings')
+
         defaults = {
             'app_dir': app_dir,
             'appdir': app_dir,
@@ -258,6 +263,36 @@ class Config:
         for w in self.warnings:
             w()
 
+    def write_setting(self, section, key, value):
+        """
+        Write the key/value pair to the settngs file in the
+        section specified. The settings file is useful for recording
+        changes the user makes so that they can be remembered next time
+        the application starts.
+        """
+        cp = ConfigParser()
+        cp.read(self.settings_file)
+        if not cp.has_section(section):
+            cp.add_section(section)
+
+        cp.set(section, key, "%s" % value)
+        with open(self.settings_file, 'w') as configfile:
+            cp.write(configfile)
+
+        logging.debug("Wrote [%s] %s = %s to %s" % (section, key, value, self.settings_file))
+
+
+    def read_setting(self, section, key):
+        """
+        Read the key in the specified section from the settings file,
+        or returns None if not found.
+        """
+        cp = ConfigParser()
+        cp.read(self.settings_file)
+        if cp.has_section(section):
+            if cp.has_option(section, key):
+                return cp.get(section, key)
+        return None
 
 class NotesListModel(SubjectMixin):
     """
