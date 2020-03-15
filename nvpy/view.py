@@ -1454,6 +1454,7 @@ class View(utils.SubjectMixin):
 
             note_frame = tk.Frame(paned_window)
 
+        self.notes_list_frame = list_frame
         paned_window.add(note_frame)
 
         note_pinned_frame = tk.Frame(note_frame)
@@ -1549,11 +1550,11 @@ class View(utils.SubjectMixin):
         """
         # Save window positions and notes list width or height.
         geo = self.root.geometry()
-        nl_width = self.notes_list.text.winfo_width()
-        nl_height = self.notes_list.text.winfo_height()
+        nl_width = self.notes_list_frame.winfo_width()
+        nl_height = self.notes_list_frame.winfo_height()
         self.config.write_setting('windows', 'root_geometry', geo)
         if self.config.layout == 'horizontal':
-            self.config.write_setting('windows', 'notes_list_width', (nl_width + 17))
+            self.config.write_setting('windows', 'notes_list_width', nl_width)
         if self.config.layout == 'vertical':
             self.config.write_setting('windows', 'notes_list_height', nl_height)
 
