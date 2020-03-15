@@ -440,12 +440,12 @@ class NotesList(tk.Frame):
         yscrollbar.pack(side=tk.RIGHT, fill=tk.Y)
 
         f = tkFont.Font(family=font_family, size=font_size)
+
         # tkFont.families(root) returns list of available font family names
         # this determines the width of the complete interface (yes)
         # size=-self.config.font_size
         self.text = tk.Text(self,
                             height=25,
-                            width=30,
                             wrap=tk.NONE,
                             font=f,
                             yscrollcommand=yscrollbar.set,
@@ -1348,6 +1348,12 @@ class View(utils.SubjectMixin):
         #print style.theme_use()
         style.theme_use(self.config.theme)
 
+        # Take the last size and position to which the user set the window.
+        geo = self.config.read_setting('windows', 'root_geometry')
+        if geo:
+            self.root['width'] = int(geo.split('x')[0])
+            self.root['height'] = int(geo.split("x")[1].split("+")[0])
+
         self.root.title("nvPY")
         #self.root.configure(background="#b2b2b2")
 
@@ -1402,6 +1408,12 @@ class View(utils.SubjectMixin):
 
         search_frame.pack(side=tk.TOP, fill=tk.X)
 
+        # Recall how the user sized the notes list, if available.
+        # The default for width is set in NotesList.__init__() but
+        # for height it is set here.
+        nl_width = self.config.read_setting('windows', 'notes_list_width') or 30
+        nl_height = self.config.read_setting('windows', 'notes_list_height') or 150
+
         # the paned window ##############################################
 
         notes_list_config = NotesListConfig(colors=self.config.colors,
@@ -1414,7 +1426,8 @@ class View(utils.SubjectMixin):
             paned_window = tk.PanedWindow(self.root, orient=tk.HORIZONTAL)
             paned_window.pack(fill=tk.BOTH, expand=1)
 
-            list_frame = tk.Frame(paned_window, width=100)
+            list_frame = tk.Frame(paned_window, width=nl_width)
+            list_frame.pack_propagate(False)
             paned_window.add(list_frame)
 
             self.notes_list = NotesList(list_frame, self.config.list_font_family, self.config.list_font_size,
@@ -1427,7 +1440,7 @@ class View(utils.SubjectMixin):
             paned_window = tk.PanedWindow(self.root, orient=tk.VERTICAL)
             paned_window.pack(fill=tk.BOTH, expand=1)
 
-            list_frame = tk.Frame(paned_window, height=150)
+            list_frame = tk.Frame(paned_window, height=nl_height)
             list_frame.pack_propagate(0)
             paned_window.add(list_frame)
 
@@ -1441,6 +1454,7 @@ class View(utils.SubjectMixin):
 
             note_frame = tk.Frame(paned_window)
 
+        self.notes_list_frame = list_frame
         paned_window.add(note_frame)
 
         note_pinned_frame = tk.Frame(note_frame)
@@ -1517,8 +1531,13 @@ class View(utils.SubjectMixin):
 
         # finish UI creation ###########################################
 
-        # now set the minsize so that things can not disappear
-        self.root.minsize(self.root.winfo_width(), self.root.winfo_height())
+        # set the window to the same place that it was last time
+        geo = self.config.read_setting('windows', 'root_geometry')
+        if geo:
+            self.root.geometry(geo)
+        else:
+            # now set the minsize so that things can not disappear
+            self.root.minsize(self.root.winfo_width(), self.root.winfo_height())
 
         # call update so we know that sizes are up to date
         self.root.update_idletasks()
@@ -1529,6 +1548,16 @@ class View(utils.SubjectMixin):
     def handler_close(self, evt=None):
         """Handler for exit menu command and close window event.
         """
+        # Save window positions and notes list width or height.
+        geo = self.root.geometry()
+        nl_width = self.notes_list_frame.winfo_width()
+        nl_height = self.notes_list_frame.winfo_height()
+        self.config.write_setting('windows', 'root_geometry', geo)
+        if self.config.layout == 'horizontal':
+            self.config.write_setting('windows', 'notes_list_width', nl_width)
+        if self.config.layout == 'vertical':
+            self.config.write_setting('windows', 'notes_list_height', nl_height)
+
         self.notify_observers('close', None)
 
     def clear_note_ui(self, silent=True):
