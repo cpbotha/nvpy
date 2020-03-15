@@ -415,7 +415,6 @@ class NotesListConfig(typing.NamedTuple):
     print_columns: int
     hide_time: int
     hide_tags: int
-    pixel_width: int
 
 
 class NoteConfig(typing.NamedTuple):
@@ -442,23 +441,11 @@ class NotesList(tk.Frame):
 
         f = tkFont.Font(family=font_family, size=font_size)
 
-        # Calculate the text width in characters based on the font
-        # and the desired pixel width of the frame, if the pixel_width
-        # is set at all.
-        text_width = 30
-        try:
-            if config.pixel_width:
-                sentence = 'MmMmMmMmMmMmMmMmMmMmMmMmMmMmMm'
-                text_width = int(float(config.pixel_width)/((float(f.measure(sentence)))*.64)*len(sentence))
-        except:
-            pass
-
         # tkFont.families(root) returns list of available font family names
         # this determines the width of the complete interface (yes)
         # size=-self.config.font_size
         self.text = tk.Text(self,
                             height=25,
-                            width=text_width,
                             wrap=tk.NONE,
                             font=f,
                             yscrollcommand=yscrollbar.set,
@@ -1439,14 +1426,14 @@ class View(utils.SubjectMixin):
                                             layout=self.config.layout,
                                             hide_time=self.config.list_hide_time,
                                             hide_tags=self.config.list_hide_tags,
-                                            print_columns=self.config.print_columns,
-                                            pixel_width=self.notes_list_width)
+                                            print_columns=self.config.print_columns)
 
         if self.config.layout == "horizontal":
             paned_window = tk.PanedWindow(self.root, orient=tk.HORIZONTAL)
             paned_window.pack(fill=tk.BOTH, expand=1)
 
-            list_frame = tk.Frame(paned_window, width=100)
+            list_frame = tk.Frame(paned_window, width=self.notes_list_width)
+            list_frame.pack_propagate(False)
             paned_window.add(list_frame)
 
             self.notes_list = NotesList(list_frame, self.config.list_font_family, self.config.list_font_size,
@@ -1571,13 +1558,10 @@ class View(utils.SubjectMixin):
         nl_height = self.notes_list.text.winfo_height()
 
         if self.root_geometry != geo:
-            self.config.write_setting('windows', 'root_geometry', geo)
             self.root_geometry = geo
         if self.notes_list_width != nl_width and self.config.layout == 'horizontal':
-            self.config.write_setting('windows', 'notes_list_width', nl_width)
             self.notes_list_width = nl_width
         if self.notes_list_height != nl_height and self.config.layout == 'vertical':
-            self.config.write_setting('windows', 'notes_list_height', nl_height)
             self.notes_list_height = nl_height
 
     def get_number_of_notes(self):
@@ -1586,6 +1570,12 @@ class View(utils.SubjectMixin):
     def handler_close(self, evt=None):
         """Handler for exit menu command and close window event.
         """
+        self.config.write_setting('windows', 'root_geometry', self.root_geometry)
+        if self.config.layout == 'horizontal':
+            self.config.write_setting('windows', 'notes_list_width', (self.notes_list_width+17))
+        if self.config.layout == 'vertical':
+            self.config.write_setting('windows', 'notes_list_height', self.notes_list_height)
+
         self.notify_observers('close', None)
 
     def clear_note_ui(self, silent=True):
