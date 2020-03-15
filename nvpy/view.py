@@ -997,12 +997,6 @@ class View(utils.SubjectMixin):
 
         self.root = None
 
-        # remembers the most recent window settings so that it is
-        # written to settings file only when it changes
-        self.root_geometry = None
-        self.notes_list_width = None
-        self.notes_list_height = None
-
         tk.Tk.report_callback_exception = self.handle_unexpected_error
         self._create_ui()
         self._bind_events()
@@ -1417,8 +1411,8 @@ class View(utils.SubjectMixin):
         # Recall how the user sized the notes list, if available.
         # The default for width is set in NotesList.__init__() but
         # for height it is set here.
-        self.notes_list_width = self.config.read_setting('windows', 'notes_list_width') or 30
-        self.notes_list_height = self.config.read_setting('windows', 'notes_list_height') or 150
+        nl_width = self.config.read_setting('windows', 'notes_list_width') or 30
+        nl_height = self.config.read_setting('windows', 'notes_list_height') or 150
 
         # the paned window ##############################################
 
@@ -1432,7 +1426,7 @@ class View(utils.SubjectMixin):
             paned_window = tk.PanedWindow(self.root, orient=tk.HORIZONTAL)
             paned_window.pack(fill=tk.BOTH, expand=1)
 
-            list_frame = tk.Frame(paned_window, width=self.notes_list_width)
+            list_frame = tk.Frame(paned_window, width=nl_width)
             list_frame.pack_propagate(False)
             paned_window.add(list_frame)
 
@@ -1446,7 +1440,7 @@ class View(utils.SubjectMixin):
             paned_window = tk.PanedWindow(self.root, orient=tk.VERTICAL)
             paned_window.pack(fill=tk.BOTH, expand=1)
 
-            list_frame = tk.Frame(paned_window, height=self.notes_list_height)
+            list_frame = tk.Frame(paned_window, height=nl_height)
             list_frame.pack_propagate(0)
             paned_window.add(list_frame)
 
@@ -1547,34 +1541,21 @@ class View(utils.SubjectMixin):
         # call update so we know that sizes are up to date
         self.root.update_idletasks()
 
-        # bind the window changed event in order to remember window positions
-        self.root.bind('<Configure>', self.window_changed)
-
-    def window_changed(self, event):
-        """Save the window geometry so that we can start the same next time.
-        """
-        geo = self.root.geometry()
-        nl_width = self.notes_list.text.winfo_width()
-        nl_height = self.notes_list.text.winfo_height()
-
-        if self.root_geometry != geo:
-            self.root_geometry = geo
-        if self.notes_list_width != nl_width and self.config.layout == 'horizontal':
-            self.notes_list_width = nl_width
-        if self.notes_list_height != nl_height and self.config.layout == 'vertical':
-            self.notes_list_height = nl_height
-
     def get_number_of_notes(self):
         return self.notes_list.get_number_of_notes()
 
     def handler_close(self, evt=None):
         """Handler for exit menu command and close window event.
         """
-        self.config.write_setting('windows', 'root_geometry', self.root_geometry)
+        # Save window positions and notes list width or height.
+        geo = self.root.geometry()
+        nl_width = self.notes_list.text.winfo_width()
+        nl_height = self.notes_list.text.winfo_height()
+        self.config.write_setting('windows', 'root_geometry', geo)
         if self.config.layout == 'horizontal':
-            self.config.write_setting('windows', 'notes_list_width', (self.notes_list_width+17))
+            self.config.write_setting('windows', 'notes_list_width', (nl_width + 17))
         if self.config.layout == 'vertical':
-            self.config.write_setting('windows', 'notes_list_height', self.notes_list_height)
+            self.config.write_setting('windows', 'notes_list_height', nl_height)
 
         self.notify_observers('close', None)
 
