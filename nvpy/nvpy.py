@@ -281,7 +281,6 @@ class Config:
 
         logging.debug("Wrote [%s] %s = %s to %s" % (section, key, value, self.settings_file))
 
-
     def read_setting(self, section, key):
         """
         Read the key in the specified section from the settings file,
@@ -293,6 +292,7 @@ class Config:
             if cp.has_option(section, key):
                 return cp.get(section, key)
         return None
+
 
 class NotesListModel(SubjectMixin):
     """
