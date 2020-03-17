@@ -117,21 +117,59 @@ class NotesDB(utils.SubjectMixin):
         self.config = config
 
         # create db dir if it does not exist
-        if not os.path.exists(config.db_path):
-            os.mkdir(config.db_path)
+        if not os.path.exists(self.config.db_path):
+            os.mkdir(self.config.db_path)
 
-        self.db_path = config.db_path
+        self.db_path = self.config.db_path
 
         # create txt Notes dir if it does not exist
-        if self.config.notes_as_txt and not os.path.exists(config.txt_path):
-            os.mkdir(config.txt_path)
+        if self.config.notes_as_txt and not os.path.exists(self.config.txt_path):
+            os.mkdir(self.config.txt_path)
 
+        # Rescan the local db of notes on init
+        self.rescan_local_db()
+
+        # save and sync queue
+        self.q_save = Queue()
+        self.q_save_res = Queue()
+
+        thread_save = Thread(target=wrap_buggy_function(self.worker_save))
+        thread_save.setDaemon(True)
+        thread_save.start()
+
+        self.full_syncing = False
+
+        # initialise the simplenote instance we're going to use
+        # this does not yet need network access
+        if self.config.simplenote_sync:
+            self.simplenote = Simplenote(self.config.sn_username, self.config.sn_password)
+
+            # we'll use this to store which notes are currently being synced by
+            # the background thread, so we don't add them anew if they're still
+            # in progress. This variable is only used by the background thread.
+            self.threaded_syncing_keys = {}
+
+            # reading a variable or setting this variable is atomic
+            # so sync thread will write to it, main thread will only
+            # check it sometimes.
+            self.waiting_for_simplenote = False
+
+            self.syncing_lock = Lock()
+
+            self.q_sync = Queue()
+            self.q_sync_res = Queue()
+
+            thread_sync = Thread(target=wrap_buggy_function(self.worker_sync))
+            thread_sync.setDaemon(True)
+            thread_sync.start()
+
+    def rescan_local_db(self):
         now = time.time()
         # now read all .json files from disk
         fnlist = glob.glob(self.helper_key_to_fname('*'))
         txtlist = []
 
-        for ext in config.read_txt_extensions.split(','):
+        for ext in self.config.read_txt_extensions.split(','):
             txtlist += glob.glob(unicode(self.config.txt_path + '/*.' + ext, 'utf-8'))
 
         # removing json files and force full full sync if using text files
@@ -211,40 +249,6 @@ class NotesDB(utils.SubjectMixin):
                         self.notes[nk]['content'] = nn + "\n\n" + c
 
                     os.unlink(tfn)
-
-        # save and sync queue
-        self.q_save = Queue()
-        self.q_save_res = Queue()
-
-        thread_save = Thread(target=wrap_buggy_function(self.worker_save))
-        thread_save.setDaemon(True)
-        thread_save.start()
-
-        self.full_syncing = False
-
-        # initialise the simplenote instance we're going to use
-        # this does not yet need network access
-        if self.config.simplenote_sync:
-            self.simplenote = Simplenote(config.sn_username, config.sn_password)
-
-            # we'll use this to store which notes are currently being synced by
-            # the background thread, so we don't add them anew if they're still
-            # in progress. This variable is only used by the background thread.
-            self.threaded_syncing_keys = {}
-
-            # reading a variable or setting this variable is atomic
-            # so sync thread will write to it, main thread will only
-            # check it sometimes.
-            self.waiting_for_simplenote = False
-
-            self.syncing_lock = Lock()
-
-            self.q_sync = Queue()
-            self.q_sync_res = Queue()
-
-            thread_sync = Thread(target=wrap_buggy_function(self.worker_sync))
-            thread_sync.setDaemon(True)
-            thread_sync.start()
 
     def create_note(self, title):
         # need to get a key unique to this database. not really important

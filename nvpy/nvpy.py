@@ -464,8 +464,9 @@ class Controller:
             self.view.show_warning('Rename config section', wmsg)
 
         def poll_notifies():
-            self.view.after(100, poll_notifies)
+            self.view.after(1000, poll_notifies)
             self.notes_db.handle_notifies()
+            self.notes_db.rescan_local_db()
 
         self.view.after(0, poll_notifies)
         try:
