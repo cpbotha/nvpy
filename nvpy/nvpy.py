@@ -99,7 +99,7 @@ class Config:
     @ivar files_read: list of config files that were parsed.
     @ivar ok: True if config files had a default section, False otherwise.
     """
-    def __init__(self, app_dir):
+    def __init__(self, app_dir: str, args: typing.Optional[typing.List]):
         """
         @param app_dir: the directory containing nvpy.py
         """
@@ -161,7 +161,7 @@ class Config:
         }
 
         # parse command-line arguments
-        args = self.parse_cmd_line_opts()
+        args = self.parse_cmd_line_opts(args)
 
         # later config files overwrite earlier files
         # try a number of alternatives
@@ -249,14 +249,10 @@ class Config:
             w = lambda: logging.warning('"background_full_sync" option is removed.')
             self.warnings.append(w)
 
-    def parse_cmd_line_opts(self):
-        if __name__ != '__main__':
-            return None
-
+    def parse_cmd_line_opts(self, args: typing.Optional[typing.List]):
         parser = argparse.ArgumentParser()
         parser.add_argument('--cfg', '-c', default='', dest='cfg', metavar='nvpy.cfg', help='path to config file')
-        args = parser.parse_args()
-        return args
+        return parser.parse_args(args)
 
     def show_warnings(self):
         """ Show warnings when using obsoleted option. """
@@ -919,8 +915,8 @@ def get_appdir():
     return appdir_full_path
 
 
-def main():
-    config = Config(get_appdir())
+def main(args: typing.Optional[typing.List] = None):
+    config = Config(get_appdir(), args)
 
     try:
         controller = Controller(config)

@@ -13,7 +13,7 @@ class Tags(unittest.TestCase):
     def __mock_config(self):
         app_dir = os.path.abspath('nvpy')
 
-        mockConfig = Config(app_dir)
+        mockConfig = Config(app_dir, [])
         mockConfig.sn_username = ''
         mockConfig.sn_password = ''
         mockConfig.db_path = '/tmp/.nvpyUnitTests'
