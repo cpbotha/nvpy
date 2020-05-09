@@ -887,7 +887,7 @@ class Controller:
         self.view.set_note_status(self.notes_db.get_note_status(skey))
 
 
-def main():
+def get_appdir():
     # setup appdir
     if hasattr(sys, 'frozen') and sys.frozen:
         if hasattr(sys, '_MEIPASS'):
@@ -916,8 +916,11 @@ def main():
 
     # make sure it's the full path
     appdir_full_path = os.path.abspath(appdir)
+    return appdir_full_path
 
-    config = Config(appdir_full_path)
+
+def main():
+    config = Config(get_appdir())
 
     try:
         controller = Controller(config)
