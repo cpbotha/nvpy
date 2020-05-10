@@ -55,9 +55,9 @@ On Debian-flavoured systems with apt, current releases of nypy require Python 3.
     sudo apt-get install python3 python3-tk python3-pip
     sudo pip3 install -U nvpy
 
-Older releases may require manual installation of python 3.6 or later. 
+Older releases may require manual installation of python 3.6 or later.
 
-Create a file in your home directory called .nvpy.cfg with just the following contents::
+Create a file in your home directory called :code:`.nvpy.cfg` with just the following contents::
 
     [nvpy]
     sn_username = your_simplenote_email
