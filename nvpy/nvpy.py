@@ -49,6 +49,7 @@ import webbrowser
 from .version import VERSION
 from . import events
 from http.client import HTTPException
+import pathlib
 
 try:
     import markdown
@@ -160,26 +161,8 @@ class Config:
             'confirm_exit': 'false',
         }
 
-        # parse command-line arguments
         args = self.parse_cmd_line_opts(args)
-
-        # later config files overwrite earlier files
-        # try a number of alternatives
-        cfg_files = [
-            os.path.join(app_dir, 'nvpy.cfg'),
-            os.path.join(home, 'nvpy.cfg'),
-            os.path.join(home, '.nvpy.cfg'),
-            os.path.join(home, '.nvpy'),
-            os.path.join(home, '.nvpyrc')
-        ]
-
-        # user has specified either a specific path to a CFG file, or a
-        # path relative to the nvpy.py location. specific takes precedence.
-        if args is not None and args.cfg is not None:
-            cfg_files.extend([os.path.join(app_dir, args.cfg), args.cfg])
-
-        cp = ConfigParser(defaults)
-        self.files_read = cp.read(cfg_files)
+        self.files_read, cp = self._load_cfg(defaults, args.cfg)
 
         cfg_sec = 'nvpy'
 
@@ -248,6 +231,44 @@ class Config:
         if cp.has_option(cfg_sec, 'background_full_sync'):
             w = lambda: logging.warning('"background_full_sync" option is removed.')
             self.warnings.append(w)
+
+    def _load_cfg(self, defaults: dict, cfg: typing.Optional[str]) -> typing.Tuple[typing.List[str], ConfigParser]:
+        """ Load configuration files.
+        If cfg argument is specified, read only specified file. Otherwise, read configuration files from some locations.
+
+        Args:
+            defaults: Dict of default key values.
+            cfg: Path to config file (optional).
+
+        Returns:
+            Returns following elements.
+            1st element: List of config file paths.  It may be empty (list of zero length, not None).
+            2nd element: ConfigParser object.
+        """
+        cp = ConfigParser(defaults)
+        if cfg:
+            # Read either a specific path to a config file, or a path relative to the nvpy.py location. Other config
+            # files should not read.
+            cfg1 = pathlib.Path(cfg).absolute()
+            cfg2 = pathlib.Path(self.app_dir) / cfg
+            if cfg1.exists():
+                cfg_files = [cfg1]
+            elif cfg2.exists():
+                cfg_files = [cfg2]
+            else:
+                logging.error(f'Not found configuration file from {cfg1} or {cfg2}')
+                cfg_files = []
+        else:
+            # Later config files overwrite earlier files try a number of alternatives.
+            home = pathlib.Path.home()
+            cfg_files = [
+                os.path.join(self.app_dir, 'nvpy.cfg'),
+                home / 'nvpy.cfg',
+                home / '.nvpy.cfg',
+                home / '.nvpy',
+                home / '.nvpyrc',
+            ]
+        return cp.read(cfg_files), cp
 
     def parse_cmd_line_opts(self, args: typing.Optional[typing.List]):
         parser = argparse.ArgumentParser()
