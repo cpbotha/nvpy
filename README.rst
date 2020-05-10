@@ -45,17 +45,7 @@ A note on automatic syncing
 Installation
 ============
 
-For beginners, also for detailed installation recipes, see the `nvPY installation guide <https://github.com/cpbotha/nvpy/blob/master/docs/installation.rst>`_.
-
-For experts and contributors, run following commands::
-
-    # Install dependencies. This example works on debian-like distributions.
-    sudo apt-get install python3 python3-tk python3-pip
-
-    # Install latest development version from github.
-    pip3 install --upgrade 'git+https://github.com/cpbotha/nvpy.git#egg=nvpy'
-    # Install latest stable version from pypi.
-    # pip3 install --upgrade nvpy
+See the `nvPY installation guide <https://github.com/cpbotha/nvpy/blob/master/docs/installation.rst>`_.
 
 How to run for the first time
 =============================
