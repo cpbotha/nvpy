@@ -106,8 +106,8 @@ For example NixOS distribution also provides `Conda < https://nixos.org/nixos/pa
 
 Then follow the setup above.
 
-Advanced users
-==============
+Contributors and expert users
+=============================
 
 You can install nvPY from a git repository. ::
 
@@ -120,3 +120,9 @@ Don't forget to create :code:`~/.nvpy.cfg` while referring to `nvpy-example.cfg 
 To start nvpy, just do::
 
     nvpy
+
+To browse nvPY internal docs, just do::
+
+    pip3 install -U pdoc3
+    pdoc --http localhost:8080 nvpy
+    # Open http://localhost:8080, you can see docs.
