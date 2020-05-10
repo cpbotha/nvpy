@@ -8,6 +8,8 @@ import glob
 import os
 import json
 import logging
+import enum
+import abc
 from queue import Queue, Empty
 from http.client import HTTPException
 from .p3port import unicode
@@ -106,6 +108,78 @@ class _BackgroundTaskReslt(typing.NamedTuple):
     key: str
     note: typing.Any
     error: int
+
+
+class SortMode(enum.Enum):
+    # Sort in alphabetically.
+    ALPHA = 0
+    # Sort in modification date.
+    MODIFICATION_DATE = 1
+    # Sort in creation date.
+    CREATION_DATE = 2
+
+
+class Sorter(abc.ABC):
+    """ The abstract class to build extensible and flexible sorting logic.
+
+    Usage:
+        >>> sorter = MergedSorter(PinnedSorter(), AlphaSorter())
+        >>> notes.sort(key=sorter)
+    """
+    @abc.abstractmethod
+    def __call__(self, o: NoteInfo):
+        raise NotImplementedError()
+
+
+class NopSorter(Sorter):
+    """ Do nothing. The notes list retain original order. Use it to simplify complex sort logic. """
+    def __call__(self, o: NoteInfo):
+        return 0
+
+
+class MergedSorter(Sorter):
+    """ Merge multiple sorters into a sorter. It realize sorting notes by multiple keys. """
+    def __init__(self, *sorters: Sorter):
+        self.sorters = sorters
+
+    def __call__(self, o: NoteInfo):
+        return tuple(s(o) for s in self.sorters)
+
+
+class PinnedSorter(Sorter):
+    """ Sort that pinned notes are on top. """
+    def __call__(self, o: NoteInfo):
+        # Pinned notes on top.
+        return 0 if utils.note_pinned(o.note) else 1
+
+
+class AlphaSorter(Sorter):
+    """ Sort in alphabetically on note title. """
+    def __call__(self, o: NoteInfo):
+        return utils.get_note_title(o.note)
+
+
+class DateSorter(Sorter):
+    """ Sort in creation/modification date. """
+    def __init__(self, mode: SortMode):
+        if mode == SortMode.MODIFICATION_DATE:
+            self._sort_key = self._sort_key_modification_date
+        elif mode == SortMode.CREATION_DATE:
+            self._sort_key = self._sort_key_creation_date
+        else:
+            raise ValueError(f'invalid sort mode: {mode}')
+        self.mode = mode
+
+    def __call__(self, o: NoteInfo):
+        return self._sort_key(o.note)
+
+    def _sort_key_modification_date(self, note):
+        # Last modified on top
+        return -float(note.get('modifydate', 0))
+
+    def _sort_key_creation_date(self, note):
+        # Last modified on top
+        return -float(note.get('createdate', 0))
 
 
 class NotesDB(utils.SubjectMixin):
@@ -294,26 +368,7 @@ class NotesDB(utils.SubjectMixin):
         else:
             filtered_notes, match_regexp, active_notes = self.filter_notes_gstyle(search_string)
 
-        if self.config.sort_mode == 0:
-            if self.config.pinned_ontop == 0:
-                # sort alphabetically on title
-                filtered_notes.sort(key=lambda o: utils.get_note_title(o.note))
-            else:
-                filtered_notes.sort(key=utils.sort_key_by_title_pinned)
-        elif self.config.sort_mode == 2:
-            if self.config.pinned_ontop == 0:
-                # last modified on top
-                filtered_notes.sort(key=lambda o: -float(o.note.get('createdate', 0)))
-            else:
-                filtered_notes.sort(key=utils.sort_key_by_create_date_pinned, reverse=True)
-
-        else:
-            if self.config.pinned_ontop == 0:
-                # last modified on top
-                filtered_notes.sort(key=lambda o: -float(o.note.get('modifydate', 0)))
-            else:
-                filtered_notes.sort(key=utils.sort_key_by_modify_date_pinned, reverse=True)
-
+        filtered_notes.sort(key=self.config.sorter)
         return filtered_notes, match_regexp, active_notes
 
     def _helper_gstyle_tagmatch(self, tag_pats, note):

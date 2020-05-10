@@ -35,7 +35,7 @@ from configparser import ConfigParser
 from .p3port import unicode
 import logging
 from logging.handlers import RotatingFileHandler
-from .notes_db import NotesDB, SyncError, ReadError, WriteError
+from .notes_db import NotesDB, SyncError, ReadError, WriteError, SortMode, MergedSorter, PinnedSorter, AlphaSorter, DateSorter
 import argparse
 import os
 import traceback
@@ -269,6 +269,23 @@ class Config:
                 home / '.nvpyrc',
             ]
         return cp.read(cfg_files), cp
+
+    @property
+    def sorter(self):
+        mode = SortMode(self.sort_mode)
+
+        sorters = []
+        if self.pinned_ontop:
+            sorters.append(PinnedSorter())
+
+        if mode == SortMode.ALPHA:
+            sorters.append(AlphaSorter())
+        elif mode in [SortMode.MODIFICATION_DATE, SortMode.CREATION_DATE]:
+            sorters.append(DateSorter(mode=mode))
+        else:
+            raise ValueError(f'invalid sort_mode: {mode}')
+
+        return MergedSorter(*sorters)
 
     def show_warnings(self):
         """ Show warnings when using obsoleted option. """

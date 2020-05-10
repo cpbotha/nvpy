@@ -136,24 +136,6 @@ def sanitise_tags(tags):
         return illegals_removed.split(',')
 
 
-def sort_key_by_title_pinned(a):
-    if note_pinned(a.note):
-        return (1, get_note_title(a.note))
-    return (0, get_note_title(a.note))
-
-
-def sort_key_by_modify_date_pinned(a):
-    if note_pinned(a.note):
-        return (1, float(a.note.get('modifydate', 0)))
-    return (0, float(a.note.get('modifydate', 0)))
-
-
-def sort_key_by_create_date_pinned(a):
-    if note_pinned(a.note):
-        return (1, float(a.note.get('createdate', 0)))
-    return (0, float(a.note.get('createdate', 0)))
-
-
 def check_internet_on():
     """Utility method to check if we have an internet connection.
 
