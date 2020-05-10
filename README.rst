@@ -45,8 +45,6 @@ A note on automatic syncing
 Installation
 ============
 
-nvPY works only on Python 3.6 or later.  If you want to work on python 2.7, please use nvPY v1.2.x.
-
 For beginners, also for detailed installation recipes, see the `nvPY installation guide <https://github.com/cpbotha/nvpy/blob/master/docs/installation.rst>`_.
 
 For experts and contributors, run following commands::
