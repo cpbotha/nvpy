@@ -9,7 +9,7 @@ Windows step-by-step for beginners
 
 Following this recipe, install the nvPY to your computer.
 
-1. Find the latest *stable* release from `the releasege <https://github.com/cpbotha/nvpy/releases>`_.
+1. Find the latest *stable* release from `the releases page <https://github.com/cpbotha/nvpy/releases>`_.
 2. Download :code:`nvpy-windows.zip` file and extract it.
 3. Create a setting file.  Start a notepad by pressing Windows-R and typing :code:`notepad %HOMEPATH%\nvpy.cfg`.
    And write the following settings into the notepad. ::
