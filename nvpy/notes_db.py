@@ -10,6 +10,7 @@ import json
 import logging
 import enum
 import abc
+import unicodedata
 from queue import Queue, Empty
 from http.client import HTTPException
 from .p3port import unicode
@@ -111,12 +112,14 @@ class _BackgroundTaskReslt(typing.NamedTuple):
 
 
 class SortMode(enum.Enum):
-    # Sort in alphabetically.
+    # Sort in alphabetic order.
     ALPHA = 0
-    # Sort in modification date.
+    # Sort by modification date.
     MODIFICATION_DATE = 1
-    # Sort in creation date.
+    # Sort by creation date.
     CREATION_DATE = 2
+    # Sort in alphanumeric order.
+    ALPHA_NUM = 3
 
 
 class Sorter(abc.ABC):
@@ -157,6 +160,94 @@ class AlphaSorter(Sorter):
     """ Sort in alphabetically on note title. """
     def __call__(self, o: NoteInfo):
         return utils.get_note_title(o.note)
+
+
+class AlphaNumSorter(Sorter):
+    """ Sort in alphanumeric order on note title. """
+    class Nullable:
+        """ Null-safe comparable object for any types.
+
+        Built-in types can not compare with None. For example, if you try to execute `1 < None`, it will raise a
+        TypeError. The Nullable solves this problem, and further simplifies of comparison logic.
+        """
+        @classmethod
+        def __class_getitem__(cls, item):
+            return AlphaNumSorter.Nullable
+
+        def __init__(self, val):
+            self.val = val
+
+        def __eq__(self, other: 'AlphaNumSorter.Nullable'):
+            return self.val == other.val
+
+        def __gt__(self, other: 'AlphaNumSorter.Nullable'):
+            if self.val is None:
+                return False
+            else:
+                if other.val is None:
+                    return True
+                return self.val > other.val
+
+        def __repr__(self):
+            return f'Nullable({repr(self.val)})'
+
+    class Element(typing.NamedTuple):
+        digits: 'AlphaNumSorter.Nullable[int]'
+        letters: 'AlphaNumSorter.Nullable[str]'
+        other: 'AlphaNumSorter.Nullable[str]'
+
+    def _enumerate_chars_with_category(self, s: str):
+        for c in s:
+            category = unicodedata.category(c)
+            if category == 'Nd':
+                yield 'numeric', c
+            elif category[0] == 'N' or category[0] == 'L':
+                yield 'letter', c
+            else:
+                yield 'other', c
+
+    def _make_groups(self, iter_):
+        # 連続した同じグループをグループ化
+        s = ''
+        last_category = ''
+        for category, c in iter_:
+            if last_category == category:
+                s += c
+            elif last_category != '':
+                yield last_category, s
+                last_category = category
+                s = c
+            elif last_category == '':
+                last_category = category
+                s = c
+            else:
+                raise RuntimeError('bug')
+        yield last_category, s
+
+    def _str2elements(self, s: str):
+        iter_ = self._enumerate_chars_with_category(s)
+        groups = self._make_groups(iter_)
+        for category, s in groups:
+            digits = None
+            letters = None
+            others = None
+            if category == 'numeric':
+                digits = int(s)
+            elif category == 'letter':
+                letters = s
+            elif category == 'other':
+                others = s
+            else:
+                raise RuntimeError('bug')
+            yield AlphaNumSorter.Element(
+                digits=AlphaNumSorter.Nullable(digits),
+                letters=AlphaNumSorter.Nullable(letters),
+                other=AlphaNumSorter.Nullable(others),
+            )
+
+    def __call__(self, o: NoteInfo):
+        title = utils.get_note_title(o.note)
+        return tuple(self._str2elements(title))
 
 
 class DateSorter(Sorter):

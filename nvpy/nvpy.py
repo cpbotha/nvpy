@@ -35,7 +35,7 @@ from configparser import ConfigParser
 from .p3port import unicode
 import logging
 from logging.handlers import RotatingFileHandler
-from .notes_db import NotesDB, SyncError, ReadError, WriteError, SortMode, MergedSorter, PinnedSorter, AlphaSorter, DateSorter
+from .notes_db import NotesDB, SyncError, ReadError, WriteError, SortMode, MergedSorter, PinnedSorter, AlphaSorter, DateSorter, AlphaNumSorter
 import argparse
 import os
 import traceback
@@ -282,6 +282,8 @@ class Config:
             sorters.append(AlphaSorter())
         elif mode in [SortMode.MODIFICATION_DATE, SortMode.CREATION_DATE]:
             sorters.append(DateSorter(mode=mode))
+        elif mode == SortMode.ALPHA_NUM:
+            sorters.append(AlphaNumSorter())
         else:
             raise ValueError(f'invalid sort_mode: {mode}')
 
