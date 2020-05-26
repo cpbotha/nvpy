@@ -13,5 +13,6 @@ test:
 benchmark:
 	PYTHONPATH=.:$$PYTHONPATH python3 -m nose --with-timer -q -s benchmarks/*.py
 
+.PHONY: docs
 docs:
 	python3 -m pdoc --http localhost:8080 nvpy
