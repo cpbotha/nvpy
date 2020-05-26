@@ -4,7 +4,8 @@
 import datetime
 import random
 import re
-from urllib.request import urlopen, URLError
+from urllib.error import URLError
+from urllib.request import urlopen
 from queue import Queue, Empty as QueueEmpty
 from .p3port import unicode
 

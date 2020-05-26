@@ -7,7 +7,7 @@
 # tk, then can use tk.whatever in main module.
 
 from tkinter import *
-from tkinter.ttk import *
+from tkinter.ttk import *  # type:ignore
 
 
 class Ucs4NotSupportedError(BaseException):
@@ -43,9 +43,10 @@ def with_ucs4_error_handling(fn):
 # Apply the monkey patches for convert TclError to Ucs4NotSupportedError
 
 _Text = Text
+del Text
 
 
-class Text(_Text):
+class Text(_Text):  # type:ignore
     @with_ucs4_error_handling
     def insert(self, *args, **kwargs):
         return _Text.insert(self, *args, **kwargs)

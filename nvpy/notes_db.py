@@ -19,7 +19,7 @@ import time
 import typing
 import re
 import base64
-import simplenote
+import simplenote  # type:ignore
 from . import events
 from . import utils
 from .debug import wrap_buggy_function
@@ -162,9 +162,12 @@ class AlphaSorter(Sorter):
         return utils.get_note_title(o.note)
 
 
+T = typing.TypeVar('T')
+
+
 class AlphaNumSorter(Sorter):
     """ Sort in alphanumeric order on note title. """
-    class Nullable:
+    class Nullable(typing.Generic[T]):
         """ Null-safe comparable object for any types.
 
         Built-in types can not compare with None. For example, if you try to execute `1 < None`, it will raise a
@@ -172,15 +175,19 @@ class AlphaNumSorter(Sorter):
         """
         @classmethod
         def __class_getitem__(cls, item):
-            return AlphaNumSorter.Nullable
+            return typing.TypeAlias(AlphaNumSorter.Nullable)
 
         def __init__(self, val):
             self.val = val
 
-        def __eq__(self, other: 'AlphaNumSorter.Nullable'):
+        def __eq__(self, other):
+            if not isinstance(other, AlphaNumSorter.Nullable):
+                return NotImplemented
             return self.val == other.val
 
-        def __gt__(self, other: 'AlphaNumSorter.Nullable'):
+        def __gt__(self, other):
+            if not isinstance(other, AlphaNumSorter.Nullable):
+                return NotImplemented
             if self.val is None:
                 return False
             else:

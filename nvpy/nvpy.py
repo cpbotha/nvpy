@@ -52,7 +52,7 @@ from http.client import HTTPException
 import pathlib
 
 try:
-    import markdown
+    import markdown  # type:ignore
 except ImportError:
     HAVE_MARKDOWN = False
 else:
@@ -262,7 +262,7 @@ class Config:
             # Later config files overwrite earlier files try a number of alternatives.
             home = pathlib.Path.home()
             cfg_files = [
-                os.path.join(self.app_dir, 'nvpy.cfg'),
+                pathlib.Path(self.app_dir) / 'nvpy.cfg',
                 home / 'nvpy.cfg',
                 home / '.nvpy.cfg',
                 home / '.nvpy',
@@ -973,7 +973,7 @@ def main(args: typing.Optional[typing.List] = None):
         controller.main_loop()
     except tk.Ucs4NotSupportedError as e:
         logging.error(str(e))
-        import tkMessageBox
+        import tkMessageBox  # type:ignore
         tkMessageBox.showerror('UCS-4 not supported', str(e))
         raise
 

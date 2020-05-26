@@ -8,7 +8,7 @@ import re
 from . import search_entry
 from . import tk
 from tkinter import messagebox as tkMessageBox
-import tkinter.font as tkFont
+import tkinter.font as tkFont  # type:ignore
 from . import utils
 import threading
 from . import events
@@ -410,7 +410,7 @@ class StatusBar(tk.Frame):
 
 
 class NotesListConfig(typing.NamedTuple):
-    colors: str
+    colors: typing.Any  # This type should ColorConfig, but specify any to solve circular import error.
     layout: str
     print_columns: int
     hide_time: int
@@ -488,7 +488,7 @@ class NotesList(tk.Frame):
 
         self.selected_idx = -1
         # list containing tuples with each note's title, tags,
-        self.note_headers = []
+        self.note_headers: typing.List[tuple] = []
 
         self.layout = config.layout
         self.hide_time = config.hide_time
