@@ -320,7 +320,8 @@ class NotesDB(utils.SubjectMixin):
 
         for fn in fnlist:
             try:
-                n = json.load(open(fn, 'rb'))
+                with open(fn, 'rb') as f:
+                    n = json.load(f)
                 if self.config.notes_as_txt:
                     nt = utils.get_note_title_file(n, self.config.replace_filename_spaces)
                     tfn = os.path.join(self.config.txt_path, nt)
