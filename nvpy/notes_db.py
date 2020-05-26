@@ -538,7 +538,7 @@ class NotesDB(utils.SubjectMixin):
                     active_notes += 1
                     filtered_notes.append(NoteInfo(key=k, note=n, tagfound=0))
 
-            return filtered_notes, [], active_notes
+            return filtered_notes, '', active_notes
 
         # group0: ag - not used
         # group1: t(ag)?:([^\s]+)
@@ -548,7 +548,7 @@ class NotesDB(utils.SubjectMixin):
         # [('', 'tag1', '', ''), ('', 'tag2', '', ''), ('', '', '', 'word1'), ('', '', 'word2 word3', ''), ('ag', 'tag3', '', '')]
 
         groups = re.findall('t(ag)?:([^\s]+)|"([^"]+)"|([^\s]+)', search_string)
-        tms_pats = [[] for _ in range(3)]
+        tms_pats: typing.List[typing.List[str]] = [[] for _ in range(3)]
 
         # we end up with [[tag_pats],[multi_word_pats],[single_word_pats]]
         for gi in groups:
@@ -589,6 +589,7 @@ class NotesDB(utils.SubjectMixin):
         a regular expression, each a tuple with (local_key, note).
         """
 
+        sspat: typing.Optional[typing.Pattern]
         if search_string:
             try:
                 if self.config.case_sensitive == 0:
@@ -616,7 +617,7 @@ class NotesDB(utils.SubjectMixin):
             if self.config.search_tags == 1:
                 t = n.get('tags')
                 if sspat:
-                    if t and any(filter(lambda ti: sspat.search(ti), t)):
+                    if t and any(filter(lambda ti: sspat.search(ti), t)):  # type:ignore
                         # we have to store our local key also
                         filtered_notes.append(NoteInfo(key=k, note=n, tagfound=1))
 
