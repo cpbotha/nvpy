@@ -24,6 +24,8 @@ from . import events
 from . import utils
 from .debug import wrap_buggy_function
 
+FilterResult = typing.Tuple[typing.List['NoteInfo'], str, int]
+
 # API key provided for nvPY.
 # Please do not use for other software!
 simplenote.simplenote.API_KEY = bytes(reversed(base64.b64decode('OTg0OTI4ZTg4YjY0NzMyOTZjYzQzY2IwMDI1OWFkMzg=')))
@@ -447,7 +449,7 @@ class NotesDB(utils.SubjectMixin):
         n['deleted'] = 1
         n['modifydate'] = time.time()
 
-    def filter_notes(self, search_string=None):
+    def filter_notes(self, search_string=None) -> FilterResult:
         """Return list of notes filtered with search string.
 
         Based on the search mode that has been selected in self.config,
@@ -524,8 +526,7 @@ class NotesDB(utils.SubjectMixin):
             # we found the first p that does not occur in content
             return False
 
-    def filter_notes_gstyle(self, search_string=None):
-
+    def filter_notes_gstyle(self, search_string=None) -> FilterResult:
         filtered_notes = []
         # total number of notes, excluding deleted
         active_notes = 0
@@ -583,7 +584,7 @@ class NotesDB(utils.SubjectMixin):
         match_regexp = '|'.join(re.escape(p) for p in tms_pats[1] + tms_pats[2])
         return filtered_notes, match_regexp, active_notes
 
-    def filter_notes_regexp(self, search_string=None):
+    def filter_notes_regexp(self, search_string=None) -> FilterResult:
         """Return list of notes filtered with search_string,
         a regular expression, each a tuple with (local_key, note).
         """
