@@ -297,7 +297,7 @@ class NotesDB(utils.SubjectMixin):
         txtlist = []
 
         for ext in config.read_txt_extensions.split(','):
-            txtlist += glob.glob(unicode(self.config.txt_path + '/*.' + ext, 'utf-8'))
+            txtlist += glob.glob(self.config.txt_path + '/*.' + ext)
 
         # removing json files and force full full sync if using text files
         # and none exists and json files are there
