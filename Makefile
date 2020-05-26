@@ -7,6 +7,7 @@ format:
 
 .PHONY: test
 test:
+	PYTHONPATH=.:$$PYTHONPATH mypy nvpy tests benchmarks
 	PYTHONPATH=.:$$PYTHONPATH python3 -m unittest discover -s tests -p '*.py'
 
 .PHONY: benchmark
