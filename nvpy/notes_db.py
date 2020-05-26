@@ -635,7 +635,7 @@ class NotesDB(utils.SubjectMixin):
                     # we have to store our local key also
                     filtered_notes.append(NoteInfo(key=k, note=n, tagfound=0))
             else:
-                if (not sspat or sspat.search(c)):
+                if not sspat or sspat.search(c):
                     # we have to store our local key also
                     filtered_notes.append(NoteInfo(key=k, note=n, tagfound=0))
 
