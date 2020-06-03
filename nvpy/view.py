@@ -1007,9 +1007,6 @@ class View(utils.SubjectMixin):
         self.text_tags_links: typing.List[str] = []
         self.text_tags_search: typing.List[str] = []
 
-        #self._current_text = None
-        #self.user_text.focus_set()
-
         self.search_entry.focus_set()
 
     def handle_unexpected_error(self, *args):
