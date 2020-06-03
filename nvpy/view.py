@@ -994,9 +994,7 @@ class View(utils.SubjectMixin):
         notes_list_model.add_observer('set:list', self.observer_notes_list)
         self.notes_list_model = notes_list_model
         self.timer_ids_lock = threading.Lock()
-        self.timer_ids = set()
-
-        self.root = None
+        self.timer_ids: typing.Set[typing.Any] = set()
 
         tk.Tk.report_callback_exception = self.handle_unexpected_error
         self._create_ui()
@@ -1006,8 +1004,8 @@ class View(utils.SubjectMixin):
         # on Windows, tkinter uses system dialogs in any case
         self.root.option_add('*Dialog.msg.font', 'Helvetica 12')
 
-        self.text_tags_links = []
-        self.text_tags_search = []
+        self.text_tags_links: typing.List[str] = []
+        self.text_tags_search: typing.List[str] = []
 
         #self._current_text = None
         #self.user_text.focus_set()
