@@ -606,10 +606,8 @@ class Controller:
         # finally delete the note
         self.notes_db.delete_note(key)
 
-        # easiest now is just to regenerate the list by resetting search string
-        # if the note after the deleted one is already selected, this will
-        # simply keep that selection!
-        self.view.set_search_entry_text(self.view.get_search_entry_text())
+        # and refresh the window.
+        self.view.refresh_notes_list()
 
     def helper_markdown_to_html(self):
         if self.selected_note_key:
@@ -843,7 +841,7 @@ class Controller:
     def observer_view_change_sort_mode(self, view, evt_type, evt: events.SortModeChangedEvent):
         self.config.sort_mode = self.SORT_MODES[evt.mode].value
         # Refresh notes list.
-        self.view.set_search_entry_text(self.view.get_search_entry_text())
+        self.view.refresh_notes_list()
 
     def observer_view_close(self, view, evt_type, evt):
         # check that everything has been saved and synced before exiting
