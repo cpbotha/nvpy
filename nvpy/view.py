@@ -984,11 +984,12 @@ class TriggeredcompleteText(RedirectedText):
 class View(utils.SubjectMixin):
     """Main user interface class.
     """
-    def __init__(self, config, notes_list_model):
+    def __init__(self, config, notes_list_model, sort_modes: typing.Tuple[str, ...] = ('random', )):
         utils.SubjectMixin.__init__(self)
 
         self.config = config
         self.taglist = None
+        self.sort_modes = sort_modes
 
         notes_list_model.add_observer('set:list', self.observer_notes_list)
         self.notes_list_model = notes_list_model
@@ -1433,6 +1434,16 @@ class View(utils.SubjectMixin):
             self.notes_list = NotesList(list_frame, self.config.list_font_family, self.config.list_font_size,
                                         notes_list_config)
             self.notes_list.pack(fill=tk.BOTH, expand=1)
+
+            sort_mode_frame = tk.Frame(list_frame)
+            sort_mode_frame.pack(side=tk.TOP, fill=tk.X)
+            sort_mode_label = tk.Label(sort_mode_frame, text='Sort by')
+            sort_mode_label.pack(side=tk.LEFT)
+            self.sort_mode_var = tk.StringVar()
+            self.sort_mode_var.trace('w', self.handler_sort_mode_change)
+            sort_mode_selector = tk.OptionMenu(sort_mode_frame, self.sort_mode_var, self.sort_modes[0],
+                                               *self.sort_modes)
+            sort_mode_selector.pack(side=tk.LEFT, fill=tk.X, expand=1)
 
             note_frame = tk.Frame(paned_window, width=400)
 
@@ -1981,6 +1992,9 @@ class View(utils.SubjectMixin):
         self.activate_links()
         self.activate_search_string_highlights()
         self.activate_markdown_highlighting()
+
+    def handler_sort_mode_change(self, *args):
+        self.notify_observers('change:sort_mode', events.SortModeChangedEvent(self.sort_mode_var.get()))
 
     def is_note_different(self, note):
         """

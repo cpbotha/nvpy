@@ -361,6 +361,13 @@ class NotesListModel(SubjectMixin):
 class Controller:
     """Main application class.
     """
+    SORT_MODES = {
+        'title (alphabetical order)': SortMode.ALPHA,
+        'title (alphanumerical order)': SortMode.ALPHA_NUM,
+        'modification date': SortMode.MODIFICATION_DATE,
+        'creation date': SortMode.CREATION_DATE,
+    }
+
     def __init__(self, config):
         SubjectMixin.MAIN_THREAD = threading.current_thread()
 
@@ -416,7 +423,7 @@ class Controller:
 
         self.notes_list_model = NotesListModel()
         # create the interface
-        self.view = view.View(self.config, self.notes_list_model)
+        self.view = view.View(self.config, self.notes_list_model, sort_modes=tuple(self.SORT_MODES.keys()))
 
         try:
             # read our database of notes into memory
@@ -449,6 +456,7 @@ class Controller:
             self.view.add_observer('command:rest', self.observer_view_rest)
             self.view.add_observer('delete:tag', self.observer_view_delete_tag)
             self.view.add_observer('add:tag', self.observer_view_add_tag)
+            self.view.add_observer('change:sort_mode', self.observer_view_change_sort_mode)
 
             if self.config.simplenote_sync:
                 self.view.add_observer('command:sync_full', lambda v, et, e: self.sync_full())
@@ -831,6 +839,11 @@ class Controller:
         # get new text and update our database
         if self.selected_note_key:
             self.notes_db.set_note_pinned(self.selected_note_key, evt.value)
+
+    def observer_view_change_sort_mode(self, view, evt_type, evt: events.SortModeChangedEvent):
+        self.config.sort_mode = self.SORT_MODES[evt.mode].value
+        # Refresh notes list.
+        self.view.set_search_entry_text(self.view.get_search_entry_text())
 
     def observer_view_close(self, view, evt_type, evt):
         # check that everything has been saved and synced before exiting
