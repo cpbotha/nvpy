@@ -798,6 +798,7 @@ class NotesDB(utils.SubjectMixin):
                 # we only record the savedate.
                 self.notes[o.key]['savedate'] = o.note['savedate']
                 self.notify_observers('change:note-status', events.NoteStatusChangedEvent(what='savedate', key=o.key))
+                self.notify_observers('saved:note', events.NoteSavedEvent(key=o.key))
                 nsaved += 1
 
         return nsaved

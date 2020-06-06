@@ -31,6 +31,10 @@ class NoteStatusChangedEvent(typing.NamedTuple):
     key: str
 
 
+class NoteSavedEvent(typing.NamedTuple):
+    key: str
+
+
 class NoteSyncedEvent(typing.NamedTuple):
     lkey: str
     old_note: typing.Any

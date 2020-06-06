@@ -435,6 +435,7 @@ class Controller:
                 self.view.show_error('Sync error', emsg)
                 exit(1)
 
+            self.notes_db.add_observer('saved:note', self.observer_notes_db_saved_note)
             self.notes_db.add_observer('synced:note', self.observer_notes_db_synced_note)
             self.notes_db.add_observer('change:note-status', self.observer_notes_db_change_note_status)
 
@@ -560,6 +561,9 @@ class Controller:
 
         # return normal status from "Full syning".
         self.update_note_status()
+
+    def observer_notes_db_saved_note(self, notes_db, evt_type, evt: events.NoteSavedEvent):
+        self.view.refresh_notes_list()
 
     def observer_notes_db_synced_note(self, notes_db, evt_type, evt: events.NoteSyncedEvent):
         """This observer gets called only when a note returns from
