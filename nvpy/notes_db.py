@@ -235,6 +235,8 @@ class AlphaNumSorter(Sorter):
 
     def _str2elements(self, s: str):
         if s == '':
+            # The _make_groups() will yield an empty string ('') if s is ''. This behavior causes a crash on this
+            # function. We should handle this case before executing _make_gropus().
             return AlphaNumSorter.Element(
                 digits=AlphaNumSorter.Nullable(None),
                 letters=AlphaNumSorter.Nullable(None),
