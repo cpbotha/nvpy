@@ -458,6 +458,7 @@ class Controller:
             self.view.add_observer('delete:tag', self.observer_view_delete_tag)
             self.view.add_observer('add:tag', self.observer_view_add_tag)
             self.view.add_observer('change:sort_mode', self.observer_view_change_sort_mode)
+            self.view.add_observer('change:pinned_on_top', self.observer_view_change_pinned_on_top)
 
             if self.config.simplenote_sync:
                 self.view.add_observer('command:sync_full', lambda v, et, e: self.sync_full())
@@ -845,6 +846,10 @@ class Controller:
     def observer_view_change_sort_mode(self, view, evt_type, evt: events.SortModeChangedEvent):
         self.config.sort_mode = self.SORT_MODES[evt.mode].value
         # Refresh notes list.
+        self.view.refresh_notes_list()
+
+    def observer_view_change_pinned_on_top(self, view, evt_type, evt: events.PinnedOnTopChangedEvent):
+        self.config.pinned_ontop = evt.pinned_on_top
         self.view.refresh_notes_list()
 
     def observer_view_close(self, view, evt_type, evt):

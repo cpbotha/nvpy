@@ -1219,6 +1219,7 @@ class View(utils.SubjectMixin):
         self.search_mode_var.trace('w', self.handler_search_mode)
         self.pinned_checkbutton_var.trace('w', self.handler_pinned_checkbutton)
         self.sort_mode_var.trace('w', self.handler_sort_mode_change)
+        self.pinned_on_top_var.trace('w', self.handler_pinned_on_top_change)
 
         self.after(self.config.housekeeping_interval_ms, self.handler_housekeeper)
 
@@ -1914,6 +1915,9 @@ class View(utils.SubjectMixin):
 
     def handler_sort_mode_change(self, *args):
         self.notify_observers('change:sort_mode', events.SortModeChangedEvent(self.sort_mode_var.get()))
+
+    def handler_pinned_on_top_change(self, *args):
+        self.notify_observers('change:pinned_on_top', events.PinnedOnTopChangedEvent(self.pinned_on_top_var.get()))
 
     def is_note_different(self, note):
         """

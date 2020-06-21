@@ -55,3 +55,7 @@ class SyncProgressEvent(typing.NamedTuple):
 
 class SortModeChangedEvent(typing.NamedTuple):
     mode: str
+
+
+class PinnedOnTopChangedEvent(typing.NamedTuple):
+    pinned_on_top: bool
