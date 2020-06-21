@@ -1304,6 +1304,21 @@ class View(utils.SubjectMixin):
                               command=lambda: self.search_entry.focus())
         self.root.bind_all("<Control-f>", self.search)
 
+        # NOTES ########################################################
+        notes_menu = tk.Menu(menu, tearoff=False)
+        menu.add_cascade(label='Notes', underline=0, menu=notes_menu)
+
+        self.sort_mode_var = tk.StringVar()
+        for mode in self.sort_modes:
+            notes_menu.add_radiobutton(label=f'Sort by {mode}', value=mode, variable=self.sort_mode_var)
+        notes_menu.add_separator()
+        self.pinned_on_top_var = tk.BooleanVar()
+        self.pinned_on_top_var.set(self.config.pinned_ontop)
+        notes_menu.add_checkbutton(label='Pinned notes to top',
+                                   onvalue=True,
+                                   offvalue=False,
+                                   variable=self.pinned_on_top_var)
+
         # TOOLS ########################################################
         tools_menu = tk.Menu(menu, tearoff=False)
         menu.add_cascade(label="Tools", underline=0, menu=tools_menu)
@@ -1434,7 +1449,6 @@ class View(utils.SubjectMixin):
             sort_mode_frame.pack(side=tk.TOP, fill=tk.X)
             sort_mode_label = tk.Label(sort_mode_frame, text='Sort by')
             sort_mode_label.pack(side=tk.LEFT)
-            self.sort_mode_var = tk.StringVar()
             self.sort_mode_var.trace('w', self.handler_sort_mode_change)
             sort_mode_selector = tk.OptionMenu(sort_mode_frame, self.sort_mode_var, self.sort_modes[0],
                                                *self.sort_modes)
