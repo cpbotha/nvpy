@@ -234,6 +234,12 @@ class AlphaNumSorter(Sorter):
         yield last_category, s
 
     def _str2elements(self, s: str):
+        if s == '':
+            return AlphaNumSorter.Element(
+                digits=AlphaNumSorter.Nullable(None),
+                letters=AlphaNumSorter.Nullable(None),
+                other=AlphaNumSorter.Nullable(None),
+            )
         iter_ = self._enumerate_chars_with_category(s)
         groups = self._make_groups(iter_)
         for category, s in groups:
