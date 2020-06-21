@@ -1214,7 +1214,11 @@ class View(utils.SubjectMixin):
         self.tags_entry.bind("<Return>", self.handler_add_tags_to_selected_note)
         self.tags_entry.bind("<Escape>", lambda e: self.text_note.focus())
 
+        self.search_entry_var.trace('w', self.handler_search_entry)
+        self.cs_checkbutton_var.trace('w', self.handler_cs_checkbutton)
+        self.search_mode_var.trace('w', self.handler_search_mode)
         self.pinned_checkbutton_var.trace('w', self.handler_pinned_checkbutton)
+        self.sort_mode_var.trace('w', self.handler_sort_mode_change)
 
         self.after(self.config.housekeeping_interval_ms, self.handler_housekeeper)
 
@@ -1397,12 +1401,10 @@ class View(utils.SubjectMixin):
                                                    self.config.case_sensitive,
                                                    textvariable=self.search_entry_var,
                                                    style="Search.entry")
-        self.search_entry_var.trace('w', self.handler_search_entry)
 
         cs_label = tk.Label(search_frame, text="CS ")
         self.cs_checkbutton_var = tk.IntVar()
         cs_checkbutton = tk.Checkbutton(search_frame, variable=self.cs_checkbutton_var)
-        self.cs_checkbutton_var.trace('w', self.handler_cs_checkbutton)
 
         self.search_mode_options = ("gstyle", "regexp")
         self.search_mode_var = tk.StringVar()
@@ -1410,7 +1412,6 @@ class View(utils.SubjectMixin):
         self.search_mode_cb = tk.OptionMenu(search_frame, self.search_mode_var, self.search_mode_options[0],
                                             *self.search_mode_options)
         self.search_mode_cb.config(width=6)
-        self.search_mode_var.trace('w', self.handler_search_mode)
 
         self.search_mode_cb.pack(side=tk.RIGHT, padx=5)
         cs_checkbutton.pack(side=tk.RIGHT)
@@ -1449,7 +1450,6 @@ class View(utils.SubjectMixin):
             sort_mode_frame.pack(side=tk.TOP, fill=tk.X)
             sort_mode_label = tk.Label(sort_mode_frame, text='Sort by')
             sort_mode_label.pack(side=tk.LEFT)
-            self.sort_mode_var.trace('w', self.handler_sort_mode_change)
             sort_mode_selector = tk.OptionMenu(sort_mode_frame, self.sort_mode_var, self.sort_modes[0],
                                                *self.sort_modes)
             sort_mode_selector.pack(side=tk.LEFT, fill=tk.X, expand=1)
