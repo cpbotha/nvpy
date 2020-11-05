@@ -31,25 +31,25 @@ Note that current version tcl/tk is not fully support unicode.  This solution is
     export PREFIX=/opt/nvpy
     export LD_LIBRARY_PATH=$PREFIX/lib
 
-    tar xf tcl8.6.9-src.tar.gz
-    tar xf tk8.6.9-src.tar.gz
-    tar xf Python-3.7.4.tgz
+    tar xf tcl8.6.10-src.tar.gz
+    tar xf tk8.6.10-src.tar.gz
+    tar xf Python-3.8.6.tar.xz
 
-    sudo apt build-dep -y tcl tk python3.7
+    sudo apt build-dep -y tcl tk python3.8
 
-    cd tcl8.6.9/unix
+    cd tcl8.6.10/unix
     ./configure --enable-threads --enable-shared --enable-symbols --enable-64bit --enable-langinfo --enable-man-symlinks
     make
     sudo make install
     cd ../..
 
-    cd tk8.6.9/unix
+    cd tk8.6.10/unix
     ./configure --enable-threads --enable-shared --enable-symbols --enable-64bit --enable-man-symlinks
     make
     sudo make install
     cd ../..
 
-    cd Python-3.7.4
+    cd Python-3.8.6
     ./configure --enable-shared --enable-optimizations --enable-ipv6 --enable-unicode=ucs4 --with-lto --with-signal-module --with-pth --with-wctype-functions --with-tcltk-includes=/usr/local/include/ --with-tcltk-libs=/usr/local/lib/
     make
     sudo make install
