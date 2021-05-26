@@ -160,6 +160,7 @@ class Config:
             'keep_search_keyword': 'false',
             'confirm_delete': 'true',
             'confirm_exit': 'false',
+            'streamline_interface': 'false',
         }
 
         self.files_read, cp = self._load_cfg(defaults, cfg)
@@ -226,6 +227,8 @@ class Config:
         self.keep_search_keyword = cp.getboolean(cfg_sec, 'keep_search_keyword')
         self.confirm_delete = cp.getboolean(cfg_sec, 'confirm_delete')
         self.confirm_exit = cp.getboolean(cfg_sec, 'confirm_exit')
+
+        self.streamline_interface = cp.getboolean(cfg_sec, 'streamline_interface')
 
         self.warnings = []
         if cp.has_option(cfg_sec, 'background_full_sync'):
