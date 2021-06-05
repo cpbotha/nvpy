@@ -1710,12 +1710,12 @@ class View(utils.SubjectMixin):
     def handler_search_escape(self, evt):
         # user has pressed escape whilst searching
         # 1. if search box has text in it, delete that text
-        # 2. if search box does not have text in it, quit
+        # 2. if search box does not have text in it and the user has configured escape_to_exit, then quit
 
         if self.get_search_entry_text() != '':
             self.search_entry.delete(0, tk.END)
 
-        else:
+        elif self.config.escape_to_exit:
             self.handler_close()
 
     def handler_search_entry(self, *args):
