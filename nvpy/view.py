@@ -1309,9 +1309,19 @@ class View(utils.SubjectMixin):
                               command=lambda: self.search_entry.focus())
         self.root.bind_all("<Control-f>", self.search)
 
+        # NOTE #########################################################
+        note_menu = tk.Menu(menu, tearoff=False)
+        menu.add_cascade(label='Note', underline=0, menu=note_menu)
+
+        self.pinned_checkbutton_var = tk.IntVar()
+        note_menu.add_checkbutton(label='Pinned',
+                                   onvalue=1,
+                                   offvalue=0,
+                                   variable=self.pinned_checkbutton_var)
+
         # NOTES ########################################################
         notes_menu = tk.Menu(menu, tearoff=False)
-        menu.add_cascade(label='Notes', underline=0, menu=notes_menu)
+        menu.add_cascade(label='Notes', underline=1, menu=notes_menu)
 
         self.sort_mode_var = tk.StringVar()
         for mode in self.sort_modes:
@@ -1508,7 +1518,7 @@ class View(utils.SubjectMixin):
         pinned_label = tk.Label(note_pinned_frame, text="Pinned")
         if not self.config.streamline_interface:
             pinned_label.pack(side=tk.LEFT)
-        self.pinned_checkbutton_var = tk.IntVar()
+        # self.pinned_checkbutton_var = tk.IntVar() # Moved to note menu code area
         self.pinned_checkbutton = tk.Checkbutton(note_pinned_frame, variable=self.pinned_checkbutton_var)
         if not self.config.streamline_interface:
             self.pinned_checkbutton.pack(side=tk.LEFT)
