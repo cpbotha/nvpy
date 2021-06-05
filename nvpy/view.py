@@ -1188,8 +1188,8 @@ class View(utils.SubjectMixin):
         self.notes_list.text.bind("<Escape>", lambda e: self.search_entry.focus())
         self.notes_list.text.bind("<Control-bracketleft>", lambda e: self.search_entry.focus())
 
-        self.search_entry.bind("<Escape>", lambda e: self.search_entry.delete(0, tk.END))
-        self.search_entry.bind("<Control-bracketleft>", lambda e: self.search_entry.delete(0, tk.END))
+        self.search_entry.bind("<Escape>", self.handler_search_escape)
+        self.search_entry.bind("<Control-bracketleft>", self.handler_search_escape)
         # this will either focus current content, or
         # if there's no selection, create a new note.
         self.search_entry.bind("<Return>", self.handler_search_enter)
@@ -1706,6 +1706,17 @@ class View(utils.SubjectMixin):
             self.notify_observers('create:note', events.NoteCreatedEvent(title=self.get_search_entry_text()))
             # the note will be created synchronously, so we can focus the text area already
             self.text_note.focus()
+
+    def handler_search_escape(self, evt):
+        # user has pressed escape whilst searching
+        # 1. if search box has text in it, delete that text
+        # 2. if search box does not have text in it, quit
+
+        if self.get_search_entry_text() != '':
+            self.search_entry.delete(0, tk.END)
+
+        else:
+            self.handler_close()
 
     def handler_search_entry(self, *args):
         self.notify_observers('change:entry', events.TextBoxChangedEvent(value=self.search_entry_var.get()))
