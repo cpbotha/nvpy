@@ -1202,9 +1202,9 @@ class View(utils.SubjectMixin):
 
         self.text_note.bind("<<Change>>", self.handler_text_change)
 
-        # user presses escape in text area, they go back to notes list
-        self.text_note.bind("<Escape>", lambda e: self.notes_list.text.focus())
-        self.text_note.bind("<Control-bracketleft>", lambda e: self.notes_list.text.focus())
+        # user presses escape in text area, they go back to search box
+        self.text_note.bind("<Escape>", lambda e: self.search_entry.focus())
+        self.text_note.bind("<Control-bracketleft>", lambda e: self.search_entry.focus())
         # <Key>
 
         self.text_note.bind("<Control-BackSpace>", self.handler_control_backspace)
