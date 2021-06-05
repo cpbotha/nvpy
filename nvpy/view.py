@@ -1324,6 +1324,25 @@ class View(utils.SubjectMixin):
                                    offvalue=False,
                                    variable=self.pinned_on_top_var)
 
+        # SEARCH #######################################################
+        search_menu = tk.Menu(menu, tearoff=False)
+        menu.add_cascade(label='Search', underline=0, menu=search_menu)
+
+        self.search_mode_options = ("gstyle", "regexp")
+        self.search_mode_var = tk.StringVar()
+
+        for mode in self.search_mode_options:
+            search_menu.add_radiobutton(label=f'Search mode {mode}', value=mode, variable=self.search_mode_var)
+
+        search_menu.add_separator()
+
+        self.cs_checkbutton_var = tk.IntVar()
+
+        search_menu.add_checkbutton(label='Case sensitive',
+                                   onvalue=1,
+                                   offvalue=0,
+                                   variable=self.cs_checkbutton_var)
+
         # TOOLS ########################################################
         tools_menu = tk.Menu(menu, tearoff=False)
         menu.add_cascade(label="Tools", underline=0, menu=tools_menu)
@@ -1404,11 +1423,11 @@ class View(utils.SubjectMixin):
                                                    style="Search.entry")
 
         cs_label = tk.Label(search_frame, text="CS ")
-        self.cs_checkbutton_var = tk.IntVar()
+        # self.cs_checkbutton_var = tk.IntVar() # Moved to search menu code area
         cs_checkbutton = tk.Checkbutton(search_frame, variable=self.cs_checkbutton_var)
 
-        self.search_mode_options = ("gstyle", "regexp")
-        self.search_mode_var = tk.StringVar()
+        # self.search_mode_options = ("gstyle", "regexp") # Moved to search menu code area
+        # self.search_mode_var = tk.StringVar()
         # I'm working with ttk.OptionVar, which has that extra default param!
         self.search_mode_cb = tk.OptionMenu(search_frame, self.search_mode_var, self.search_mode_options[0],
                                             *self.search_mode_options)
