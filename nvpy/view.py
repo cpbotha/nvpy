@@ -1481,12 +1481,10 @@ class View(utils.SubjectMixin):
             if not self.config.streamline_interface:
                 sort_mode_frame.pack(side=tk.TOP, fill=tk.X)
             sort_mode_label = tk.Label(sort_mode_frame, text='Sort by')
-            if not self.config.streamline_interface:
-                sort_mode_label.pack(side=tk.LEFT)
+            sort_mode_label.pack(side=tk.LEFT)
             sort_mode_selector = tk.OptionMenu(sort_mode_frame, self.sort_mode_var, self.sort_modes[0],
                                                *self.sort_modes)
-            if not self.config.streamline_interface:
-                sort_mode_selector.pack(side=tk.LEFT, fill=tk.X, expand=1)
+            sort_mode_selector.pack(side=tk.LEFT, fill=tk.X, expand=1)
 
             note_frame = tk.Frame(paned_window, width=400)
 
@@ -1516,20 +1514,16 @@ class View(utils.SubjectMixin):
             note_pinned_frame.pack(side=tk.BOTTOM, fill=tk.X)
 
         pinned_label = tk.Label(note_pinned_frame, text="Pinned")
-        if not self.config.streamline_interface:
-            pinned_label.pack(side=tk.LEFT)
+        pinned_label.pack(side=tk.LEFT)
         # self.pinned_checkbutton_var = tk.IntVar() # Moved to note menu code area
         self.pinned_checkbutton = tk.Checkbutton(note_pinned_frame, variable=self.pinned_checkbutton_var)
-        if not self.config.streamline_interface:
-            self.pinned_checkbutton.pack(side=tk.LEFT)
+        self.pinned_checkbutton.pack(side=tk.LEFT)
 
         note_tags_frame = tk.Frame(note_pinned_frame)
-        if not self.config.streamline_interface:
-            note_tags_frame.pack(side=tk.LEFT)
+        note_tags_frame.pack(side=tk.LEFT)
 
         tags_label = tk.Label(note_tags_frame, text="Add Tags")
-        if not self.config.streamline_interface:
-            tags_label.pack(side=tk.LEFT)
+        tags_label.pack(side=tk.LEFT)
 
         def completion_func(searchWord):
             if self.taglist is None:
