@@ -1309,9 +1309,19 @@ class View(utils.SubjectMixin):
                               command=lambda: self.search_entry.focus())
         self.root.bind_all("<Control-f>", self.search)
 
+        # NOTE #########################################################
+        note_menu = tk.Menu(menu, tearoff=False)
+        menu.add_cascade(label='Note', underline=0, menu=note_menu)
+
+        self.pinned_checkbutton_var = tk.IntVar()
+        note_menu.add_checkbutton(label='Pinned',
+                                   onvalue=1,
+                                   offvalue=0,
+                                   variable=self.pinned_checkbutton_var)
+
         # NOTES ########################################################
         notes_menu = tk.Menu(menu, tearoff=False)
-        menu.add_cascade(label='Notes', underline=0, menu=notes_menu)
+        menu.add_cascade(label='Notes', underline=1, menu=notes_menu)
 
         self.sort_mode_var = tk.StringVar()
         for mode in self.sort_modes:
@@ -1323,6 +1333,25 @@ class View(utils.SubjectMixin):
                                    onvalue=True,
                                    offvalue=False,
                                    variable=self.pinned_on_top_var)
+
+        # SEARCH #######################################################
+        search_menu = tk.Menu(menu, tearoff=False)
+        menu.add_cascade(label='Search', underline=0, menu=search_menu)
+
+        self.search_mode_options = ("gstyle", "regexp")
+        self.search_mode_var = tk.StringVar()
+
+        for mode in self.search_mode_options:
+            search_menu.add_radiobutton(label=f'Search mode {mode}', value=mode, variable=self.search_mode_var)
+
+        search_menu.add_separator()
+
+        self.cs_checkbutton_var = tk.IntVar()
+
+        search_menu.add_checkbutton(label='Case sensitive',
+                                   onvalue=1,
+                                   offvalue=0,
+                                   variable=self.cs_checkbutton_var)
 
         # TOOLS ########################################################
         tools_menu = tk.Menu(menu, tearoff=False)
@@ -1404,19 +1433,20 @@ class View(utils.SubjectMixin):
                                                    style="Search.entry")
 
         cs_label = tk.Label(search_frame, text="CS ")
-        self.cs_checkbutton_var = tk.IntVar()
+        # self.cs_checkbutton_var = tk.IntVar() # Moved to search menu code area
         cs_checkbutton = tk.Checkbutton(search_frame, variable=self.cs_checkbutton_var)
 
-        self.search_mode_options = ("gstyle", "regexp")
-        self.search_mode_var = tk.StringVar()
+        # self.search_mode_options = ("gstyle", "regexp") # Moved to search menu code area
+        # self.search_mode_var = tk.StringVar()
         # I'm working with ttk.OptionVar, which has that extra default param!
         self.search_mode_cb = tk.OptionMenu(search_frame, self.search_mode_var, self.search_mode_options[0],
                                             *self.search_mode_options)
         self.search_mode_cb.config(width=6)
 
-        self.search_mode_cb.pack(side=tk.RIGHT, padx=5)
-        cs_checkbutton.pack(side=tk.RIGHT)
-        cs_label.pack(side=tk.RIGHT)
+        if not self.config.streamline_interface:
+            self.search_mode_cb.pack(side=tk.RIGHT, padx=5)
+            cs_checkbutton.pack(side=tk.RIGHT)
+            cs_label.pack(side=tk.RIGHT)
         self.search_entry.pack(fill=tk.X, padx=5, pady=5)
 
         search_frame.pack(side=tk.TOP, fill=tk.X)
@@ -1448,7 +1478,8 @@ class View(utils.SubjectMixin):
             self.notes_list.pack(fill=tk.BOTH, expand=1)
 
             sort_mode_frame = tk.Frame(list_frame)
-            sort_mode_frame.pack(side=tk.TOP, fill=tk.X)
+            if not self.config.streamline_interface:
+                sort_mode_frame.pack(side=tk.TOP, fill=tk.X)
             sort_mode_label = tk.Label(sort_mode_frame, text='Sort by')
             sort_mode_label.pack(side=tk.LEFT)
             sort_mode_selector = tk.OptionMenu(sort_mode_frame, self.sort_mode_var, self.sort_modes[0],
@@ -1479,11 +1510,12 @@ class View(utils.SubjectMixin):
         paned_window.add(note_frame)
 
         note_pinned_frame = tk.Frame(note_frame)
-        note_pinned_frame.pack(side=tk.BOTTOM, fill=tk.X)
+        if not self.config.streamline_interface:
+            note_pinned_frame.pack(side=tk.BOTTOM, fill=tk.X)
 
         pinned_label = tk.Label(note_pinned_frame, text="Pinned")
         pinned_label.pack(side=tk.LEFT)
-        self.pinned_checkbutton_var = tk.IntVar()
+        # self.pinned_checkbutton_var = tk.IntVar() # Moved to note menu code area
         self.pinned_checkbutton = tk.Checkbutton(note_pinned_frame, variable=self.pinned_checkbutton_var)
         self.pinned_checkbutton.pack(side=tk.LEFT)
 
