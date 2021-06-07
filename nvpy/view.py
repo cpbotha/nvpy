@@ -1212,6 +1212,7 @@ class View(utils.SubjectMixin):
         self.text_note.bind("<Control-BackSpace>", self.handler_control_backspace)
         self.text_note.bind("<Control-Delete>", self.handler_control_delete)
         self.text_note.bind("<Control-a>", self.cmd_select_all)
+        self.text_note.bind("<Control-c>", self.handler_text_copy)
 
         self.tags_entry.bind("<Return>", self.handler_add_tags_to_selected_note)
         self.tags_entry.bind("<Escape>", lambda e: self.text_note.focus())
@@ -1957,6 +1958,16 @@ class View(utils.SubjectMixin):
         self.activate_links()
         self.activate_search_string_highlights()
         self.activate_markdown_highlighting()
+
+    def handler_text_copy(self, event):
+        first = self.text_note.index('sel.first')
+        last = self.text_note.index('sel.last')
+        if first and last:
+            # Propagate event to other handlers.
+            return
+        # Nothing selected. Copy the note title.
+        self.notes_list.cmd_text_copy(event)
+        return 'break'
 
     def handler_sort_mode_change(self, *args):
         self.notify_observers('change:sort_mode', events.SortModeChangedEvent(self.sort_mode_var.get()))
