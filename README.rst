@@ -173,7 +173,7 @@ Ctrl-SPACE    In search box, autocomplete tag under cursor. Keep on pressing for
 Ctrl-+/-      Increase or decrease the font size.
 Ctrl-BS       Delete previous word in the note editor.
 Ctrl-Delete   Delete next word in the note editor.
-ESC           Go from edit mode to notes list.
+ESC           Go from edit mode to search box (and, optionally, in empty search box, exit nvPY).
 Ctrl-[        Same as ESC. (VIM binding)
 ENTER         Start editing currently selected note. If there's a search string but no notes in the list, ENTER creates a new note with that search string as its title.
 ============= ==========

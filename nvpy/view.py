@@ -1185,9 +1185,11 @@ class View(utils.SubjectMixin):
         # if nothing is selected, try to create new note with
         # search entry value as name
         self.notes_list.text.bind("<Return>", self.handler_search_enter)
+        self.notes_list.text.bind("<Escape>", lambda e: self.search_entry.focus())
+        self.notes_list.text.bind("<Control-bracketleft>", lambda e: self.search_entry.focus())
 
-        self.search_entry.bind("<Escape>", lambda e: self.search_entry.delete(0, tk.END))
-        self.search_entry.bind("<Control-bracketleft>", lambda e: self.search_entry.delete(0, tk.END))
+        self.search_entry.bind("<Escape>", self.handler_search_escape)
+        self.search_entry.bind("<Control-bracketleft>", self.handler_search_escape)
         # this will either focus current content, or
         # if there's no selection, create a new note.
         self.search_entry.bind("<Return>", self.handler_search_enter)
@@ -1202,9 +1204,9 @@ class View(utils.SubjectMixin):
 
         self.text_note.bind("<<Change>>", self.handler_text_change)
 
-        # user presses escape in text area, they go back to notes list
-        self.text_note.bind("<Escape>", lambda e: self.notes_list.text.focus())
-        self.text_note.bind("<Control-bracketleft>", lambda e: self.notes_list.text.focus())
+        # user presses escape in text area, they go back to search box
+        self.text_note.bind("<Escape>", lambda e: self.search_entry.focus())
+        self.text_note.bind("<Control-bracketleft>", lambda e: self.search_entry.focus())
         # <Key>
 
         self.text_note.bind("<Control-BackSpace>", self.handler_control_backspace)
@@ -1736,6 +1738,17 @@ class View(utils.SubjectMixin):
             self.notify_observers('create:note', events.NoteCreatedEvent(title=self.get_search_entry_text()))
             # the note will be created synchronously, so we can focus the text area already
             self.text_note.focus()
+
+    def handler_search_escape(self, evt):
+        # user has pressed escape whilst searching
+        # 1. if search box has text in it, delete that text
+        # 2. if search box does not have text in it and the user has configured escape_to_exit, then quit
+
+        if self.get_search_entry_text() != '':
+            self.search_entry.delete(0, tk.END)
+
+        elif self.config.escape_to_exit:
+            self.handler_close()
 
     def handler_search_entry(self, *args):
         self.notify_observers('change:entry', events.TextBoxChangedEvent(value=self.search_entry_var.get()))

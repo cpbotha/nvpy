@@ -159,6 +159,7 @@ class Config:
             'md_extensions': '',
             'keep_search_keyword': 'false',
             'confirm_delete': 'true',
+            'escape_to_exit': 'false',
             'confirm_exit': 'false',
             'streamline_interface': 'false',
         }
@@ -226,6 +227,7 @@ class Config:
         self.debug = cp.getint(cfg_sec, 'debug')
         self.keep_search_keyword = cp.getboolean(cfg_sec, 'keep_search_keyword')
         self.confirm_delete = cp.getboolean(cfg_sec, 'confirm_delete')
+        self.escape_to_exit = cp.getboolean(cfg_sec, 'escape_to_exit')
         self.confirm_exit = cp.getboolean(cfg_sec, 'confirm_exit')
 
         self.streamline_interface = cp.getboolean(cfg_sec, 'streamline_interface')
