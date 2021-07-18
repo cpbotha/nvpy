@@ -1317,10 +1317,7 @@ class View(utils.SubjectMixin):
         menu.add_cascade(label='Note', underline=0, menu=note_menu)
 
         self.pinned_checkbutton_var = tk.IntVar()
-        note_menu.add_checkbutton(label='Pinned',
-                                   onvalue=1,
-                                   offvalue=0,
-                                   variable=self.pinned_checkbutton_var)
+        note_menu.add_checkbutton(label='Pinned', onvalue=1, offvalue=0, variable=self.pinned_checkbutton_var)
 
         # NOTES ########################################################
         notes_menu = tk.Menu(menu, tearoff=False)
@@ -1351,10 +1348,7 @@ class View(utils.SubjectMixin):
 
         self.cs_checkbutton_var = tk.IntVar()
 
-        search_menu.add_checkbutton(label='Case sensitive',
-                                   onvalue=1,
-                                   offvalue=0,
-                                   variable=self.cs_checkbutton_var)
+        search_menu.add_checkbutton(label='Case sensitive', onvalue=1, offvalue=0, variable=self.cs_checkbutton_var)
 
         # TOOLS ########################################################
         tools_menu = tk.Menu(menu, tearoff=False)

@@ -1,5 +1,6 @@
 import unittest
 import nvpy.notes_db as notes_db
+
 Nullable = notes_db.AlphaNumSorter.Nullable
 
 
