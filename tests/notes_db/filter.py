@@ -1,9 +1,8 @@
-import os
-import shutil
 import unittest
 import copy
 from nvpy.nvpy import Config
 from nvpy.notes_db import NotesDB
+from ._mixin import DBMixin
 
 notes = {
     '1': {
@@ -42,27 +41,9 @@ notes = {
 }
 
 
-class FilterGstyle(unittest.TestCase):
-    BASE_DIR = '/tmp/.nvpyUnitTests'
-
-    def setUp(self):
-        if os.path.isdir(self.BASE_DIR):
-            shutil.rmtree(self.BASE_DIR)
-
-    def __mock_config(self, notes_as_txt=False):
-        app_dir = os.path.abspath('nvpy')
-
-        mockConfig = Config(app_dir, [])
-        mockConfig.sn_username = ''
-        mockConfig.sn_password = ''
-        mockConfig.db_path = self.BASE_DIR
-        mockConfig.txt_path = self.BASE_DIR + '/notes'
-        mockConfig.simplenote_sync = 0
-        mockConfig.notes_as_txt = notes_as_txt
-        return mockConfig
-
+class FilterGstyle(DBMixin, unittest.TestCase):
     def test_search_by_none_or_empty(self):
-        db = NotesDB(self.__mock_config())
+        db = self._db()
         db.notes = copy.deepcopy(notes)
         filtered_notes, match_regexp, active_notes = db.filter_notes_gstyle()
         self.assertEqual(len(filtered_notes), 3)
@@ -74,7 +55,7 @@ class FilterGstyle(unittest.TestCase):
         self.assertEqual(active_notes, 3)
 
     def test_search_by_tag(self):
-        db = NotesDB(self.__mock_config())
+        db = self._db()
         db.notes = copy.deepcopy(notes)
         filtered_notes, match_regexp, active_notes = db.filter_notes_gstyle('tag:foo')
         self.assertEqual(len(filtered_notes), 1)
@@ -83,7 +64,7 @@ class FilterGstyle(unittest.TestCase):
         self.assertEqual(active_notes, 3)
 
     def test_search_by_single_words(self):
-        db = NotesDB(self.__mock_config())
+        db = self._db()
         db.notes = copy.deepcopy(notes)
         filtered_notes, match_regexp, active_notes = db.filter_notes_gstyle('note 1 active')
         self.assertEqual(len(filtered_notes), 1)
@@ -92,7 +73,7 @@ class FilterGstyle(unittest.TestCase):
         self.assertEqual(active_notes, 3)
 
     def test_search_by_multi_word(self):
-        db = NotesDB(self.__mock_config())
+        db = self._db()
         db.notes = copy.deepcopy(notes)
         filtered_notes, match_regexp, active_notes = db.filter_notes_gstyle('"note 1" active')
         self.assertEqual(len(filtered_notes), 1)
@@ -101,27 +82,9 @@ class FilterGstyle(unittest.TestCase):
         self.assertEqual(active_notes, 3)
 
 
-class FilterRegexp(unittest.TestCase):
-    BASE_DIR = '/tmp/.nvpyUnitTests'
-
-    def setUp(self):
-        if os.path.isdir(self.BASE_DIR):
-            shutil.rmtree(self.BASE_DIR)
-
-    def __mock_config(self, notes_as_txt=False):
-        app_dir = os.path.abspath('nvpy')
-
-        mockConfig = Config(app_dir, [])
-        mockConfig.sn_username = ''
-        mockConfig.sn_password = ''
-        mockConfig.db_path = self.BASE_DIR
-        mockConfig.txt_path = self.BASE_DIR + '/notes'
-        mockConfig.simplenote_sync = 0
-        mockConfig.notes_as_txt = notes_as_txt
-        return mockConfig
-
+class FilterRegexp(DBMixin, unittest.TestCase):
     def test_search_by_none_or_empty(self):
-        db = NotesDB(self.__mock_config())
+        db = self._db()
         db.notes = copy.deepcopy(notes)
         filtered_notes, match_regexp, active_notes = db.filter_notes_regexp()
         self.assertEqual(len(filtered_notes), 3)
@@ -133,7 +96,7 @@ class FilterRegexp(unittest.TestCase):
         self.assertEqual(active_notes, 3)
 
     def test_search_by_invalid_regexp(self):
-        db = NotesDB(self.__mock_config())
+        db = self._db()
         db.notes = copy.deepcopy(notes)
         filtered_notes, match_regexp, active_notes = db.filter_notes_regexp('(deleted')
         self.assertEqual(len(filtered_notes), 3)
@@ -141,7 +104,7 @@ class FilterRegexp(unittest.TestCase):
         self.assertEqual(active_notes, 3)
 
     def test_search_by_valid_regexp(self):
-        db = NotesDB(self.__mock_config())
+        db = self._db()
         db.notes = copy.deepcopy(notes)
         filtered_notes, match_regexp, active_notes = db.filter_notes_regexp('foo| [12]')
         self.assertEqual(len(filtered_notes), 3)
