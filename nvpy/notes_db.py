@@ -11,6 +11,7 @@ import logging
 import enum
 import abc
 import unicodedata
+import pathlib
 from queue import Queue, Empty
 from http.client import HTTPException
 from .p3port import unicode
@@ -700,21 +701,10 @@ class NotesDB(utils.SubjectMixin):
                 self.titlelist[k] = t
                 fn = os.path.join(self.config.txt_path, t)
                 try:
-                    with codecs.open(fn, mode='wb', encoding='utf-8') as f:
-                        c = note.get('content')
-                        if isinstance(c, str):
-                            c = unicode(c, 'utf-8')
-                        else:
-                            c = unicode(c)
-
-                        f.write(c)
-                except IOError as e:
-                    logging.error('NotesDB_save: Error opening %s: %s' % (fn, str(e)))
-                    raise WriteError('Error opening note file')
-
-                except ValueError as e:
+                    pathlib.Path(fn).write_text(note['content'], encoding='utf-8')
+                except (IOError, ValueError) as e:
                     logging.error('NotesDB_save: Error writing %s: %s' % (fn, str(e)))
-                    raise WriteError('Error writing note file')
+                    raise WriteError(f'Error writing note file ({fn})')
 
             elif t and note.get('deleted') and k in self.titlelist:
                 dfn = os.path.join(self.config.txt_path, self.titlelist[k])
@@ -727,7 +717,11 @@ class NotesDB(utils.SubjectMixin):
             if os.path.isfile(fn):
                 os.unlink(fn)
         else:
-            json.dump(note, codecs.open(fn, 'wb', encoding='utf-8'), indent=2)
+            try:
+                pathlib.Path(fn).write_text(json.dumps(note, indent=2), encoding='utf-8')
+            except (IOError, ValueError) as e:
+                logging.error('NotesDB_save: Error opening %s: %s' % (fn, str(e)))
+                raise WriteError(f'Error writing note file ({fn})')
 
         # record that we saved this to disc.
         note['savedate'] = time.time()
@@ -1038,7 +1032,8 @@ class NotesDB(utils.SubjectMixin):
                                 events.SyncProgressEvent(msg='Synced newer note %d (%d) from server.' % (ni, lennl)))
 
                         else:
-                            logging.error('Error syncing newer note %s from server: %s' % (k, err))
+                            err_obj = n
+                            logging.error('Error syncing newer note %s from server: %s' % (k, err_obj))
                             sync_from_server_errors += 1
 
                 else:
@@ -1061,7 +1056,8 @@ class NotesDB(utils.SubjectMixin):
                             events.SyncProgressEvent(msg='Synced new note %d (%d) from server.' % (ni, lennl)))
 
                     else:
-                        logging.error('Error syncing new note %s from server: %s' % (k, err))
+                        err_obj = n
+                        logging.error('Error syncing new note %s from server: %s' % (k, err_obj))
                         sync_from_server_errors += 1
 
             # 5. Clean up local notes.
@@ -1273,7 +1269,7 @@ class NotesDB(utils.SubjectMixin):
                     # if it occurs, housekeeper's is going to repeatedly update this note.
                     # regard updating error as success for prevent this problem.
                     logging.info('Regard updating error (local key %s, error object %s) as success.' %
-                                 (o.key, repr(update_error)))
+                                 (local_note["key"], repr(update_error)))
                     return UpdateResult(
                         note=local_note,
                         is_updated=False,
