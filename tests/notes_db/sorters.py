@@ -4,11 +4,13 @@ import nvpy.notes_db as notes_db
 Nullable = notes_db.AlphaNumSorter.Nullable
 
 
-def create_note(title) -> notes_db.NoteInfo:
+def create_note(title, createdate=1, modifydate=2) -> notes_db.NoteInfo:
     return notes_db.NoteInfo(
         key='xxx',
         note={
             'content': title,
+            'createdate': createdate,
+            'modifydate': modifydate,
         },
         tagfound=0,
     )
@@ -37,6 +39,14 @@ class AlphaNumSorter_Nullable(unittest.TestCase):
         self.assertTrue(a < b)
         self.assertFalse(a == b)
         self.assertFalse(a > b)
+
+    def test_nullable_can_reprable(self):
+        a = Nullable(None)
+        b = Nullable(1)
+        c = Nullable('c')
+        self.assertEqual(repr(a), 'Nullable(None)')
+        self.assertEqual(repr(b), 'Nullable(1)')
+        self.assertEqual(repr(c), "Nullable('c')")
 
 
 class AlphaNumSorter(unittest.TestCase):
@@ -76,6 +86,7 @@ class AlphaNumSorter(unittest.TestCase):
     def test_sort_order(self):
         sorter = notes_db.AlphaNumSorter()
         notes = [
+            create_note(''),
             create_note('abcd'),
             create_note('abcd-'),
             create_note('abcd-200'),
@@ -90,6 +101,7 @@ class AlphaNumSorter(unittest.TestCase):
         self.assertSequenceEqual(
             sorted(notes, key=sorter),
             [
+                create_note(''),
                 create_note('abcd'),
                 create_note('abcd-'),
                 create_note('abcd-2#a'),
@@ -102,3 +114,49 @@ class AlphaNumSorter(unittest.TestCase):
                 create_note('10-xyz'),
             ],
         )
+
+
+class DateSorter(unittest.TestCase):
+    def test_sort_by_modification_date(self):
+        sorter = notes_db.DateSorter(notes_db.SortMode.MODIFICATION_DATE)
+        notes = [
+            create_note('zzz', createdate=99, modifydate=1),
+            create_note('yyy', createdate=96, modifydate=2),
+            create_note('www', createdate=98, modifydate=3),
+            create_note('xxx', createdate=97, modifydate=4),
+        ]
+        self.assertSequenceEqual(
+            sorted(notes, key=sorter),
+            [
+                create_note('xxx', createdate=97, modifydate=4),
+                create_note('www', createdate=98, modifydate=3),
+                create_note('yyy', createdate=96, modifydate=2),
+                create_note('zzz', createdate=99, modifydate=1),
+            ],
+        )
+
+    def test_sort_by_creation_date(self):
+        sorter = notes_db.DateSorter(notes_db.SortMode.CREATION_DATE)
+        notes = [
+            create_note('zzz', createdate=1, modifydate=99),
+            create_note('yyy', createdate=2, modifydate=96),
+            create_note('www', createdate=3, modifydate=98),
+            create_note('xxx', createdate=4, modifydate=97),
+        ]
+        self.assertSequenceEqual(
+            sorted(notes, key=sorter),
+            [
+                create_note('xxx', createdate=4, modifydate=97),
+                create_note('www', createdate=3, modifydate=98),
+                create_note('yyy', createdate=2, modifydate=96),
+                create_note('zzz', createdate=1, modifydate=99),
+            ],
+        )
+
+    def test_fail_if_unexpected_mode_specified(self):
+        with self.assertRaises(ValueError):
+            notes_db.DateSorter(notes_db.SortMode.ALPHA)
+        with self.assertRaises(ValueError):
+            notes_db.DateSorter(2)
+        with self.assertRaises(ValueError):
+            notes_db.DateSorter('creation_date')
