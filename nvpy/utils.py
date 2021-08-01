@@ -114,7 +114,7 @@ def note_markdown(n):
 tags_illegal_chars = re.compile(r'[\s]')
 
 
-def sanitise_tags(tags):
+def sanitise_tags(tags: str):
     """
     Given a string containing comma-separated tags, sanitise and return a list of string tags.
 
