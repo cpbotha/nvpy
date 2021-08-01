@@ -1099,15 +1099,6 @@ class NotesDB(utils.SubjectMixin):
             n['modifydate'] = time.time()
             self.notify_observers('change:note-status', events.NoteStatusChangedEvent(what='modifydate', key=key))
 
-    def set_note_tags(self, key, tags):
-        n = self.notes[key]
-        old_tags = n.get('tags')
-        tags = utils.sanitise_tags(tags)
-        if tags != old_tags:
-            n['tags'] = tags
-            n['modifydate'] = time.time()
-            self.notify_observers('change:note-status', events.NoteStatusChangedEvent(what='modifydate', key=key))
-
     def delete_note_tag(self, key, tag):
         note = self.notes[key]
         note_tags = note.get('tags')

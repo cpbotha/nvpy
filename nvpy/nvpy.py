@@ -828,12 +828,6 @@ class Controller:
         if self.selected_note_key:
             self.notes_db.set_note_content(self.selected_note_key, self.view.get_text())
 
-    def observer_view_change_tags(self, view, evt_type, evt):
-        # get new text and update our database
-        if self.selected_note_key:
-            self.notes_db.set_note_tags(self.selected_note_key, evt.value)
-            self.view.cmd_notes_list_select()
-
     def observer_view_delete_tag(self, view, evt_type, evt: events.TagRemovedEvent):
         self.notes_db.delete_note_tag(self.selected_note_key, evt.tag)
         self.view.cmd_notes_list_select()
