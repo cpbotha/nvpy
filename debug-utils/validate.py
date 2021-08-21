@@ -15,12 +15,26 @@ for file in files:
         obj = json.load(f)
         try:
             # See https://simplenotepy.readthedocs.io/en/latest/api.html#simperium-api-note-object
-            assert 'key' in obj and type(obj['key']) == str
-            assert 'deleted' in obj and type(obj['deleted']) in [bool, int]
-            assert 'modifydate' in obj and type(obj['modifydate']) in [float, int]
-            assert 'createdate' in obj and type(obj['createdate']) in [float, int]
-            assert 'version' in obj and type(obj['version']) == int
-            assert 'systemtags' in obj and type(obj['systemtags']) == list
+
+            # Optional field for simplenote.
+            # Only if we have synced with simplenote once or more times, those fields may exist.
+            # TODO: New note format does not require the key field. Please consider removing it.
+            if 'key' in obj:
+                assert type(obj['key']) == str
+            if 'deleted' in obj:
+                assert type(obj['deleted']) in [bool, int]
+            if 'version' in obj:
+                assert type(obj['version']) == int
+            if 'systemtags' in obj:
+                assert type(obj['systemtags']) == list
+            if 'sharedURL' in obj:
+                assert type(obj['sharedURL']) == str
+            if 'publishURL' in obj:
+                assert type(obj['publishURL']) == str
+
+            # Required fields for simplenote.
+            assert 'modifydate' in obj and type(obj['modifydate']) in [float, int] and obj['modifydate'] <= now
+            assert 'createdate' in obj and type(obj['createdate']) in [float, int] and obj['createdate'] <= now
             assert 'tags' in obj and type(obj['tags']) == list
             assert 'content' in obj and type(obj['content']) == str
 
@@ -29,7 +43,7 @@ for file in files:
                 assert type(obj['savedate'] in [float, int])
                 assert float(obj['savedate']) <= now
             # Required field for nvpy.
-            assert 'syncdate' in obj and type(obj['syncdate'] in [float, int])
+            assert 'syncdate' in obj and type(obj['syncdate'] in [float, int]) and obj['createdate'] <= now
         except:
             print('{}  Invalid'.format(file))
             print(obj)
