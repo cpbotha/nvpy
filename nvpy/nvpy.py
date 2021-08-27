@@ -580,7 +580,8 @@ class Controller:
         # we overwrite.
         if self.selected_note_key is not None and self.selected_note_key == evt.lkey:
             selected_note_o = self.notes_list_model.get(self.selected_note_key)
-            if selected_note_o.note['content'] != evt.old_note['content']:
+            content = self.notes_db.get_note_content(evt.lkey)
+            if selected_note_o.note['content'] != content:
                 self.view.mute_note_data_changes()
                 # in this case, we want to keep the user's undo buffer so that they
                 # can undo synced back changes if they would want to.

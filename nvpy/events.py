@@ -37,7 +37,6 @@ class NoteSavedEvent(typing.NamedTuple):
 
 class NoteSyncedEvent(typing.NamedTuple):
     lkey: str
-    old_note: typing.Any
 
 
 class SyncCompletedEvent(typing.NamedTuple):

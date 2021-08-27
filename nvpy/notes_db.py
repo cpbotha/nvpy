@@ -414,11 +414,6 @@ class NotesDB(utils.SubjectMixin):
         if self.config.simplenote_sync:
             self.simplenote = Simplenote(config.sn_username, config.sn_password)
 
-            # we'll use this to store which notes are currently being synced by
-            # the background thread, so we don't add them anew if they're still
-            # in progress. This variable is only used by the background thread.
-            self.threaded_syncing_keys = {}
-
             # reading a variable or setting this variable is atomic
             # so sync thread will write to it, main thread will only
             # check it sometimes.
@@ -656,7 +651,8 @@ class NotesDB(utils.SubjectMixin):
         return self.notes[key]
 
     def get_note_content(self, key):
-        return self.notes[key].get('content')
+        with self.notes_lock:
+            return self.notes[key].get('content')
 
     def get_note_status(self, key):
         saved, synced, modified = False, False, False
@@ -824,7 +820,6 @@ class NotesDB(utils.SubjectMixin):
         cleanup in controller.
 
         """
-
         # this many seconds of idle time (i.e. modification this long ago)
         # before we try to sync.
         if wait_for_idle:
@@ -832,87 +827,49 @@ class NotesDB(utils.SubjectMixin):
         else:
             lastmod = 0
 
-        with self.notes_lock:
-            now = time.time()
-            for k, n in self.notes.items():
-                # if note has been modified since the sync, we need to sync.
-                # only do so if note hasn't been touched for 3 seconds
-                # and if this note isn't still in the queue to be processed by the
-                # worker (this last one very important)
-                modifydate = float(n.get('modifydate', -1))
-                syncdate = float(n.get('syncdate', -1))
-                if modifydate > syncdate and \
-                   now - modifydate > lastmod and \
-                   k not in self.threaded_syncing_keys:
-                    # record that we've requested a sync on this note,
-                    # so that we don't keep on putting stuff on the queue.
-                    self.threaded_syncing_keys[k] = True
-                    cn = copy.deepcopy(n)
-                    # we store the timestamp when this copy was made as the syncdate
-                    cn['syncdate'] = time.time()
-                    # put it on my queue as a sync
-                    o = _BackgroundTask(action=ACTION_SYNC_PARTIAL_TO_SERVER, key=k, note=cn)
-                    self.q_sync.put(o)
+        if not self.syncing_lock.acquire(blocking=False):
+            # Currently, syncing_lock is locked by other thread.
+            return 0, 0
 
-        # in this same call, we read out the result queue
-        nsynced = 0
-        nerrored = 0
-        something_in_queue = True
-        while something_in_queue:
-            try:
-                o = self.q_sync_res.get_nowait()
+        try:
+            with self.notes_lock:
+                now = time.time()
+                for k, n in self.notes.items():
+                    # if note has been modified since the sync, we need to sync.
+                    # only do so if note hasn't been touched for 3 seconds
+                    # and if this note isn't still in the queue to be processed by the
+                    # worker (this last one very important)
+                    modifydate = float(n.get('modifydate', -1))
+                    syncdate = float(n.get('syncdate', -1))
+                    need_sync = modifydate > syncdate and now - modifydate > lastmod
+                    if need_sync:
+                        task = _BackgroundTask(action=ACTION_SYNC_PARTIAL_TO_SERVER, key=k, note=None)
+                        self.q_sync.put(task)
 
-            except Empty:
-                something_in_queue = False
+            # in this same call, we read out the result queue
+            nsynced = 0
+            nerrored = 0
+            while True:
+                try:
+                    o: _BackgroundTaskReslt
+                    o = self.q_sync_res.get_nowait()
+                except Empty:
+                    break
 
-            else:
                 okey = o.key
-
                 if o.error:
                     nerrored += 1
+                    continue
 
-                else:
-                    # o (.action, .key, .note) is something that was synced
+                # notify anyone (probably nvPY) that this note has been changed
+                self.notify_observers('synced:note', events.NoteSyncedEvent(lkey=okey))
 
-                    # we only apply the changes if the syncdate is newer than
-                    # what we already have, since the main thread could be
-                    # running a full sync whilst the worker thread is putting
-                    # results in the queue.
-                    if float(o.note['syncdate']) > float(self.notes[okey]['syncdate']):
-                        old_note = copy.deepcopy(self.notes[okey])
+                nsynced += 1
+                self.notify_observers('change:note-status', events.NoteStatusChangedEvent(what='syncdate', key=okey))
 
-                        if float(o.note['syncdate']) > float(self.notes[okey]['modifydate']):
-                            # note was synced AFTER the last modification to our local version
-                            # do an in-place update of the existing note
-                            # this could be with or without new content.
-                            self.notes[okey].update(o.note)
-
-                        else:
-                            # the user has changed stuff since the version that got synced
-                            # just record version that we got from simplenote
-                            # if we don't do this, merging problems start happening.
-                            # VERY importantly: also store the key. It
-                            # could be that we've just created the
-                            # note, but that the user continued
-                            # typing. We need to store the new server
-                            # key, else we'll keep on sending new
-                            # notes.
-                            tkeys = ['version', 'syncdate', 'key']
-                            for tk in tkeys:
-                                self.notes[okey][tk] = o.note[tk]
-
-                        # notify anyone (probably nvPY) that this note has been changed
-                        self.notify_observers('synced:note', events.NoteSyncedEvent(lkey=okey, old_note=old_note))
-
-                        nsynced += 1
-                        self.notify_observers('change:note-status',
-                                              events.NoteStatusChangedEvent(what='syncdate', key=okey))
-
-                # after having handled the note that just came back,
-                # we can take it from this blocker dict
-                del self.threaded_syncing_keys[okey]
-
-        return (nsynced, nerrored)
+            return (nsynced, nerrored)
+        finally:
+            self.syncing_lock.release()
 
     def sync_full_threaded(self):
         thread_sync_full = Thread(target=self.sync_full_unthreaded)
@@ -1176,57 +1133,60 @@ class NotesDB(utils.SubjectMixin):
                     self.q_save_res.put(o)
 
     def worker_sync(self):
-        self.syncing_lock.acquire()
-
         while True:
             task: _BackgroundTask
-            if self.q_sync.empty():
-                self.syncing_lock.release()
-                task = self.q_sync.get()
-                self.syncing_lock.acquire()
-
-            else:
-                task = self.q_sync.get()
-
-            if task.key not in self.threaded_syncing_keys:
-                # this note was already synced by sync_full thread.
-                continue
-
-            if task.action == ACTION_SYNC_PARTIAL_TO_SERVER:
-                local_note = task.note
-                if 'key' in local_note:
-                    logging.debug('Updating note %s (local key %s) to server.' % (local_note['key'], task.key))
-                else:
-                    logging.debug('Sending new note (local key %s) to server.' % (task.key, ))
-
-                result = self.update_note_to_server(task.note)
-                if result.error_object is None:
-                    if not result.is_updated:
-                        res = _BackgroundTaskReslt(action=task.action, key=task.key, note=task.note, error=0)
-                        self.q_sync_res.put(res)
-                        continue
-
-                    remote_note = result.note
-                    if not remote_note.get('content', None):
-                        # if note has not been changed, we don't get content back
-                        # delete our own copy too.
-                        del local_note['content']
-
-                    # syncdate was set when the note was copied into our queue
-                    # we rely on that to determine when a returned note should
-                    # overwrite a note in the main list.
-
-                    # store the actual note back into local_note
-                    # in-place update of our existing note copy
-                    local_note.update(remote_note)
-
-                    # put result on the queue
-                    res = _BackgroundTaskReslt(action=task.action, key=task.key, note=local_note, error=0)
+            task = self.q_sync.get()
+            with self.syncing_lock:
+                if task.action == ACTION_SYNC_PARTIAL_TO_SERVER:
+                    res = self._worker_sync_to_server(task.key)
                     self.q_sync_res.put(res)
-
                 else:
-                    res = _BackgroundTaskReslt(action=task.action, key=task.key, note=task.note, error=1)
-                    self.q_sync_res.put(res)
+                    raise RuntimeError(f'invalid action: {task.action}')
+
+    def _worker_sync_to_server(self, key: str):
+        """ Sync a note to server. It is internal function of worker_sync().
+        Caller MUST acquire the syncing_lock, and MUST NOT acquire the notes_lock.
+        """
+        action = ACTION_SYNC_PARTIAL_TO_SERVER
+        with self.notes_lock:
+            syncdate = time.time()
+            note = self.notes[key]
+            if not Note(note).need_sync_to_server:
+                # The note already synced with server.
+                return _BackgroundTaskReslt(action=action, key=key, note=None, error=0)
+            local_note = copy.deepcopy(note)
+
+        if 'key' in local_note:
+            logging.debug('Updating note %s (local key %s) to server.' % (local_note['key'], key))
+        else:
+            logging.debug('Sending new note (local key %s) to server.' % (key, ))
+
+        result = self.update_note_to_server(local_note)
+        if result.error_object is not None:
+            return _BackgroundTaskReslt(action=action, key=key, note=None, error=1)
+
+        with self.notes_lock:
+            note = self.notes[key]
+            remote_note = result.note
+            if float(local_note['modifydate']) < float(note['modifydate']):
+                # The user has changed a local note during sync with server. Just record version that we got from
+                # simplenote server. If we don't do this, merging problems start happening.
+                #
+                # VERY importantly: also store the key. It could be that we've just created the note, but that the user
+                # continued typing. We need to store the new server key, else we'll keep on sending new notes.
+                note['version'] = remote_note['version']
+                note['syncdate'] = syncdate
+                note['key'] = remote_note['key']
+                return _BackgroundTaskReslt(action=action, key=key, note=None, error=0)
+
+            if result.is_updated:
+                if remote_note.get('content', None) is None:
+                    # If note has not been changed, we don't get content back. To prevent overriding of content,
+                    # we should remove the content from remote_note.
+                    remote_note.pop('content', None)
+                note.update(remote_note)
+            note['syncdate'] = syncdate
+            return _BackgroundTaskReslt(action=action, key=key, note=None, error=0)
 
     def update_note_to_server(self, note):
         """Update the note to simplenote server.
