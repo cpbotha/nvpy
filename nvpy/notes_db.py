@@ -11,6 +11,8 @@ import logging
 import enum
 import abc
 import unicodedata
+import pathlib
+import threading
 from queue import Queue, Empty
 from http.client import HTTPException
 from .p3port import unicode
@@ -325,6 +327,8 @@ class NotesDB(utils.SubjectMixin):
             fnlist = []
 
         self.notes = {}
+        self.notes_lock = threading.Lock()
+
         if self.config.notes_as_txt:
             self.titlelist = {}
 
@@ -409,11 +413,6 @@ class NotesDB(utils.SubjectMixin):
         # this does not yet need network access
         if self.config.simplenote_sync:
             self.simplenote = Simplenote(config.sn_username, config.sn_password)
-
-            # we'll use this to store which notes are currently being synced by
-            # the background thread, so we don't add them anew if they're still
-            # in progress. This variable is only used by the background thread.
-            self.threaded_syncing_keys = {}
 
             # reading a variable or setting this variable is atomic
             # so sync thread will write to it, main thread will only
@@ -540,11 +539,12 @@ class NotesDB(utils.SubjectMixin):
         active_notes = 0
 
         if not search_string:
-            for k in self.notes:
-                n = self.notes[k]
-                if not n.get('deleted'):
-                    active_notes += 1
-                    filtered_notes.append(NoteInfo(key=k, note=n, tagfound=0))
+            with self.notes_lock:
+                for k in self.notes:
+                    n = self.notes[k]
+                    if not n.get('deleted'):
+                        active_notes += 1
+                        filtered_notes.append(NoteInfo(key=k, note=n, tagfound=0))
 
             return filtered_notes, '', active_notes
 
@@ -564,30 +564,31 @@ class NotesDB(utils.SubjectMixin):
                 if gi[mi]:
                     tms_pats[mi - 1].append(gi[mi])
 
-        for k in self.notes:
-            n = self.notes[k]
+        with self.notes_lock:
+            for k in self.notes:
+                n = self.notes[k]
 
-            if not n.get('deleted'):
-                active_notes += 1
-                c = n.get('content')
+                if not n.get('deleted'):
+                    active_notes += 1
+                    c = n.get('content')
 
-                # case insensitive mode: WARNING - SLOW!
-                if not self.config.case_sensitive and c:
-                    c = c.lower()
+                    # case insensitive mode: WARNING - SLOW!
+                    if not self.config.case_sensitive and c:
+                        c = c.lower()
 
-                tagmatch = self._helper_gstyle_tagmatch(tms_pats[0], n)
-                # case insensitive mode: WARNING - SLOW!
-                msword_pats = tms_pats[1] + tms_pats[2] if self.config.case_sensitive else [
-                    p.lower() for p in tms_pats[1] + tms_pats[2]
-                ]
-                if tagmatch and self._helper_gstyle_mswordmatch(msword_pats, c):
-                    # we have a note that can go through!
+                    tagmatch = self._helper_gstyle_tagmatch(tms_pats[0], n)
+                    # case insensitive mode: WARNING - SLOW!
+                    msword_pats = tms_pats[1] + tms_pats[2] if self.config.case_sensitive else [
+                        p.lower() for p in tms_pats[1] + tms_pats[2]
+                    ]
+                    if tagmatch and self._helper_gstyle_mswordmatch(msword_pats, c):
+                        # we have a note that can go through!
 
-                    # tagmatch == 1 if a tag was specced and found
-                    # tagmatch == 2 if no tag was specced (so all notes go through)
-                    tagfound = 1 if tagmatch == 1 else 0
-                    # we have to store our local key also
-                    filtered_notes.append(NoteInfo(key=k, note=n, tagfound=tagfound))
+                        # tagmatch == 1 if a tag was specced and found
+                        # tagmatch == 2 if no tag was specced (so all notes go through)
+                        tagfound = 1 if tagmatch == 1 else 0
+                        # we have to store our local key also
+                        filtered_notes.append(NoteInfo(key=k, note=n, tagfound=tagfound))
 
         match_regexp = '|'.join(re.escape(p) for p in tms_pats[1] + tms_pats[2])
         return filtered_notes, match_regexp, active_notes
@@ -613,33 +614,34 @@ class NotesDB(utils.SubjectMixin):
         filtered_notes = []
         # total number of notes, excluding deleted ones
         active_notes = 0
-        for k in self.notes:
-            n = self.notes[k]
-            # we don't do anything with deleted notes (yet)
-            if n.get('deleted'):
-                continue
+        with self.notes_lock:
+            for k in self.notes:
+                n = self.notes[k]
+                # we don't do anything with deleted notes (yet)
+                if n.get('deleted'):
+                    continue
 
-            active_notes += 1
+                active_notes += 1
 
-            c = n.get('content')
-            if self.config.search_tags == 1:
-                t = n.get('tags')
-                if sspat:
-                    if t and any(filter(lambda ti: sspat.search(ti), t)):  # type:ignore
-                        # we have to store our local key also
-                        filtered_notes.append(NoteInfo(key=k, note=n, tagfound=1))
+                c = n.get('content')
+                if self.config.search_tags == 1:
+                    t = n.get('tags')
+                    if sspat:
+                        if t and any(filter(lambda ti: sspat.search(ti), t)):  # type:ignore
+                            # we have to store our local key also
+                            filtered_notes.append(NoteInfo(key=k, note=n, tagfound=1))
 
-                    elif sspat.search(c):
+                        elif sspat.search(c):
+                            # we have to store our local key also
+                            filtered_notes.append(NoteInfo(key=k, note=n, tagfound=0))
+
+                    else:
                         # we have to store our local key also
                         filtered_notes.append(NoteInfo(key=k, note=n, tagfound=0))
-
                 else:
-                    # we have to store our local key also
-                    filtered_notes.append(NoteInfo(key=k, note=n, tagfound=0))
-            else:
-                if not sspat or sspat.search(c):
-                    # we have to store our local key also
-                    filtered_notes.append(NoteInfo(key=k, note=n, tagfound=0))
+                    if not sspat or sspat.search(c):
+                        # we have to store our local key also
+                        filtered_notes.append(NoteInfo(key=k, note=n, tagfound=0))
 
         match_regexp = search_string if sspat else ''
 
@@ -649,7 +651,8 @@ class NotesDB(utils.SubjectMixin):
         return self.notes[key]
 
     def get_note_content(self, key):
-        return self.notes[key].get('content')
+        with self.notes_lock:
+            return self.notes[key].get('content')
 
     def get_note_status(self, key):
         saved, synced, modified = False, False, False
@@ -673,6 +676,10 @@ class NotesDB(utils.SubjectMixin):
 
     def get_sync_queue_len(self):
         return self.q_sync.qsize()
+
+    def is_worker_busy(self):
+        return bool(self.q_sync.qsize() or self.syncing_lock.locked() or self.waiting_for_simplenote
+                    or self.q_save.qsize())
 
     def helper_key_to_fname(self, k):
         return os.path.join(self.db_path, k) + '.json'
@@ -700,21 +707,10 @@ class NotesDB(utils.SubjectMixin):
                 self.titlelist[k] = t
                 fn = os.path.join(self.config.txt_path, t)
                 try:
-                    with codecs.open(fn, mode='wb', encoding='utf-8') as f:
-                        c = note.get('content')
-                        if isinstance(c, str):
-                            c = unicode(c, 'utf-8')
-                        else:
-                            c = unicode(c)
-
-                        f.write(c)
-                except IOError as e:
-                    logging.error('NotesDB_save: Error opening %s: %s' % (fn, str(e)))
-                    raise WriteError('Error opening note file')
-
-                except ValueError as e:
+                    pathlib.Path(fn).write_text(note['content'], encoding='utf-8')
+                except (IOError, ValueError) as e:
                     logging.error('NotesDB_save: Error writing %s: %s' % (fn, str(e)))
-                    raise WriteError('Error writing note file')
+                    raise WriteError(f'Error writing note file ({fn})')
 
             elif t and note.get('deleted') and k in self.titlelist:
                 dfn = os.path.join(self.config.txt_path, self.titlelist[k])
@@ -727,7 +723,11 @@ class NotesDB(utils.SubjectMixin):
             if os.path.isfile(fn):
                 os.unlink(fn)
         else:
-            json.dump(note, codecs.open(fn, 'wb', encoding='utf-8'), indent=2)
+            try:
+                pathlib.Path(fn).write_text(json.dumps(note, indent=2), encoding='utf-8')
+            except (IOError, ValueError) as e:
+                logging.error('NotesDB_save: Error opening %s: %s' % (fn, str(e)))
+                raise WriteError(f'Error writing note file ({fn})')
 
         # record that we saved this to disc.
         note['savedate'] = time.time()
@@ -784,12 +784,13 @@ class NotesDB(utils.SubjectMixin):
                 return None
 
     def save_threaded(self):
-        for k, n in self.notes.items():
-            if Note(n).need_save:
-                cn = copy.deepcopy(n)
-                # put it on my queue as a save
-                o = _BackgroundTask(action=ACTION_SAVE, key=k, note=cn)
-                self.q_save.put(o)
+        with self.notes_lock:
+            for k, n in self.notes.items():
+                if Note(n).need_save:
+                    cn = copy.deepcopy(n)
+                    # put it on my queue as a save
+                    o = _BackgroundTask(action=ACTION_SAVE, key=k, note=cn)
+                    self.q_save.put(o)
 
         # in this same call, we process stuff that might have been put on the result queue
         nsaved = 0
@@ -823,7 +824,6 @@ class NotesDB(utils.SubjectMixin):
         cleanup in controller.
 
         """
-
         # this many seconds of idle time (i.e. modification this long ago)
         # before we try to sync.
         if wait_for_idle:
@@ -831,86 +831,49 @@ class NotesDB(utils.SubjectMixin):
         else:
             lastmod = 0
 
-        now = time.time()
-        for k, n in self.notes.items():
-            # if note has been modified since the sync, we need to sync.
-            # only do so if note hasn't been touched for 3 seconds
-            # and if this note isn't still in the queue to be processed by the
-            # worker (this last one very important)
-            modifydate = float(n.get('modifydate', -1))
-            syncdate = float(n.get('syncdate', -1))
-            if modifydate > syncdate and \
-               now - modifydate > lastmod and \
-               k not in self.threaded_syncing_keys:
-                # record that we've requested a sync on this note,
-                # so that we don't keep on putting stuff on the queue.
-                self.threaded_syncing_keys[k] = True
-                cn = copy.deepcopy(n)
-                # we store the timestamp when this copy was made as the syncdate
-                cn['syncdate'] = time.time()
-                # put it on my queue as a sync
-                o = _BackgroundTask(action=ACTION_SYNC_PARTIAL_TO_SERVER, key=k, note=cn)
-                self.q_sync.put(o)
+        if not self.syncing_lock.acquire(blocking=False):
+            # Currently, syncing_lock is locked by other thread.
+            return 0, 0
 
-        # in this same call, we read out the result queue
-        nsynced = 0
-        nerrored = 0
-        something_in_queue = True
-        while something_in_queue:
-            try:
-                o = self.q_sync_res.get_nowait()
+        try:
+            with self.notes_lock:
+                now = time.time()
+                for k, n in self.notes.items():
+                    # if note has been modified since the sync, we need to sync.
+                    # only do so if note hasn't been touched for 3 seconds
+                    # and if this note isn't still in the queue to be processed by the
+                    # worker (this last one very important)
+                    modifydate = float(n.get('modifydate', -1))
+                    syncdate = float(n.get('syncdate', -1))
+                    need_sync = modifydate > syncdate and now - modifydate > lastmod
+                    if need_sync:
+                        task = _BackgroundTask(action=ACTION_SYNC_PARTIAL_TO_SERVER, key=k, note=None)
+                        self.q_sync.put(task)
 
-            except Empty:
-                something_in_queue = False
+            # in this same call, we read out the result queue
+            nsynced = 0
+            nerrored = 0
+            while True:
+                try:
+                    o: _BackgroundTaskReslt
+                    o = self.q_sync_res.get_nowait()
+                except Empty:
+                    break
 
-            else:
                 okey = o.key
-
                 if o.error:
                     nerrored += 1
+                    continue
 
-                else:
-                    # o (.action, .key, .note) is something that was synced
+                # notify anyone (probably nvPY) that this note has been changed
+                self.notify_observers('synced:note', events.NoteSyncedEvent(lkey=okey))
 
-                    # we only apply the changes if the syncdate is newer than
-                    # what we already have, since the main thread could be
-                    # running a full sync whilst the worker thread is putting
-                    # results in the queue.
-                    if float(o.note['syncdate']) > float(self.notes[okey]['syncdate']):
-                        old_note = copy.deepcopy(self.notes[okey])
+                nsynced += 1
+                self.notify_observers('change:note-status', events.NoteStatusChangedEvent(what='syncdate', key=okey))
 
-                        if float(o.note['syncdate']) > float(self.notes[okey]['modifydate']):
-                            # note was synced AFTER the last modification to our local version
-                            # do an in-place update of the existing note
-                            # this could be with or without new content.
-                            self.notes[okey].update(o.note)
-
-                        else:
-                            # the user has changed stuff since the version that got synced
-                            # just record version that we got from simplenote
-                            # if we don't do this, merging problems start happening.
-                            # VERY importantly: also store the key. It
-                            # could be that we've just created the
-                            # note, but that the user continued
-                            # typing. We need to store the new server
-                            # key, else we'll keep on sending new
-                            # notes.
-                            tkeys = ['version', 'syncdate', 'key']
-                            for tk in tkeys:
-                                self.notes[okey][tk] = o.note[tk]
-
-                        # notify anyone (probably nvPY) that this note has been changed
-                        self.notify_observers('synced:note', events.NoteSyncedEvent(lkey=okey, old_note=old_note))
-
-                        nsynced += 1
-                        self.notify_observers('change:note-status',
-                                              events.NoteStatusChangedEvent(what='syncdate', key=okey))
-
-                # after having handled the note that just came back,
-                # we can take it from this blocker dict
-                del self.threaded_syncing_keys[okey]
-
-        return (nsynced, nerrored)
+            return (nsynced, nerrored)
+        finally:
+            self.syncing_lock.release()
 
     def sync_full_threaded(self):
         thread_sync_full = Thread(target=self.sync_full_unthreaded)
@@ -929,17 +892,21 @@ class NotesDB(utils.SubjectMixin):
 
             self.full_syncing = True
             local_deletes = {}
-            now = time.time()
 
             self.notify_observers('progress:sync_full', events.SyncProgressEvent(msg='Starting full sync.'))
             # 1. Synchronize notes when it has locally changed.
             #    In this phase, synchronized all notes from client to server.
-            for ni, lk in enumerate(self.notes.keys()):
-                n = self.notes[lk]
-                if Note(n).need_sync_to_server:
-                    result = self.update_note_to_server(n)
+            with self.notes_lock:
+                modified_notes = list(filter(lambda lk: Note(self.notes[lk]).need_sync_to_server, self.notes.keys()))
+            for ni, lk in enumerate(modified_notes):
+                with self.notes_lock:
+                    n = self.notes[lk]
+                if not Note(n).need_sync_to_server:
+                    continue
 
-                    if result.error_object is None:
+                result = self.update_note_to_server(n)
+                if result.error_object is None:
+                    with self.notes_lock:
                         # replace n with result.note.
                         # if this was a new note, our local key is not valid anymore
                         del self.notes[lk]
@@ -950,25 +917,26 @@ class NotesDB(utils.SubjectMixin):
                         # and put it at the new key slot
                         self.notes[k] = n
 
-                        # record that we just synced
-                        n['syncdate'] = now
+                    # record that we just synced
+                    n['syncdate'] = time.time()
 
-                        # whatever the case may be, k is now updated
-                        self.helper_save_note(k, self.notes[k])
-                        if lk != k:
-                            # if lk was a different (purely local) key, should be deleted
-                            local_deletes[lk] = True
+                    # whatever the case may be, k is now updated
+                    self.helper_save_note(k, n)
+                    if lk != k:
+                        # if lk was a different (purely local) key, should be deleted
+                        local_deletes[lk] = True
 
-                        self.notify_observers(
-                            'progress:sync_full',
-                            events.SyncProgressEvent(msg='Synced modified note %d to server.' % (ni, )))
+                    self.notify_observers(
+                        'progress:sync_full',
+                        events.SyncProgressEvent(msg='Synced modified note %d/%d to server.' %
+                                                 (ni, len(modified_notes))))
 
-                    else:
-                        key = n.get('key') or lk
-                        msg = "Sync step 1 error - Could not update note {0} to server: {1}".format(
-                            key, str(result.error_object))
-                        logging.error(msg)
-                        raise SyncError(msg)
+                else:
+                    key = n.get('key') or lk
+                    msg = "Sync step 1 error - Could not update note {0} to server: {1}".format(
+                        key, str(result.error_object))
+                    logging.error(msg)
+                    raise SyncError(msg)
 
             # 2. Retrieves full note list from server.
             #    In phase 2 to 5, synchronized all notes from server to client.
@@ -995,20 +963,21 @@ class NotesDB(utils.SubjectMixin):
                 k = n.get('key')
                 server_keys[k] = True
 
-            for lk in list(self.notes.keys()):
-                if lk not in server_keys:
-                    if self.notes[lk]['syncdate'] == 0:
-                        # This note MUST NOT delete because it was created during phase 1 or phase 2.
-                        continue
+            with self.notes_lock:
+                for lk in list(self.notes.keys()):
+                    if lk not in server_keys:
+                        if self.notes[lk]['syncdate'] == 0:
+                            # This note MUST NOT delete because it was created during phase 1 or phase 2.
+                            continue
 
-                    if self.config.notes_as_txt:
-                        tfn = os.path.join(
-                            self.config.txt_path,
-                            utils.get_note_title_file(self.notes[lk], self.config.replace_filename_spaces))
-                        if os.path.isfile(tfn):
-                            os.unlink(tfn)
-                    del self.notes[lk]
-                    local_deletes[lk] = True
+                        if self.config.notes_as_txt:
+                            tfn = os.path.join(
+                                self.config.txt_path,
+                                utils.get_note_title_file(self.notes[lk], self.config.replace_filename_spaces))
+                            if os.path.isfile(tfn):
+                                os.unlink(tfn)
+                        del self.notes[lk]
+                        local_deletes[lk] = True
 
             self.notify_observers('progress:sync_full',
                                   events.SyncProgressEvent(msg='Deleted note %d.' % (len(local_deletes))))
@@ -1031,14 +1000,15 @@ class NotesDB(utils.SubjectMixin):
 
                         if err == 0:
                             self.notes[k].update(n)
-                            self.notes[k]['syncdate'] = now
+                            self.notes[k]['syncdate'] = time.time()
                             self.helper_save_note(k, self.notes[k])
                             self.notify_observers(
                                 'progress:sync_full',
                                 events.SyncProgressEvent(msg='Synced newer note %d (%d) from server.' % (ni, lennl)))
 
                         else:
-                            logging.error('Error syncing newer note %s from server: %s' % (k, err))
+                            err_obj = n
+                            logging.error('Error syncing newer note %s from server: %s' % (k, err_obj))
                             sync_from_server_errors += 1
 
                 else:
@@ -1052,16 +1022,18 @@ class NotesDB(utils.SubjectMixin):
                         self.waiting_for_simplenote = False
 
                     if err == 0:
-                        self.notes[k] = n
-                        self.notes[k]['savedate'] = 0  # never been written to disc
-                        self.notes[k]['syncdate'] = now
-                        self.helper_save_note(k, self.notes[k])
-                        self.notify_observers(
-                            'progress:sync_full',
-                            events.SyncProgressEvent(msg='Synced new note %d (%d) from server.' % (ni, lennl)))
+                        with self.notes_lock:
+                            self.notes[k] = n
+                            n['savedate'] = 0  # never been written to disc
+                            n['syncdate'] = time.time()
+                            self.helper_save_note(k, n)
+                            self.notify_observers(
+                                'progress:sync_full',
+                                events.SyncProgressEvent(msg='Synced new note %d (%d) from server.' % (ni, lennl)))
 
                     else:
-                        logging.error('Error syncing new note %s from server: %s' % (k, err))
+                        err_obj = n
+                        logging.error('Error syncing new note %s from server: %s' % (k, err_obj))
                         sync_from_server_errors += 1
 
             # 5. Clean up local notes.
@@ -1088,15 +1060,6 @@ class NotesDB(utils.SubjectMixin):
             n['modifydate'] = time.time()
             self.notify_observers('change:note-status', events.NoteStatusChangedEvent(what='modifydate', key=key))
 
-    def set_note_tags(self, key, tags):
-        n = self.notes[key]
-        old_tags = n.get('tags')
-        tags = utils.sanitise_tags(tags)
-        if tags != old_tags:
-            n['tags'] = tags
-            n['modifydate'] = time.time()
-            self.notify_observers('change:note-status', events.NoteStatusChangedEvent(what='modifydate', key=key))
-
     def delete_note_tag(self, key, tag):
         note = self.notes[key]
         note_tags = note.get('tags')
@@ -1105,7 +1068,7 @@ class NotesDB(utils.SubjectMixin):
         note['modifydate'] = time.time()
         self.notify_observers('change:note-status', events.NoteStatusChangedEvent(what='modifydate', key=key))
 
-    def add_note_tags(self, key, comma_seperated_tags):
+    def add_note_tags(self, key, comma_seperated_tags: str):
         new_tags = utils.sanitise_tags(comma_seperated_tags)
         note = self.notes[key]
         tags_set = set(note.get('tags')) | set(new_tags)
@@ -1174,57 +1137,60 @@ class NotesDB(utils.SubjectMixin):
                     self.q_save_res.put(o)
 
     def worker_sync(self):
-        self.syncing_lock.acquire()
-
         while True:
             task: _BackgroundTask
-            if self.q_sync.empty():
-                self.syncing_lock.release()
-                task = self.q_sync.get()
-                self.syncing_lock.acquire()
-
-            else:
-                task = self.q_sync.get()
-
-            if task.key not in self.threaded_syncing_keys:
-                # this note was already synced by sync_full thread.
-                continue
-
-            if task.action == ACTION_SYNC_PARTIAL_TO_SERVER:
-                local_note = task.note
-                if 'key' in local_note:
-                    logging.debug('Updating note %s (local key %s) to server.' % (local_note['key'], task.key))
-                else:
-                    logging.debug('Sending new note (local key %s) to server.' % (task.key, ))
-
-                result = self.update_note_to_server(task.note)
-                if result.error_object is None:
-                    if not result.is_updated:
-                        res = _BackgroundTaskReslt(action=task.action, key=task.key, note=task.note, error=0)
-                        self.q_sync_res.put(res)
-                        continue
-
-                    remote_note = result.note
-                    if not remote_note.get('content', None):
-                        # if note has not been changed, we don't get content back
-                        # delete our own copy too.
-                        del local_note['content']
-
-                    # syncdate was set when the note was copied into our queue
-                    # we rely on that to determine when a returned note should
-                    # overwrite a note in the main list.
-
-                    # store the actual note back into local_note
-                    # in-place update of our existing note copy
-                    local_note.update(remote_note)
-
-                    # put result on the queue
-                    res = _BackgroundTaskReslt(action=task.action, key=task.key, note=local_note, error=0)
+            task = self.q_sync.get()
+            with self.syncing_lock:
+                if task.action == ACTION_SYNC_PARTIAL_TO_SERVER:
+                    res = self._worker_sync_to_server(task.key)
                     self.q_sync_res.put(res)
-
                 else:
-                    res = _BackgroundTaskReslt(action=task.action, key=task.key, note=task.note, error=1)
-                    self.q_sync_res.put(res)
+                    raise RuntimeError(f'invalid action: {task.action}')
+
+    def _worker_sync_to_server(self, key: str):
+        """ Sync a note to server. It is internal function of worker_sync().
+        Caller MUST acquire the syncing_lock, and MUST NOT acquire the notes_lock.
+        """
+        action = ACTION_SYNC_PARTIAL_TO_SERVER
+        with self.notes_lock:
+            syncdate = time.time()
+            note = self.notes[key]
+            if not Note(note).need_sync_to_server:
+                # The note already synced with server.
+                return _BackgroundTaskReslt(action=action, key=key, note=None, error=0)
+            local_note = copy.deepcopy(note)
+
+        if 'key' in local_note:
+            logging.debug('Updating note %s (local key %s) to server.' % (local_note['key'], key))
+        else:
+            logging.debug('Sending new note (local key %s) to server.' % (key, ))
+
+        result = self.update_note_to_server(local_note)
+        if result.error_object is not None:
+            return _BackgroundTaskReslt(action=action, key=key, note=None, error=1)
+
+        with self.notes_lock:
+            note = self.notes[key]
+            remote_note = result.note
+            if float(local_note['modifydate']) < float(note['modifydate']):
+                # The user has changed a local note during sync with server. Just record version that we got from
+                # simplenote server. If we don't do this, merging problems start happening.
+                #
+                # VERY importantly: also store the key. It could be that we've just created the note, but that the user
+                # continued typing. We need to store the new server key, else we'll keep on sending new notes.
+                note['version'] = remote_note['version']
+                note['syncdate'] = syncdate
+                note['key'] = remote_note['key']
+                return _BackgroundTaskReslt(action=action, key=key, note=None, error=0)
+
+            if result.is_updated:
+                if remote_note.get('content', None) is None:
+                    # If note has not been changed, we don't get content back. To prevent overriding of content,
+                    # we should remove the content from remote_note.
+                    remote_note.pop('content', None)
+                note.update(remote_note)
+            note['syncdate'] = syncdate
+            return _BackgroundTaskReslt(action=action, key=key, note=None, error=0)
 
     def update_note_to_server(self, note):
         """Update the note to simplenote server.
@@ -1273,7 +1239,7 @@ class NotesDB(utils.SubjectMixin):
                     # if it occurs, housekeeper's is going to repeatedly update this note.
                     # regard updating error as success for prevent this problem.
                     logging.info('Regard updating error (local key %s, error object %s) as success.' %
-                                 (o.key, repr(update_error)))
+                                 (local_note["key"], repr(update_error)))
                     return UpdateResult(
                         note=local_note,
                         is_updated=False,

@@ -34,7 +34,7 @@ setup(
     ],
     extras_require={
         # development and test requirements.
-        'dev': ['mock', 'yapf', 'pdoc3', 'nose', 'nose-timer', 'mypy'],
+        'dev': ['mock', 'yapf', 'pdoc3', 'nose', 'nose-timer', 'mypy', 'coverage'],
     },
     entry_points={'gui_scripts': ['nvpy = nvpy.nvpy:main']},
     # use MANIFEST.in file

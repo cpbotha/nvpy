@@ -8,7 +8,11 @@ format:
 .PHONY: test
 test:
 	PYTHONPATH=.:$$PYTHONPATH mypy nvpy tests benchmarks
-	PYTHONPATH=.:$$PYTHONPATH python3 -m unittest discover -s tests -p '*.py'
+	PYTHONPATH=.:$$PYTHONPATH coverage run -m unittest discover -s tests -p '*.py'
+	# Generate coverage report.
+	coverage report --skip-covered nvpy/*.py
+	coverage html
+	# Open htmlcov/index.html in a Web browser.
 
 .PHONY: benchmark
 benchmark:
