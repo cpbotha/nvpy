@@ -750,7 +750,7 @@ class SyncThreaded(PatchedDBMixin, unittest.TestCase):
             is_updated=False,
             error_object=OSError('connection refused'),
         )
-        db = self._patched_db(se_update_note_to_server=[result])
+        db = self._patched_db(se_update_note_to_server=[result, result])
         db.notes = {
             'a': self.NOTE.copy(),
         }
