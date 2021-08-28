@@ -1,12 +1,12 @@
 import itertools
 import logging
-import sys
+import math
 import typing
 import time
 import unittest
 from unittest.mock import patch, MagicMock
 from pathlib import Path
-from nvpy.notes_db import WriteError, UpdateResult, Note
+from nvpy.notes_db import WriteError, UpdateResult, Note, NotesDB
 from ._mixin import DBMixin
 
 
@@ -127,6 +127,16 @@ class PatchedDBMixin(DBMixin):
         db.notify_observers = MagicMock()
         db.notify_observers.side_effect = lambda *args: logging.info(str(args))
         return db
+
+    def _wait_worker(self, db: NotesDB):
+        timeout = 1
+        loop_interval = 0.1
+        max_loop_count = math.ceil(timeout / loop_interval)
+        for _ in range(max_loop_count):
+            if not db.is_worker_busy():
+                return
+            time.sleep(0.1)
+        raise TimeoutError('NotesDB workers still busy')
 
 
 class UpdateNoteToServer(PatchedDBMixin, unittest.TestCase):
@@ -640,10 +650,8 @@ class SaveThreaded(PatchedDBMixin, unittest.TestCase):
             n1 = db.save_threaded()
             self.assertEqual(n1, 0)
             # Wait for a note to be saved.
-            while db.get_save_queue_len() > 0 or db.q_save_res.qsize() == 0:
-                time.sleep(0.1)
-        self.assertEqual(db.q_save.qsize(), 0)
-        self.assertEqual(db.q_save_res.qsize(), 1)
+            self._wait_worker(db)
+        self.assertFalse(db.is_worker_busy())
         with self.assertLogs() as logs:
             n2 = db.save_threaded()
         self.assertEqual(n2, 1)
@@ -720,12 +728,10 @@ class SyncThreaded(PatchedDBMixin, unittest.TestCase):
             }
             n1 = db.sync_to_server_threaded(wait_for_idle=False)
             self.assertEqual(n1, (0, 0))
-            while db.get_sync_queue_len() > 0 or db.q_sync_res.qsize() == 0:
-                time.sleep(0.1)
+            self._wait_worker(db)
             n2 = db.sync_to_server_threaded(wait_for_idle=False)
             self.assertEqual(n2, (1, 0))
-            self.assertEqual(db.get_sync_queue_len(), 0)
-            self.assertEqual(db.q_sync_res.qsize(), 0)
+            self.assertFalse(db.is_worker_busy())
             self.assertEqual(db.notes, {
                 'a': self.NOTE_MODIFIED.copy(),
             })
@@ -742,7 +748,7 @@ class SyncThreaded(PatchedDBMixin, unittest.TestCase):
         }
         n1 = db.sync_to_server_threaded(wait_for_idle=False)
         self.assertEqual(n1, (0, 0))
-        self.assertEqual(db.get_sync_queue_len(), 0)
+        self.assertFalse(db.is_worker_busy())
 
     def test_error(self):
         result = UpdateResult(
@@ -756,8 +762,7 @@ class SyncThreaded(PatchedDBMixin, unittest.TestCase):
         }
         n1 = db.sync_to_server_threaded(wait_for_idle=False)
         self.assertEqual(n1, (0, 0))
-        while db.get_sync_queue_len() > 0 or db.q_sync_res.qsize() == 0:
-            time.sleep(0.1)
+        self._wait_worker(db)
         n2 = db.sync_to_server_threaded(wait_for_idle=False)
         self.assertEqual(n2, (0, 1))
         self.assertEqual(db.notes, {
@@ -777,8 +782,7 @@ class SyncThreaded(PatchedDBMixin, unittest.TestCase):
             }
             n1 = db.sync_to_server_threaded(wait_for_idle=False)
             self.assertEqual(n1, (0, 0))
-            while db.get_sync_queue_len() > 0 or db.q_sync_res.qsize() == 0:
-                time.sleep(0.1)
+            self._wait_worker(db)
             n2 = db.sync_to_server_threaded(wait_for_idle=False)
             self.assertEqual(n2, (1, 0))
             self.assertEqual(db.notes, {
@@ -797,5 +801,4 @@ class SyncThreaded(PatchedDBMixin, unittest.TestCase):
         }
         n1 = db.sync_to_server_threaded(wait_for_idle=False)
         self.assertEqual(n1, (0, 0))
-        self.assertEqual(db.get_sync_queue_len(), 0)
-        self.assertEqual(db.q_sync_res.qsize(), 0)
+        self.assertFalse(db.is_worker_busy())

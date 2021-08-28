@@ -677,6 +677,10 @@ class NotesDB(utils.SubjectMixin):
     def get_sync_queue_len(self):
         return self.q_sync.qsize()
 
+    def is_worker_busy(self):
+        return bool(self.q_sync.qsize() or self.syncing_lock.locked() or self.waiting_for_simplenote
+                    or self.q_save.qsize())
+
     def helper_key_to_fname(self, k):
         return os.path.join(self.db_path, k) + '.json'
 
