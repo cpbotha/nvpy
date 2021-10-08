@@ -50,6 +50,7 @@ from .version import VERSION
 from . import events
 from http.client import HTTPException
 import pathlib
+import platform
 
 try:
     import markdown  # type:ignore
@@ -105,6 +106,7 @@ class Config:
         @param app_dir: the directory containing nvpy.py
         @param cfg: path to configuration file
         """
+        is_linux = platform.system() == "Linux"
 
         self.app_dir = app_dir
         # cross-platform way of getting home dir!
@@ -114,6 +116,11 @@ class Config:
         # the file that we write user settings to, which is different
         # from the configuration files
         self.settings_file = os.path.join(home, '.nvpy_settings')
+        if is_linux:
+            env_dir = os.environ.get("XDG_CACHE_HOME")
+            cache_dir = pathlib.Path(env_dir) if env_dir and os.path.isabs(env_dir) else pathlib.Path.home() / ".cache"
+            self.settings_file = cache_dir / "nvpy_settings"
+
 
         defaults = {
             'app_dir': app_dir,
@@ -266,12 +273,15 @@ class Config:
         else:
             # Later config files overwrite earlier files try a number of alternatives.
             home = pathlib.Path.home()
+            env_dir = os.environ.get("XDG_CONFIG_HOME")
+            xdg_config_home = pathlib.Path(env_dir) if env_dir and os.path.isabs(env_dir) else home / ".config"
             cfg_files = [
                 pathlib.Path(self.app_dir) / 'nvpy.cfg',
                 home / 'nvpy.cfg',
                 home / '.nvpy.cfg',
                 home / '.nvpy',
                 home / '.nvpyrc',
+                xdg_config_home / 'nvpy.cfg',
             ]
         return cp.read(cfg_files), cp
 
@@ -972,7 +982,7 @@ def get_appdir():
 
 def parse_cmd_line_args(args: typing.Optional[typing.List] = None) -> argparse.Namespace:
     """ Parse command line arguments
-    
+
     Args:
         args: List of command line arguments. If args is not specified, takes args from sys.args.
 
