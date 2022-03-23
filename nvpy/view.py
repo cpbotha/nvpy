@@ -1260,9 +1260,14 @@ class View(utils.SubjectMixin):
         file_menu.add_command(label="Render Markdown to HTML",
                               underline=7,
                               command=self.cmd_markdown,
-                              accelerator="Ctrl+M")
+                              accelerator="Ctrl+m") # edited
         self.root.bind_all("<Control-m>", self.cmd_markdown)
-
+        file_menu.add_command(label="Render Markdown to HTML v2",
+                              underline=19,
+                              command=self.cmd_markdown2,
+                              accelerator="Ctrl+M")
+        self.root.bind_all("<Control-M>", self.cmd_markdown2)
+        
         self.continuous_rendering = tk.BooleanVar()
         self.continuous_rendering.set(False)
         file_menu.add_checkbutton(label="Continuous Markdown to HTML rendering",
@@ -1667,6 +1672,9 @@ class View(utils.SubjectMixin):
 
     def cmd_markdown(self, event=None):
         self.notify_observers('command:markdown', None)
+
+    def cmd_markdown2(self, event=None):
+        self.notify_observers('command:markdown2', None)
 
     def cmd_paste(self):
         self.text_note.event_generate('<<Paste>>')
