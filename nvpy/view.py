@@ -1270,7 +1270,7 @@ class View(utils.SubjectMixin):
         
         self.continuous_rendering = tk.BooleanVar()
         self.continuous_rendering.set(False)
-        file_menu.add_checkbutton(label="Continuous Markdown to HTML rendering",
+        file_menu.add_checkbutton(label="Continuous Markdown to HTML v2 rendering",
                                   onvalue=True,
                                   offvalue=False,
                                   variable=self.continuous_rendering)

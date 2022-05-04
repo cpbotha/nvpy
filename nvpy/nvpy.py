@@ -816,7 +816,7 @@ class Controller:
         # in continous rendering mode, we also generate a new HTML
         # the browser, if open, will refresh!
         if self.view.get_continuous_rendering():
-            self.helper_markdown_to_html()
+            #self.helper_markdown_to_html() #  - för att detta ska funka krävs att två olika hmtl-filer skapas
             self.helper_markdown_to_html2()
 
     def observer_view_select_note(self, view, evt_type, evt: events.NoteSelectionChangedEvent):
