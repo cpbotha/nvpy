@@ -1267,6 +1267,11 @@ class View(utils.SubjectMixin):
                               command=self.cmd_markdown2,
                               accelerator="Ctrl+M")
         self.root.bind_all("<Control-M>", self.cmd_markdown2)
+        file_menu.add_command(label="Open Markdown file w default application",
+                              underline=19,
+                              command=self.cmd_markdown_raw,
+                              accelerator="Ctrl+M")
+        self.root.bind_all("<Control-Shift-M>", self.cmd_markdown_raw)
         
         self.continuous_rendering = tk.BooleanVar()
         self.continuous_rendering.set(False)
@@ -1675,6 +1680,9 @@ class View(utils.SubjectMixin):
 
     def cmd_markdown2(self, event=None):
         self.notify_observers('command:markdown2', None)
+
+    def cmd_markdown_raw(self, event=None):
+        self.notify_observers('command:markdown_raw', None)
 
     def cmd_paste(self):
         self.text_note.event_generate('<<Paste>>')

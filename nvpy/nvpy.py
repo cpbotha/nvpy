@@ -50,6 +50,7 @@ from .version import VERSION
 from . import events
 from http.client import HTTPException
 import pathlib
+import subprocess
 
 try:
     import markdown  # type:ignore
@@ -120,6 +121,7 @@ class Config:
             'appdir': app_dir,
             'home': home,
             'notes_as_txt': '0',
+            'save_notes_txt_extensions': 'txt',
             'read_txt_extensions': 'txt,mkdn,md,mdown,markdown',
             'housekeeping_interval': '2',
             'search_mode': 'gstyle',
@@ -185,6 +187,7 @@ class Config:
         # make logic to find in $HOME if not set
         self.db_path = cp.get(cfg_sec, 'db_path')
         self.notes_as_txt = cp.getint(cfg_sec, 'notes_as_txt')
+        self.save_notes_txt_extensions = cp.get(cfg_sec, 'save_notes_txt_extensions')
         self.read_txt_extensions = cp.get(cfg_sec, 'read_txt_extensions')
         self.txt_path = os.path.join(home, cp.get(cfg_sec, 'txt_path'))
         self.replace_filename_spaces = cp.getint(cfg_sec, 'replace_filename_spaces')
@@ -472,6 +475,7 @@ class Controller:
             self.view.add_observer('keep:house', self.observer_view_keep_house)
             self.view.add_observer('command:markdown', self.observer_view_markdown)
             self.view.add_observer('command:markdown2', self.observer_view_markdown2)
+            self.view.add_observer('command:markdown_raw', self.observer_view_markdown_raw)
             self.view.add_observer('command:rest', self.observer_view_rest)
             self.view.add_observer('delete:tag', self.observer_view_delete_tag)
             self.view.add_observer('add:tag', self.observer_view_add_tag)
@@ -764,6 +768,15 @@ class Controller:
             f.close()
             return fn
 
+    def helper_render_markdown_raw(self):
+        if self.selected_note_key:
+            key = self.selected_note_key
+            c = self.notes_db.get_note_content(key)
+            # create filename based on key
+            fn = os.path.join(self.config.db_path, key + '.html')
+            f = codecs.open(fn, mode='wb', encoding='utf-8')
+
+            
     def observer_view_markdown(self, view, evt_type, evt):
         fn = self.helper_markdown_to_html()
         # turn filename into URI (mac wants this)
@@ -775,6 +788,12 @@ class Controller:
         # turn filename into URI (mac wants this)
         fn_uri = 'file://' + os.path.abspath(fn)
         webbrowser.open(fn_uri)        
+
+    def observer_view_markdown_raw(self, view, evt_type, evt):
+        fn = self.helper_render_markdown_raw()
+        # turn filename into URI (mac wants this)
+        fn_uri = 'file://' + os.path.abspath(fn)
+        subprocess.Popen([fn_uri],shell=True)
         
     def observer_view_rest(self, view, evt_type, evt):
         fn = self.helper_rest_to_html()
