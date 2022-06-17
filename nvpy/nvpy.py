@@ -43,7 +43,7 @@ import threading
 import re
 import typing
 from . import tk
-from .utils import SubjectMixin
+from .utils import SubjectMixin, get_note_title_file
 from . import view
 import webbrowser
 from .version import VERSION
@@ -769,12 +769,14 @@ class Controller:
             return fn
 
     def helper_render_markdown_raw(self):
-        if self.selected_note_key:
+        if self.selected_note_key and self.config.notes_as_txt:
             key = self.selected_note_key
-            c = self.notes_db.get_note_content(key)
-            # create filename based on key
-            fn = os.path.join(self.config.db_path, key + '.html')
-            f = codecs.open(fn, mode='wb', encoding='utf-8')
+            note = self.notes_db.get_note(key)
+            t = get_note_title_file(note, self.config.replace_filename_spaces)
+            suffix = (self.config.save_notes_txt_extensions if self.config.save_notes_txt_extensions[0]=='.' else '.' + self.config.save_notes_txt_extensions)
+            # create filename
+            fn = os.path.join(self.config.txt_path, t + suffix)
+            return fn
 
             
     def observer_view_markdown(self, view, evt_type, evt):
@@ -791,9 +793,7 @@ class Controller:
 
     def observer_view_markdown_raw(self, view, evt_type, evt):
         fn = self.helper_render_markdown_raw()
-        # turn filename into URI (mac wants this)
-        fn_uri = 'file://' + os.path.abspath(fn)
-        subprocess.Popen([fn_uri],shell=True)
+        subprocess.Popen([os.path.abspath(fn)],shell=True)
         
     def observer_view_rest(self, view, evt_type, evt):
         fn = self.helper_rest_to_html()

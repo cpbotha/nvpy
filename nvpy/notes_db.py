@@ -338,7 +338,7 @@ class NotesDB(utils.SubjectMixin):
                     n = json.load(f)
                 if self.config.notes_as_txt:
                     nt = utils.get_note_title_file(n, self.config.replace_filename_spaces)
-                    nt += self.config.save_notes_txt_extensions
+                    nt += (self.config.save_notes_txt_extensions if self.config.save_notes_txt_extensions[0]=='.' else '.' + self.config.save_notes_txt_extensions)
                     tfn = os.path.join(self.config.txt_path, nt)
                     if os.path.isfile(tfn):
                         self.titlelist[n.get('key')] = nt
@@ -692,7 +692,7 @@ class NotesDB(utils.SubjectMixin):
 
         if self.config.notes_as_txt:
             t = utils.get_note_title_file(note, self.config.replace_filename_spaces)
-            t += self.config.save_notes_txt_extensions
+            t += (self.config.save_notes_txt_extensions if self.config.save_notes_txt_extensions[0]=='.' else '.' + self.config.save_notes_txt_extensions)
             if t and not note.get('deleted'):
                 if k in self.titlelist:
                     logging.debug('Writing note : %s %s' % (t, self.titlelist[k]))
@@ -973,9 +973,10 @@ class NotesDB(utils.SubjectMixin):
                             continue
 
                         if self.config.notes_as_txt:
+                            suffix = (self.config.save_notes_txt_extensions if self.config.save_notes_txt_extensions[0]=='.' else '.' + self.config.save_notes_txt_extensions)
                             tfn = os.path.join(
                                 self.config.txt_path,
-                                utils.get_note_title_file(self.notes[lk], self.config.replace_filename_spaces) + self.config.save_notes_txt_extensions)
+                                utils.get_note_title_file(self.notes[lk], self.config.replace_filename_spaces) + suffix)
                             if os.path.isfile(tfn):
                                 os.unlink(tfn)
                         del self.notes[lk]

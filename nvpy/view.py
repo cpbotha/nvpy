@@ -1263,16 +1263,9 @@ class View(utils.SubjectMixin):
                               accelerator="Ctrl+m") # edited
         self.root.bind_all("<Control-m>", self.cmd_markdown)
         file_menu.add_command(label="Render Markdown to HTML v2",
-                              underline=19,
                               command=self.cmd_markdown2,
                               accelerator="Ctrl+M")
         self.root.bind_all("<Control-M>", self.cmd_markdown2)
-        file_menu.add_command(label="Open Markdown file w default application",
-                              underline=19,
-                              command=self.cmd_markdown_raw,
-                              accelerator="Ctrl+M")
-        self.root.bind_all("<Control-Shift-M>", self.cmd_markdown_raw)
-        
         self.continuous_rendering = tk.BooleanVar()
         self.continuous_rendering.set(False)
         file_menu.add_checkbutton(label="Continuous Markdown to HTML v2 rendering",
@@ -1283,6 +1276,12 @@ class View(utils.SubjectMixin):
         file_menu.add_command(label="Render reST to HTML", underline=7, command=self.cmd_rest, accelerator="Ctrl+R")
         self.root.bind_all("<Control-r>", self.cmd_rest)
 
+        file_menu.add_command(label="Open Markdown file w default application",
+                              command=self.cmd_markdown_raw,
+                              accelerator="Ctrl+Shift+M")
+        self.root.bind_all("<Control-Shift-M>", self.cmd_markdown_raw)
+
+        
         file_menu.add_separator()
 
         file_menu.add_command(label="Exit", underline=1, command=self.handler_close, accelerator="Ctrl+Q")
