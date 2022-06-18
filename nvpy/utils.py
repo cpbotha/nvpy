@@ -47,11 +47,6 @@ def get_note_title_file(note, replace_filename_spaces):
             fn = unicode(fn, 'utf-8')
         else:
             fn = unicode(fn)
-        # This seem not to be implemented. Also, file extension is set by config file
-        #if note_markdown(note):
-        #    fn += '.mkdn' 
-        #else:
-        #    fn += '.txt'
 
         return fn
     else:
@@ -94,18 +89,6 @@ def note_pinned(n):
         return 0
 
     if 'pinned' in asystags:
-        return 1
-    else:
-        return 0
-
-
-def note_markdown(n):
-    asystags = n.get('systemtags', 0)
-    # no systemtag at all
-    if not asystags:
-        return 0
-
-    if 'markdown' in asystags:
         return 1
     else:
         return 0
