@@ -1260,7 +1260,7 @@ class View(utils.SubjectMixin):
         file_menu.add_command(label="Render Markdown to HTML",
                               underline=7,
                               command=self.cmd_markdown,
-                              accelerator="Ctrl+m") # edited
+                              accelerator="Ctrl+m")
         self.root.bind_all("<Control-m>", self.cmd_markdown)
 
         self.continuous_rendering = tk.BooleanVar()

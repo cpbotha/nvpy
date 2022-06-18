@@ -672,7 +672,7 @@ class Controller:
             f.write(s)
             f.close()
             return fn
-            
+
     def helper_rest_to_html(self):
         if self.selected_note_key:
             key = self.selected_note_key
