@@ -158,7 +158,6 @@ class Config:
             # output; e.g. nvpy.css or /path/to/my.css
             'rest_css_path': '',
             'md_css_path': '',
-            'md_css_path2': '',
             'md_extensions': '',
             'keep_search_keyword': 'false',
             'confirm_delete': 'true',
@@ -227,7 +226,6 @@ class Config:
 
         self.rest_css_path = cp.get(cfg_sec, 'rest_css_path')
         self.md_css_path = cp.get(cfg_sec, 'md_css_path')
-        self.md_css_path2 = cp.get(cfg_sec, 'md_css_path2')
         self.md_extensions = cp.get(cfg_sec, 'md_extensions')
         self.debug = cp.getint(cfg_sec, 'debug')
         self.keep_search_keyword = cp.getboolean(cfg_sec, 'keep_search_keyword')
@@ -430,16 +428,6 @@ class Controller:
                 # Couldn't find the user-defined css file.
                 # Do not use css styling for markdown.
                 self.config.md_css_path = None
-        md_css2 = self.config.md_css_path2
-        if md_css2:
-            if md_css2.startswith("~/"):
-                # On Mac, paths that start with '~/' aren't found by path.exists
-                md_css2 = md_css2.replace("~", os.path.abspath(os.path.expanduser('~')), 1)
-                self.config.md_css_path2 = md_css2
-            if not os.path.exists(md_css2):
-                # Couldn't find the user-defined css file.
-                # Do not use css styling for markdown.
-                self.config.md_css_path2 = None
 
         self.notes_list_model = NotesListModel()
         # create the interface
@@ -474,7 +462,6 @@ class Controller:
             self.view.add_observer('create:note', self.observer_view_create_note)
             self.view.add_observer('keep:house', self.observer_view_keep_house)
             self.view.add_observer('command:markdown', self.observer_view_markdown)
-            self.view.add_observer('command:markdown2', self.observer_view_markdown2)
             self.view.add_observer('command:markdown_raw', self.observer_view_markdown_raw)
             self.view.add_observer('command:rest', self.observer_view_rest)
             self.view.add_observer('delete:tag', self.observer_view_delete_tag)
@@ -685,56 +672,6 @@ class Controller:
             f.write(s)
             f.close()
             return fn
-
-    def helper_markdown_to_html2(self):
-        css = u""""""
-        if self.selected_note_key:
-            key = self.selected_note_key
-            c = self.notes_db.get_note_content(key)
-            logging.debug("Trying to convert %s to html." % (key, ))
-            if HAVE_MARKDOWN:
-                logging.debug("Convert note %s to html." % (key, ))
-                exts = re.split('\s+', self.config.md_extensions.strip()) if self.config.md_extensions else []
-                exts += list(DEFAULT_MARKDOWN_EXTS)
-                # remove duplicate items on exts.
-                exts = list(set(exts))
-
-                html = markdown.markdown(c, extensions=exts)
-                logging.debug("Convert done.")
-                if self.config.md_css_path2:
-                    css = u"""<link rel="stylesheet" href="%s">""" % (self.config.md_css_path2, )
-                    html = u"""<div class="markdown-body">%s</div>""" % (html, )
-                else:
-                    css = u""""""
-
-            else:
-                logging.debug("Markdown not installed.")
-                html = "<p>python markdown not installed, required for rendering to HTML.</p>"
-                html += "<p>Please install with \"pip install markdown\".</p>"
-
-            # create filename based on key
-            fn = os.path.join(self.config.db_path, key + '.html')
-            f = codecs.open(fn, mode='wb', encoding='utf-8')
-            s = u"""
-<html>
-<head>
-<meta http-equiv="Content-Type" content="text/html; charset=UTF-8"/>
-%s
-%s
-</head>
-<body>
-%s
-</body>
-</html>
-            """ % (
-                '<meta http-equiv="refresh" content="5">' if self.view.get_continuous_rendering() else "",
-                css if self.config.md_css_path2 else "",
-                html,
-            )
-            f.write(s)
-            f.close()
-            return fn
-
             
     def helper_rest_to_html(self):
         if self.selected_note_key:
@@ -785,12 +722,6 @@ class Controller:
         fn_uri = 'file://' + os.path.abspath(fn)
         webbrowser.open(fn_uri)
 
-    def observer_view_markdown2(self, view, evt_type, evt):
-        fn = self.helper_markdown_to_html2()
-        # turn filename into URI (mac wants this)
-        fn_uri = 'file://' + os.path.abspath(fn)
-        webbrowser.open(fn_uri)        
-
     def observer_view_markdown_raw(self, view, evt_type, evt):
         fn = self.helper_render_markdown_raw()
         subprocess.Popen([os.path.abspath(fn)],shell=True)
@@ -835,8 +766,7 @@ class Controller:
         # in continous rendering mode, we also generate a new HTML
         # the browser, if open, will refresh!
         if self.view.get_continuous_rendering():
-            #self.helper_markdown_to_html() #  - för att detta ska funka krävs att två olika hmtl-filer skapas
-            self.helper_markdown_to_html2()
+            self.helper_markdown_to_html()
 
     def observer_view_select_note(self, view, evt_type, evt: events.NoteSelectionChangedEvent):
         self.select_note(evt.sel)

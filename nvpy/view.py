@@ -1262,13 +1262,10 @@ class View(utils.SubjectMixin):
                               command=self.cmd_markdown,
                               accelerator="Ctrl+m") # edited
         self.root.bind_all("<Control-m>", self.cmd_markdown)
-        file_menu.add_command(label="Render Markdown to HTML v2",
-                              command=self.cmd_markdown2,
-                              accelerator="Ctrl+M")
-        self.root.bind_all("<Control-M>", self.cmd_markdown2)
+
         self.continuous_rendering = tk.BooleanVar()
         self.continuous_rendering.set(False)
-        file_menu.add_checkbutton(label="Continuous Markdown to HTML v2 rendering",
+        file_menu.add_checkbutton(label="Continuous Markdown to HTML rendering",
                                   onvalue=True,
                                   offvalue=False,
                                   variable=self.continuous_rendering)
@@ -1676,9 +1673,6 @@ class View(utils.SubjectMixin):
 
     def cmd_markdown(self, event=None):
         self.notify_observers('command:markdown', None)
-
-    def cmd_markdown2(self, event=None):
-        self.notify_observers('command:markdown2', None)
 
     def cmd_markdown_raw(self, event=None):
         self.notify_observers('command:markdown_raw', None)
