@@ -32,43 +32,6 @@ from .debug import wrap_buggy_function
 
 FilterResult = typing.Tuple[typing.List['NoteInfo'], str, int]
 
-# --- avoid being dependant on simplenote module if nvpy is used w/o simplenote-sync
-## API key provided for nvPY.
-## Please do not use for other software!
-#simplenote.simplenote.API_KEY = bytes(reversed(base64.b64decode('OTg0OTI4ZTg4YjY0NzMyOTZjYzQzY2IwMDI1OWFkMzg=')))
-
-# ---- avoid  being dependant on simplenote module if nvpy is used w/o simplenote-sync
-## workaround for https://github.com/cpbotha/nvpy/issues/191
-#class Simplenote(simplenote.Simplenote):
-#    def get_token(self):
-#        if self.token is None:
-#            self.token = self.authenticate(self.username, self.password)
-#            if self.token is None:
-#                raise HTTPException('failed to connect to the server')
-#        try:
-#            return str(self.token, 'utf-8')
-#        except TypeError:
-#            return self.token
-#
-#    def get_note(self, *args, **kwargs):
-#        try:
-#            return super().get_note(*args, **kwargs)
-#        except HTTPException as e:
-#            return e, -1
-#
-#    def update_note(self, *args, **kwargs):
-#        try:
-#            return super().update_note(*args, **kwargs)
-#        except HTTPException as e:
-#            return e, -1
-#
-#    def get_note_list(self, *args, **kwargs):
-#        try:
-#            return super().get_note_list(*args, **kwargs)
-#        except HTTPException as e:
-#            return e, -1
-
-
 ACTION_SAVE = 0
 ACTION_SYNC_PARTIAL_TO_SERVER = 1
 ACTION_SYNC_PARTIAL_FROM_SERVER = 2  # UNUSED.
