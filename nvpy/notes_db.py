@@ -21,47 +21,52 @@ import time
 import typing
 import re
 import base64
-import simplenote  # type:ignore
+# silently fail simplenote imports if nvpy is used w/o simplenote-sync
+try:
+    import simplenote  # type:ignore
+except:
+    pass
 from . import events
 from . import utils
 from .debug import wrap_buggy_function
 
 FilterResult = typing.Tuple[typing.List['NoteInfo'], str, int]
 
-# API key provided for nvPY.
-# Please do not use for other software!
-simplenote.simplenote.API_KEY = bytes(reversed(base64.b64decode('OTg0OTI4ZTg4YjY0NzMyOTZjYzQzY2IwMDI1OWFkMzg=')))
+# --- avoid being dependant on simplenote module if nvpy is used w/o simplenote-sync
+## API key provided for nvPY.
+## Please do not use for other software!
+#simplenote.simplenote.API_KEY = bytes(reversed(base64.b64decode('OTg0OTI4ZTg4YjY0NzMyOTZjYzQzY2IwMDI1OWFkMzg=')))
 
-
-# workaround for https://github.com/cpbotha/nvpy/issues/191
-class Simplenote(simplenote.Simplenote):
-    def get_token(self):
-        if self.token is None:
-            self.token = self.authenticate(self.username, self.password)
-            if self.token is None:
-                raise HTTPException('failed to connect to the server')
-        try:
-            return str(self.token, 'utf-8')
-        except TypeError:
-            return self.token
-
-    def get_note(self, *args, **kwargs):
-        try:
-            return super().get_note(*args, **kwargs)
-        except HTTPException as e:
-            return e, -1
-
-    def update_note(self, *args, **kwargs):
-        try:
-            return super().update_note(*args, **kwargs)
-        except HTTPException as e:
-            return e, -1
-
-    def get_note_list(self, *args, **kwargs):
-        try:
-            return super().get_note_list(*args, **kwargs)
-        except HTTPException as e:
-            return e, -1
+# ---- avoid  being dependant on simplenote module if nvpy is used w/o simplenote-sync
+## workaround for https://github.com/cpbotha/nvpy/issues/191
+#class Simplenote(simplenote.Simplenote):
+#    def get_token(self):
+#        if self.token is None:
+#            self.token = self.authenticate(self.username, self.password)
+#            if self.token is None:
+#                raise HTTPException('failed to connect to the server')
+#        try:
+#            return str(self.token, 'utf-8')
+#        except TypeError:
+#            return self.token
+#
+#    def get_note(self, *args, **kwargs):
+#        try:
+#            return super().get_note(*args, **kwargs)
+#        except HTTPException as e:
+#            return e, -1
+#
+#    def update_note(self, *args, **kwargs):
+#        try:
+#            return super().update_note(*args, **kwargs)
+#        except HTTPException as e:
+#            return e, -1
+#
+#    def get_note_list(self, *args, **kwargs):
+#        try:
+#            return super().get_note_list(*args, **kwargs)
+#        except HTTPException as e:
+#            return e, -1
 
 
 ACTION_SAVE = 0
@@ -299,6 +304,46 @@ class NotesDB(utils.SubjectMixin):
         utils.SubjectMixin.__init__(self)
 
         self.config = config
+
+        # simplenote only imported if simplenote_sync activated in config-file  
+        global simplenote
+        if self.config.simplenote_sync:
+            simplenote = __import__('simplenote', globals(), locals()) 
+            # API key provided for nvPY.
+            # Please do not use for other software!
+            simplenote.simplenote.API_KEY = bytes(reversed(base64.b64decode('OTg0OTI4ZTg4YjY0NzMyOTZjYzQzY2IwMDI1OWFkMzg=')))
+            # workaround for https://github.com/cpbotha/nvpy/issues/191
+            class Simplenote(simplenote.Simplenote):
+                def get_token(self):
+                    if self.token is None:
+                        self.token = self.authenticate(self.username, self.password)
+                        if self.token is None:
+                            raise HTTPException('failed to connect to the server')
+                    try:
+                        return str(self.token, 'utf-8')
+                    except TypeError:
+                        return self.token
+
+                def get_note(self, *args, **kwargs):
+                    try:
+                        return super().get_note(*args, **kwargs)
+                    except HTTPException as e:
+                        return e, -1
+
+                def update_note(self, *args, **kwargs):
+                    try:
+                        return super().update_note(*args, **kwargs)
+                    except HTTPException as e:
+                        return e, -1
+
+                def get_note_list(self, *args, **kwargs):
+                    try:
+                        return super().get_note_list(*args, **kwargs)
+                    except HTTPException as e:
+                        return e, -1
+
+
+
 
         # create db dir if it does not exist
         if not os.path.exists(config.db_path):
