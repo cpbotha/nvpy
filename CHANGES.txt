@@ -1,3 +1,11 @@
+v2.2.0, 2022-07-04 -- Option: Added replace_filename_spaces and escape_to_exit options.
+                      UI: Remember window position and size.
+                      UI: Added alphanumeric sort mode.
+                      UI: Added the sort mode selector widget.
+                      UI: Added the streamline interface.
+                      UI: Added shortcut key for copy note title.
+                      Other: Fixed issue that the --cfg argument does not work.
+                      Other: Improve stability when saving/syncing notes on the background.
 v2.1.0, 2020-03-08 -- Added keyboard shortcuts, list_hide_time and list_hide_tags options.
                       Improve the TagList dialog. Fixed crash when md_extensions contains multiple spaces.
 v2.0.2, 2019-12-01 -- Added support for more URL schemes. Fixed crash when opening the help dialog. Fixed highlight.
