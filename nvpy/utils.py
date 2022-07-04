@@ -48,11 +48,6 @@ def get_note_title_file(note, replace_filename_spaces):
         else:
             fn = unicode(fn)
 
-        if note_markdown(note):
-            fn += '.mkdn'
-        else:
-            fn += '.txt'
-
         return fn
     else:
         return ''
@@ -94,18 +89,6 @@ def note_pinned(n):
         return 0
 
     if 'pinned' in asystags:
-        return 1
-    else:
-        return 0
-
-
-def note_markdown(n):
-    asystags = n.get('systemtags', 0)
-    # no systemtag at all
-    if not asystags:
-        return 0
-
-    if 'markdown' in asystags:
         return 1
     else:
         return 0

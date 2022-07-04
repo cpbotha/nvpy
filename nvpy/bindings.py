@@ -15,6 +15,7 @@ Ctrl-G        Edit tags for currently selected note. Press ESC to return to note
 Ctrl-J        Navigate (down) to next note in list. (VIM binding)
 Ctrl-K        Navigate (up) to previous note in list. (VIM binding)
 Ctrl-M        Render Markdown note to HTML and open browser window.
+Ctrl-Shift-M  Open Markdown file with default application.
 Ctrl-N        Create new note.
 Ctrl-Q        Exit nvPY.
 Ctrl-R        Render reStructuredText (reST) note to HTML and open browser window.

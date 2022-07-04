@@ -21,48 +21,16 @@ import time
 import typing
 import re
 import base64
-import simplenote  # type:ignore
+# silently fail simplenote imports if nvpy is used w/o simplenote-sync
+try:
+    import simplenote  # type:ignore
+except:
+    pass
 from . import events
 from . import utils
 from .debug import wrap_buggy_function
 
 FilterResult = typing.Tuple[typing.List['NoteInfo'], str, int]
-
-# API key provided for nvPY.
-# Please do not use for other software!
-simplenote.simplenote.API_KEY = bytes(reversed(base64.b64decode('OTg0OTI4ZTg4YjY0NzMyOTZjYzQzY2IwMDI1OWFkMzg=')))
-
-
-# workaround for https://github.com/cpbotha/nvpy/issues/191
-class Simplenote(simplenote.Simplenote):
-    def get_token(self):
-        if self.token is None:
-            self.token = self.authenticate(self.username, self.password)
-            if self.token is None:
-                raise HTTPException('failed to connect to the server')
-        try:
-            return str(self.token, 'utf-8')
-        except TypeError:
-            return self.token
-
-    def get_note(self, *args, **kwargs):
-        try:
-            return super().get_note(*args, **kwargs)
-        except HTTPException as e:
-            return e, -1
-
-    def update_note(self, *args, **kwargs):
-        try:
-            return super().update_note(*args, **kwargs)
-        except HTTPException as e:
-            return e, -1
-
-    def get_note_list(self, *args, **kwargs):
-        try:
-            return super().get_note_list(*args, **kwargs)
-        except HTTPException as e:
-            return e, -1
-
 
 ACTION_SAVE = 0
 ACTION_SYNC_PARTIAL_TO_SERVER = 1
@@ -300,6 +268,46 @@ class NotesDB(utils.SubjectMixin):
 
         self.config = config
 
+        # simplenote only imported if simplenote_sync activated in config-file  
+        global simplenote
+        if self.config.simplenote_sync:
+            simplenote = __import__('simplenote', globals(), locals()) 
+            # API key provided for nvPY.
+            # Please do not use for other software!
+            simplenote.simplenote.API_KEY = bytes(reversed(base64.b64decode('OTg0OTI4ZTg4YjY0NzMyOTZjYzQzY2IwMDI1OWFkMzg=')))
+            # workaround for https://github.com/cpbotha/nvpy/issues/191
+            class Simplenote(simplenote.Simplenote):
+                def get_token(self):
+                    if self.token is None:
+                        self.token = self.authenticate(self.username, self.password)
+                        if self.token is None:
+                            raise HTTPException('failed to connect to the server')
+                    try:
+                        return str(self.token, 'utf-8')
+                    except TypeError:
+                        return self.token
+
+                def get_note(self, *args, **kwargs):
+                    try:
+                        return super().get_note(*args, **kwargs)
+                    except HTTPException as e:
+                        return e, -1
+
+                def update_note(self, *args, **kwargs):
+                    try:
+                        return super().update_note(*args, **kwargs)
+                    except HTTPException as e:
+                        return e, -1
+
+                def get_note_list(self, *args, **kwargs):
+                    try:
+                        return super().get_note_list(*args, **kwargs)
+                    except HTTPException as e:
+                        return e, -1
+
+
+
+
         # create db dir if it does not exist
         if not os.path.exists(config.db_path):
             os.mkdir(config.db_path)
@@ -338,6 +346,7 @@ class NotesDB(utils.SubjectMixin):
                     n = json.load(f)
                 if self.config.notes_as_txt:
                     nt = utils.get_note_title_file(n, self.config.replace_filename_spaces)
+                    nt += (self.config.save_notes_txt_extensions if self.config.save_notes_txt_extensions[0]=='.' else '.' + self.config.save_notes_txt_extensions)
                     tfn = os.path.join(self.config.txt_path, nt)
                     if os.path.isfile(tfn):
                         self.titlelist[n.get('key')] = nt
@@ -691,6 +700,7 @@ class NotesDB(utils.SubjectMixin):
 
         if self.config.notes_as_txt:
             t = utils.get_note_title_file(note, self.config.replace_filename_spaces)
+            t += (self.config.save_notes_txt_extensions if self.config.save_notes_txt_extensions[0]=='.' else '.' + self.config.save_notes_txt_extensions)
             if t and not note.get('deleted'):
                 if k in self.titlelist:
                     logging.debug('Writing note : %s %s' % (t, self.titlelist[k]))
@@ -971,9 +981,10 @@ class NotesDB(utils.SubjectMixin):
                             continue
 
                         if self.config.notes_as_txt:
+                            suffix = (self.config.save_notes_txt_extensions if self.config.save_notes_txt_extensions[0]=='.' else '.' + self.config.save_notes_txt_extensions)
                             tfn = os.path.join(
                                 self.config.txt_path,
-                                utils.get_note_title_file(self.notes[lk], self.config.replace_filename_spaces))
+                                utils.get_note_title_file(self.notes[lk], self.config.replace_filename_spaces) + suffix)
                             if os.path.isfile(tfn):
                                 os.unlink(tfn)
                         del self.notes[lk]

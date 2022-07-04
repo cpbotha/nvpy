@@ -1260,7 +1260,7 @@ class View(utils.SubjectMixin):
         file_menu.add_command(label="Render Markdown to HTML",
                               underline=7,
                               command=self.cmd_markdown,
-                              accelerator="Ctrl+M")
+                              accelerator="Ctrl+m")
         self.root.bind_all("<Control-m>", self.cmd_markdown)
 
         self.continuous_rendering = tk.BooleanVar()
@@ -1273,6 +1273,12 @@ class View(utils.SubjectMixin):
         file_menu.add_command(label="Render reST to HTML", underline=7, command=self.cmd_rest, accelerator="Ctrl+R")
         self.root.bind_all("<Control-r>", self.cmd_rest)
 
+        file_menu.add_command(label="Open Markdown file w default application",
+                              command=self.cmd_markdown_raw,
+                              accelerator="Ctrl+Shift+M")
+        self.root.bind_all("<Control-Shift-M>", self.cmd_markdown_raw)
+
+        
         file_menu.add_separator()
 
         file_menu.add_command(label="Exit", underline=1, command=self.handler_close, accelerator="Ctrl+Q")
@@ -1667,6 +1673,9 @@ class View(utils.SubjectMixin):
 
     def cmd_markdown(self, event=None):
         self.notify_observers('command:markdown', None)
+
+    def cmd_markdown_raw(self, event=None):
+        self.notify_observers('command:markdown_raw', None)
 
     def cmd_paste(self):
         self.text_note.event_generate('<<Paste>>')
