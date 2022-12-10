@@ -25,7 +25,7 @@ setup(
     packages=['nvpy'],
     long_description=read('README.rst'),
     install_requires=[
-        # These are in reality not hard requirements of nvpy.  If these packages are not installed,
+        # Those packages are not hard requirements of nvpy.  If these packages are not installed,
         # the Markdown/reStructuredText rendering feature will not work.  But basic functions should work.
         'Markdown',
         'docutils',
@@ -34,7 +34,7 @@ setup(
     ],
     extras_require={
         # development and test requirements.
-        'dev': ['mock', 'yapf', 'pdoc3', 'nose', 'nose-timer', 'mypy', 'coverage'],
+        'dev': ['mock', 'yapf', 'pdoc3', 'mypy', 'coverage'],
     },
     entry_points={'gui_scripts': ['nvpy = nvpy.nvpy:main']},
     # use MANIFEST.in file

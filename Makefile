@@ -16,7 +16,8 @@ test:
 
 .PHONY: benchmark
 benchmark:
-	PYTHONPATH=.:$$PYTHONPATH python3 -m nose --with-timer -q -s benchmarks/*.py
+	PYTHONPATH=.:$$PYTHONPATH python3 benchmarks/sorters.py
+	PYTHONPATH=.:$$PYTHONPATH python3 benchmarks/notes_list.py
 
 .PHONY: docs
 docs:
