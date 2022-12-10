@@ -1857,10 +1857,7 @@ class View(utils.SubjectMixin):
                 ul = 0
             else:
                 link = list(filter(None, mo.groups()))[0]
-                ul = 1
-
-            # Disable underline if user chooses to
-            ul = 0 if not self.config.underline_urls else ul
+                ul = int(self.config.underline_urls)
 
             # Create a new Tkinter Tag
             tag = 'web-%d' % (len(self.text_tags_links), )
