@@ -120,7 +120,14 @@ class Config:
         if is_linux:
             env_dir = os.environ.get("XDG_CACHE_HOME")
             cache_dir = pathlib.Path(env_dir) if env_dir and os.path.isabs(env_dir) else pathlib.Path.home() / ".cache"
+            old_file = self.settings_file
             self.settings_file = cache_dir / "nvpy_settings"
+            # Try deleting the nvpy_settings file in old location.
+            # Use try-except instead of the missing_ok=True because Python 3.6 and 3.7 are not supported it.
+            try:
+                pathlib.Path(old_file).unlink()
+            except FileNotFoundError:
+                pass
 
         defaults = {
             'app_dir': app_dir,
