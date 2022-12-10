@@ -1841,7 +1841,7 @@ class View(utils.SubjectMixin):
         ]
 
         # Compile Regex into single pattern
-        pat = re.compile('|'.join(re_list), re.U)
+        pat = re.compile('|'.join(re_list))
 
         for mo in re.finditer(pat, t.get('1.0', 'end')):
             # Any Match in Group 0 is a Note Link
