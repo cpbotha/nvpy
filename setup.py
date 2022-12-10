@@ -18,6 +18,8 @@ setup(
     version=nvpy.VERSION,
     author="Charl P. Botha",
     author_email="cpbotha@vxlabs.com",
+    maintainer='yuuki0xff',
+    maintainer_email='yuuki0xff@gmail.com',
     description="A cross-platform simplenote-syncing note-taking app inspired by Notational Velocity.",
     license="BSD",
     keywords="simplenote note-taking tkinter nvalt markdown",
