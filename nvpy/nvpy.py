@@ -122,7 +122,6 @@ class Config:
             cache_dir = pathlib.Path(env_dir) if env_dir and os.path.isabs(env_dir) else pathlib.Path.home() / ".cache"
             self.settings_file = cache_dir / "nvpy_settings"
 
-
         defaults = {
             'app_dir': app_dir,
             'appdir': app_dir,
