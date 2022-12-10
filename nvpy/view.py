@@ -1832,7 +1832,6 @@ class View(utils.SubjectMixin):
         # List of Regex patterns to match various link types to be activated
         re_list = [
             r"(\[\[[^][]*\]\])",  # Inter-note Links
-#            r"((?:https?|ftp|file)://[-A-Za-z0-9+&@#/%?=~_|!:,.;\(\)]*[A-Za-z0-9+&@#/%=~_|])",  # Http(s) / FTP / File Links
             r"\b((https?|ftp|file)://[-\w+&@#/%?=~|!:,.;]*[\w+&@#/%=~|])|(\[\[[^][]*\]\])",  # Http(s) / FTP / File Links
             r"(mailto:[a-zA-Z0-9_.+-]+@[a-zA-Z0-9-]+\.[a-zA-Z0-9-.]+)",  # Mailto Links
             r"((?:tel|mid):[^\s]+)",  # Tel / Mid Links
