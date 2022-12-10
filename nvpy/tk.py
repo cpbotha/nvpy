@@ -11,6 +11,7 @@ from tkinter.ttk import *  # type:ignore
 
 
 class Ucs4NotSupportedError(BaseException):
+
     def __init__(self, char):
         self.char = char
 
@@ -47,6 +48,7 @@ del Text
 
 
 class Text(_Text):  # type:ignore
+
     @with_ucs4_error_handling
     def insert(self, *args, **kwargs):
         return _Text.insert(self, *args, **kwargs)

@@ -35,6 +35,7 @@ simplenote.simplenote.API_KEY = bytes(reversed(base64.b64decode('OTg0OTI4ZTg4YjY
 
 # workaround for https://github.com/cpbotha/nvpy/issues/191
 class Simplenote(simplenote.Simplenote):
+
     def get_token(self):
         if self.token is None:
             self.token = self.authenticate(self.username, self.password)
@@ -133,6 +134,7 @@ class Sorter(abc.ABC):
         >>> sorter = MergedSorter(PinnedSorter(), AlphaSorter())
         >>> notes.sort(key=sorter)
     """
+
     @abc.abstractmethod
     def __call__(self, o: NoteInfo):
         raise NotImplementedError()
@@ -140,12 +142,14 @@ class Sorter(abc.ABC):
 
 class NopSorter(Sorter):
     """ Do nothing. The notes list retain original order. Use it to simplify complex sort logic. """
+
     def __call__(self, o: NoteInfo):
         return 0
 
 
 class MergedSorter(Sorter):
     """ Merge multiple sorters into a sorter. It realize sorting notes by multiple keys. """
+
     def __init__(self, *sorters: Sorter):
         self.sorters = sorters
 
@@ -155,6 +159,7 @@ class MergedSorter(Sorter):
 
 class PinnedSorter(Sorter):
     """ Sort that pinned notes are on top. """
+
     def __call__(self, o: NoteInfo):
         # Pinned notes on top.
         return 0 if utils.note_pinned(o.note) else 1
@@ -162,6 +167,7 @@ class PinnedSorter(Sorter):
 
 class AlphaSorter(Sorter):
     """ Sort in alphabetically on note title. """
+
     def __call__(self, o: NoteInfo):
         return utils.get_note_title(o.note)
 
@@ -171,12 +177,14 @@ T = typing.TypeVar('T')
 
 class AlphaNumSorter(Sorter):
     """ Sort in alphanumeric order on note title. """
+
     class Nullable(typing.Generic[T]):
         """ Null-safe comparable object for any types.
 
         Built-in types can not compare with None. For example, if you try to execute `1 < None`, it will raise a
         TypeError. The Nullable solves this problem, and further simplifies of comparison logic.
         """
+
         @classmethod
         def __class_getitem__(cls, item):
             return typing.TypeAlias(AlphaNumSorter.Nullable)
@@ -271,6 +279,7 @@ class AlphaNumSorter(Sorter):
 
 class DateSorter(Sorter):
     """ Sort in creation/modification date. """
+
     def __init__(self, mode: SortMode):
         if mode == SortMode.MODIFICATION_DATE:
             self._sort_key = self._sort_key_modification_date
@@ -295,6 +304,7 @@ class DateSorter(Sorter):
 class NotesDB(utils.SubjectMixin):
     """NotesDB will take care of the local notes database and syncing with SN.
     """
+
     def __init__(self, config):
         utils.SubjectMixin.__init__(self)
 
@@ -1276,6 +1286,7 @@ class NotesDB(utils.SubjectMixin):
 
 
 class Note(dict):
+
     @property
     def need_save(self):
         """Check if the local note need to save."""

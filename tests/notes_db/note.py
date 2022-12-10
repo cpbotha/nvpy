@@ -7,6 +7,7 @@ from ._mixin import DBMixin
 
 
 class NoteComparators(unittest.TestCase):
+
     def test_need_save(self):
         a = Note({'modifydate': 2, 'savedate': 1, 'syncdate': 0})
         b = Note({'modifydate': 2, 'savedate': 2, 'syncdate': 0})
@@ -35,6 +36,7 @@ class NoteComparators(unittest.TestCase):
 
 
 class NotesDBComparators(DBMixin, unittest.TestCase):
+
     def test_is_different_note(self):
         db = self._db()
         # If all fields excluding nvPY internal fields are same, those are same.

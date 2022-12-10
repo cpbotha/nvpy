@@ -15,6 +15,7 @@ assert len(notes_10k) == 10000
 
 
 class BenchmarkSorters(unittest.TestCase):
+
     def test_nop_10k_10times(self):
         for i in range(10):
             sorted(notes_10k, key=notes_db.NopSorter())

@@ -11,6 +11,7 @@ from ._mixin import DBMixin
 
 
 class timeout:
+
     def __init__(self, seconds):
         self.seconds = seconds
 
@@ -27,6 +28,7 @@ class timeout:
 
 
 class SaveToJson(DBMixin, unittest.TestCase):
+
     def test_database_must_write_json_file(self):
         db = self._db()
         rk = 'remote_key'
@@ -60,6 +62,7 @@ class SaveToJson(DBMixin, unittest.TestCase):
 
 
 class SaveToText(DBMixin, unittest.TestCase):
+
     def test_database_must_write_text_file(self):
         db = self._db(notes_as_txt=True)
         lk = 'local_key'
@@ -154,6 +157,7 @@ class UpdateNoteToServer(PatchedDBMixin, unittest.TestCase):
     get_note         -  o  o  x  -
     remote != local  -  o  x  -  -
     """
+
     def test_success(self):
         old_note = {'key': 'remote_key', 'content': 'foo'}
         new_note = {'key': 'remote_key', 'content': 'foo bar'}
@@ -246,6 +250,7 @@ class SyncNoteUnthreaded(PatchedDBMixin, unittest.TestCase):
     get_note                          -  -  o  o  x
     remote note is newer than local   -  -  o  x  -
     """
+
     def test_update_1(self):
         key = 'KEY'
         local_note = {
@@ -426,6 +431,7 @@ class SyncFullUnthreaded(PatchedDBMixin, unittest.TestCase):
     Test Case Matrix for step 5:
     (omitted)
     """
+
     def test_step1_change_local_key(self):
         local_note = {'key': 'local_id', 'content': 'created by local', 'modifydate': 2, 'savedate': 3, 'syncdate': 1}
         remote_note = {'key': 'remote_id', 'content': 'modified', 'modifydate': 3}

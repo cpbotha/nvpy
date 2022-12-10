@@ -100,6 +100,7 @@ class Config:
     @ivar files_read: list of config files that were parsed.
     @ivar ok: True if config files had a default section, False otherwise.
     """
+
     def __init__(self, app_dir: str, cfg: typing.Optional[str]):
         """
         @param app_dir: the directory containing nvpy.py
@@ -334,6 +335,7 @@ class NotesListModel(SubjectMixin):
     """
     @ivar list: List of (str key, dict note) objects.
     """
+
     def __init__(self):
         # call mixin ctor
         SubjectMixin.__init__(self)

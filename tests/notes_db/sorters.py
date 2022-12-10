@@ -17,6 +17,7 @@ def create_note(title, createdate=1, modifydate=2) -> notes_db.NoteInfo:
 
 
 class AlphaNumSorter_Nullable(unittest.TestCase):
+
     def test_nullable_can_compare_with_int_and_int(self):
         a = Nullable(2)
         b = Nullable(1)
@@ -50,6 +51,7 @@ class AlphaNumSorter_Nullable(unittest.TestCase):
 
 
 class AlphaNumSorter(unittest.TestCase):
+
     def make_sort_key(self, title):
         return notes_db.AlphaNumSorter()(create_note(title))
 
@@ -117,6 +119,7 @@ class AlphaNumSorter(unittest.TestCase):
 
 
 class DateSorter(unittest.TestCase):
+
     def test_sort_by_modification_date(self):
         sorter = notes_db.DateSorter(notes_db.SortMode.MODIFICATION_DATE)
         notes = [

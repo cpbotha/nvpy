@@ -42,6 +42,7 @@ notes = {
 
 
 class FilterGstyle(DBMixin, unittest.TestCase):
+
     def test_search_by_none_or_empty(self):
         db = self._db()
         db.notes = copy.deepcopy(notes)
@@ -83,6 +84,7 @@ class FilterGstyle(DBMixin, unittest.TestCase):
 
 
 class FilterRegexp(DBMixin, unittest.TestCase):
+
     def test_search_by_none_or_empty(self):
         db = self._db()
         db.notes = copy.deepcopy(notes)

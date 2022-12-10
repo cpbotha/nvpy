@@ -7,6 +7,7 @@ import shutil
 
 
 class Tags(unittest.TestCase):
+
     def setUp(self):
         if os.path.isdir('/tmp/.nvpyUnitTests'):
             shutil.rmtree('/tmp/.nvpyUnitTests')

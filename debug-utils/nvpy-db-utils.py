@@ -30,6 +30,7 @@ class APIError(Exception):
 
 
 class LocalDB:
+
     def __init__(self, db_path):
         self.db_path = pathlib.Path(db_path)
 
@@ -56,6 +57,7 @@ class LocalDB:
 
 
 class RemoteDB:
+
     def __init__(self, user, password):
         self.sn = simplenote.Simplenote(user, password)
         self.sn.get_token()
@@ -91,6 +93,7 @@ class RemoteDB:
 
 
 class ValidateCmd:
+
     def run(self, args, config):
         files = LocalDB(config.db_path).target_files(args.keys, is_all=not args.keys)
         now = time.time()
@@ -148,6 +151,7 @@ class ValidateCmd:
 
 
 class DeleteCmd:
+
     def run(self, args, config):
         if args.local:
             local = LocalDB(config.db_path)
@@ -160,6 +164,7 @@ class DeleteCmd:
 
 
 class UpdateCmd:
+
     def run(self, args, config):
         remote = RemoteDB(config.sn_username, config.sn_password)
         local = LocalDB(config.db_path)

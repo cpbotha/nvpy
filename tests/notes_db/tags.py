@@ -3,6 +3,7 @@ from ._mixin import DBMixin
 
 
 class Tags(DBMixin, unittest.TestCase):
+
     def test_database_can_delete_tags(self):
         notes_db = self._db()
         notes_db.notes = {
