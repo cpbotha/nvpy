@@ -2,12 +2,41 @@
 nvPY installation guide
 =======================
 
+.. contents:: Table of Contents
+
+Overview
+========
+
+You can install nvPY in several ways. Windows users can easily install the pre-built binary package.
+Mac and Linux users can install `the nvpy package published on pypi <https://pypi.org/project/nvpy/>`_.
+Other options are shown in the table below:
+
++---------------------------+---------+-----+-------+
+| Installation method ＼ OS | Windows | Mac | Linux |
++===========================+=========+=====+=======+
+| Pre-built binary package  | ○       | ×   | ×     |
++---------------------------+---------+-----+-------+
+| Install from pypi         | ○       | △   | ○     |
++---------------------------+---------+-----+-------+
+| Install from source       | △       | △   | △     |
++---------------------------+---------+-----+-------+
+| Build binary yourself     | △       | ×   | ×     |
++---------------------------+---------+-----+-------+
+
+The meanings of the symbols described in the above table are as follows:
+
+* ○ - It is supported and the main features are well tested by the maintainer.
+* △ - It is supported for developers and expert users. Some features may be unstable.
+* × - It may be possible, but not supported. Maintainer probably won't fix issues.
+
+**Note:** On macOS, nvPY crashes or hangs while typing text due to an underlying UI library issue.
+
 There are many (mostly very easy) ways to install nvPY. This document summarises a number of them.
 
 Windows step-by-step for beginners
 ==================================
 
-Following this recipe, install the nvPY to your computer.
+This section describes how to install pre-built package. Follow the steps below:
 
 1. Find the latest *stable* release from `the releases page <https://github.com/cpbotha/nvpy/releases>`_.
 2. Download :code:`nvpy-windows.zip` file and extract it.
@@ -28,34 +57,35 @@ To upgrade an existing installation of nvpy, just replace the :code:`nvpy` folde
 Windows step-by-step for experts
 ================================
 
-1. Download the Python 3.6 or later.  Don't forget to install `the Python launcher <https://docs.python.org/3.6/using/windows.html#python-launcher-for-windows>`_.
-2. Install nvPY from PyPI. ::
+1. Download and install the Python 3.7 or later.  Don't forget to install `the Python launcher <https://docs.python.org/3.7/using/windows.html#python-launcher-for-windows>`_.
+2. Install `pipx <https://pypa.github.io/pipx/>`_ that the package manager for end-user applications. ::
 
-    py -3 -m pip install -U nvpy
+    py -3 -m pip install -U pipx
 
-   OR, download source code from `repository <https://github.com/cpbotha/nvpy>`_, and install it. ::
+3. Install nvPY package by pipx. ::
 
-    git clone https://github.com/cpbotha/nvpy
-    cd nvpy
-    py -3 -m pip install -U .
+    py -3 -m pipx install nvpy
 
-3. Create a setting file to :code:`%HOMEPATH%\nvpy.cfg` while referring to `nvpy-example.cfg <https://github.com/cpbotha/nvpy/blob/master/nvpy/nvpy-example.cfg>`_.
-4. Start nvPY by pressing Windows-R and typing :code:`nvpy`.
+4. Create a setting file to :code:`%HOMEPATH%\nvpy.cfg` while referring to `nvpy-example.cfg <https://github.com/cpbotha/nvpy/blob/master/nvpy/nvpy-example.cfg>`_.
+5. Start nvPY by pressing Windows-R and typing :code:`nvpy`.
 
-To upgrade an existing installation of nvpy, do the following::
+To upgrade an existing installation of nvPY, do the following::
 
-    py -3 -m pip install -U nvpy
+    py -3 -m pipx upgrade nvpy
 
 
 Ubuntu / Mint / Debian step-by-step
 ===================================
 
-On Debian-flavoured systems with apt, current releases of nypy require Python 3.6 or later. If you are running Debian-buster, Ubuntu-bionic, or later, which have a compatible release of Python as the default for `python3`, this generally works::
+On Debian-flavoured systems with apt, current releases of nypy require Python 3.7 or later. If you are running Debian 10, Ubuntu 20.04, or later, which have a compatible release of Python as the default for `python3`, this generally works::
 
+    # Install dependencies and pipx (end-user application manager developed by the Python Packaging Authority).
     sudo apt-get install python3 python3-tk python3-pip
-    sudo pip3 install -U nvpy
+    python3 -m pip install pipx
+    # Install nvpy using pipx.
+    python3 -m pipx install nvpy
 
-Older releases may require manual installation of python 3.6 or later.
+Older releases may require manual installation of python 3.7 or later.
 
 Create a file in your home directory called :code:`.nvpy.cfg` with just the following contents::
 
@@ -66,10 +96,11 @@ Create a file in your home directory called :code:`.nvpy.cfg` with just the foll
 To start nvpy, just do::
 
     nvpy
+    # If you get a "command not found" error, try to ~/.local/bin/nvpy
 
 To upgrade an existing installation of nvpy, do the following::
 
-    sudo pip3 install --upgrade nvpy
+    python3 -m pipx upgrade nvpy
 
 Integrating with your Linux desktop environment
 -----------------------------------------------
@@ -126,3 +157,4 @@ To browse nvPY internal docs, just do::
     pip3 install -U pdoc3
     pdoc --http localhost:8080 nvpy
     # Open http://localhost:8080, you can see docs.
+
