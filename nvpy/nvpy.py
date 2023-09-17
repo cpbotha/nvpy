@@ -112,14 +112,14 @@ class Config:
         self.app_dir = app_dir
         # cross-platform way of getting home dir!
         # http://stackoverflow.com/a/4028943/532513
-        home = os.path.abspath(os.path.expanduser('~'))
+        home = pathlib.Path.home()
 
         # the file that we write user settings to, which is different
         # from the configuration files
-        self.settings_file = os.path.join(home, '.nvpy_settings')
+        self.settings_file = home / '.nvpy_settings'
         if is_linux:
             env_dir = os.environ.get("XDG_CACHE_HOME")
-            cache_dir = pathlib.Path(env_dir) if env_dir and os.path.isabs(env_dir) else pathlib.Path.home() / ".cache"
+            cache_dir = pathlib.Path(env_dir) if env_dir and os.path.isabs(env_dir) else home / ".cache"
             old_file = self.settings_file
             self.settings_file = cache_dir / "nvpy_settings"
             # Try deleting the nvpy_settings file in old location.

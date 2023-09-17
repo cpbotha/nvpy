@@ -31,6 +31,9 @@ def show_profile(fn):
     return wrapper
 
 
+AutorangeResult = typing.Tuple[int, float]
+
+
 class Benchmark(typing.NamedTuple):
     label: str
     setup: typing.Callable
@@ -39,8 +42,6 @@ class Benchmark(typing.NamedTuple):
     def run(self):
         result = timeit.Timer(stmt=self.func, setup=self.setup).autorange()
         self.print_result(self.label, result)
-
-    AutorangeResult = typing.Tuple[int, float]
 
     @staticmethod
     def convert_time_units(seconds: float):

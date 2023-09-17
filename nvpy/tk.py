@@ -43,8 +43,8 @@ def with_ucs4_error_handling(fn):
 ########################################################################
 # Apply the monkey patches for convert TclError to Ucs4NotSupportedError
 
-_Text = Text
-del Text
+_Text = Text  # type: ignore
+del Text  # type: ignore
 
 
 class Text(_Text):  # type:ignore
