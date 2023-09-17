@@ -22,7 +22,7 @@ import argparse
 import typing
 
 from nvpy import nvpy
-import simplenote
+import simplenote  # type:ignore
 
 
 class APIError(Exception):

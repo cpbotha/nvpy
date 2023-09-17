@@ -7,7 +7,7 @@ format:
 
 .PHONY: test
 test:
-	PYTHONPATH=.:$$PYTHONPATH mypy nvpy tests benchmarks
+	PYTHONPATH=.:$$PYTHONPATH mypy nvpy tests benchmarks debug-utils
 	PYTHONPATH=.:$$PYTHONPATH coverage run -m unittest discover -s tests -p '*.py'
 	# Generate coverage report.
 	coverage report --skip-covered nvpy/*.py
