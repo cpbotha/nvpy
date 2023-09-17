@@ -1901,6 +1901,7 @@ class View(utils.SubjectMixin):
             t.tag_add('md-bold', '1.0+{0}c'.format(mo.start()), '1.0+{0}c'.format(mo.end()))
 
     def handler_control_backspace(self, evt):
+        # TODO: Logic is too complex. add test cases
         if self.text_note.index("insert-1c") != "1.0" and self.text_note.index(tk.INSERT) != "1.0":
             if self.text_note.index("insert wordstart-1c") == "1.0":
                 i = 0
@@ -1925,6 +1926,7 @@ class View(utils.SubjectMixin):
         return "break"
 
     def handler_control_delete(self, evt):
+        # TODO: Logic is too complex. add test cases
         insert = self.text_note.get(tk.INSERT)
         if insert in "  " and insert != "":
             while insert in "  " and insert != "":
