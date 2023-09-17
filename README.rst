@@ -9,6 +9,7 @@ you heard right, you can run this on Linux (tested), Windows (tested)
 and OS X (lightly tested).
 
 It was written by Charl Botha, who needed a simplenote client on Linux and doesn't mind ugliness (that much). Sjaak Westdijk has contributed significantly to the codebase since right after the 0.8.5 release.
+Since nvPY v1.0.0, it is maintained by `yuuki0xff <https://github.com/yuuki0xff>`_.
 
 * nvpy lives happily at https://github.com/cpbotha/nvpy
 * For news and discussion, join the `public nvpy google group <https://groups.google.com/d/forum/nvpy>`_ or subscribe to its `RSS topic feed <https://groups.google.com/group/nvpy/feed/rss_v2_0_topics.xml>`_.
