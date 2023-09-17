@@ -29,7 +29,7 @@ The meanings of the symbols described in the above table are as follows:
 * △ - It is supported for developers and expert users. Some features may be unstable.
 * × - It may be possible, but not supported. Maintainer probably won't fix issues.
 
-**Note:** On macOS, nvPY crashes or hangs while typing text due to an underlying UI library issue.
+**Note:** On macOS, nvPY may be unstable. It crashes or hangs while typing text due to an underlying UI library issue in some environments.
 
 There are many (mostly very easy) ways to install nvPY. This document summarises a number of them.
 
