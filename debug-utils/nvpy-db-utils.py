@@ -183,7 +183,7 @@ class UpdateCmd:
 
 def parse_cmd_line_args():
     p = argparse.ArgumentParser()
-    p.add_argument('--cfg', '-c', dest='cfg', metavar='nvpy.cfg', help='path to config file')
+    p.add_argument('--cfg', '-c', dest='cfg', type=pathlib.Path, metavar='nvpy.cfg', help='path to config file')
     sp = p.add_subparsers(required=True)
 
     validate = sp.add_parser('validate')
@@ -208,7 +208,10 @@ def parse_cmd_line_args():
 
 def main():
     args = parse_cmd_line_args()
-    config = nvpy.Config(nvpy.get_appdir(), args.cfg)
+    cfg_files = None
+    if args.ns:
+        cfg_files = [args.cfg]
+    config = nvpy.Config(nvpy.get_appdir(), cfg_files)
     return args.clazz().run(args, config)
 
 
