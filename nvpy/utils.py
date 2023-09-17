@@ -7,7 +7,6 @@ import re
 from urllib.error import URLError
 from urllib.request import urlopen
 from queue import Queue, Empty as QueueEmpty
-from .p3port import unicode
 
 import threading
 
@@ -42,11 +41,6 @@ def get_note_title_file(note, replace_filename_spaces):
         fn = fn.replace('/', '_')
         if not fn:
             return ''
-
-        if isinstance(fn, str):
-            fn = unicode(fn, 'utf-8')
-        else:
-            fn = unicode(fn)
 
         if note_markdown(note):
             fn += '.mkdn'

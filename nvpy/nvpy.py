@@ -32,7 +32,6 @@
 import sys
 import codecs
 from configparser import ConfigParser
-from .p3port import unicode
 import logging
 from logging.handlers import RotatingFileHandler
 from .notes_db import NotesDB, SyncError, ReadError, WriteError, SortMode, MergedSorter, PinnedSorter, AlphaSorter, DateSorter, AlphaNumSorter
@@ -707,17 +706,8 @@ class Controller:
 
             # create filename based on key
             fn = os.path.join(self.config.db_path, key + '_rest.html')
-            f = codecs.open(fn, mode='wb', encoding='utf-8')
-
-            # explicit decode from utf8 into unicode object. If we don't
-            # specify utf8, python falls back to default ascii and then we get
-            # "'ascii' codec can't decode byte" error
-            s = u"""
-%s
-            """ % (unicode(html, 'utf8'), )
-
-            f.write(s)
-            f.close()
+            with open(fn, mode='w', encoding='utf-8') as f:
+                f.write(html)
             return fn
 
     def observer_view_markdown(self, view, evt_type, evt):

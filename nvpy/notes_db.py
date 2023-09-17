@@ -15,7 +15,6 @@ import pathlib
 import threading
 from queue import Queue, Empty
 from http.client import HTTPException
-from .p3port import unicode
 from threading import Thread, Lock
 import time
 import typing
