@@ -1682,7 +1682,7 @@ class View(utils.SubjectMixin):
     def cmd_help_about(self):
         tkMessageBox.showinfo('Help | About',
                               'nvPY %s - A rather ugly but cross-platform simplenote client.\n\n'
-                              'Copyright 2017-2022 yuuki0xff <https://yuuki0xff.jp/>\n'
+                              'Copyright 2017-2023 yuuki0xff <https://yuuki0xff.jp/>\n'
                               'Copyright 2012-2016 Charl P. Botha <http://charlbotha.com/>\n' %
                               (self.config.app_version, ),
                               parent=self.root)
