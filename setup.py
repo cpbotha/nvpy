@@ -36,7 +36,19 @@ setup(
     ],
     extras_require={
         # development and test requirements.
-        'dev': ['mock', 'yapf', 'pdoc3', 'mypy', 'coverage'],
+        'dev': [
+            'mock',
+            'yapf',
+            'pdoc3',
+            'mypy',
+            'coverage',
+
+            # mypy type definitions
+            'types-Markdown',
+            'types-certifi',
+            'types-docutils',
+            'types-mock',
+        ],
     },
     entry_points={'gui_scripts': ['nvpy = nvpy.nvpy:main']},
     # use MANIFEST.in file
