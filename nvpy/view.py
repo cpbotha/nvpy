@@ -1940,9 +1940,9 @@ class View(utils.SubjectMixin):
                     insert = self.text_note.get(tk.INSERT)
         else:
             if insert in "\n\t" and insert != "":
-                if self.text_note.get(
-                        tk.INSERT,
-                        tk.END).strip() == "" and self.text_note.index(tk.INSERT) != self.text_note.index(tk.END):
+                has_only_space_chars = self.text_note.get(tk.INSERT, tk.END).strip() == ""
+                has_any_chars = self.text_note.index(tk.INSERT) != self.text_note.index(tk.END)
+                if has_only_space_chars and has_any_chars:
                     self.text_note.delete(tk.INSERT, tk.END)
                 else:
                     while insert in "\n\t  " and insert != "":
