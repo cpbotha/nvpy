@@ -1,3 +1,5 @@
+""" Help message for nvPY Key bindings """
+
 description = '''\
 ============= ==========
 Key combo     Action

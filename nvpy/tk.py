@@ -1,10 +1,14 @@
 # nvPY: cross-platform note-taking app with simplenote syncing
 # copyright 2012 by Charl P. Botha <cpbotha@vxlabs.com>
 # new BSD license
+""" Tkinter and ttk wrappers and monkey patcher
 
-# Tkinter and ttk documentation recommend pulling all symbols into client
-# module namespace. I don't like that, so first pulling into this module
-# tk, then can use tk.whatever in main module.
+Tkinter and ttk documentation recommend pulling all symbols into client
+module namespace. I don't like that, so first pulling into this module
+tk, then can use tk.whatever in main module.
+
+This module also applies a monkey patch for UCS4 error handling.
+"""
 
 from tkinter import *
 from tkinter.ttk import *  # type:ignore

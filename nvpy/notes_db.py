@@ -1,6 +1,8 @@
 # nvPY: cross-platform note-taking app with simplenote syncing
 # copyright 2012 by Charl P. Botha <cpbotha@vxlabs.com>
 # new BSD license
+""" nvPY internal database and note synchronization logic """
+
 import sys
 import codecs
 import copy
@@ -116,6 +118,8 @@ class _BackgroundTaskReslt(typing.NamedTuple):
 
 
 class SortMode(enum.Enum):
+    """ Enum variables for note sorting order """
+
     # Sort in alphabetic order.
     ALPHA = 0
     # Sort by modification date.
@@ -1285,6 +1289,11 @@ class NotesDB(utils.SubjectMixin):
 
 
 class Note(dict):
+    """ nvPY internal note representation
+
+    The current implementation usually uses the dict type for note representation. It is hard to customize logic.
+    We should migrate from the dict to the Note class.
+    """
 
     @property
     def need_save(self):
@@ -1301,6 +1310,7 @@ class Note(dict):
         return 'key' not in self or float(self['modifydate']) > float(self['syncdate'])
 
     def is_newer_than(self, other):
+        """ Return true if this note is newer than other note. """
         try:
             return float(self['modifydate']) > float(other['modifydate'])
         except KeyError:

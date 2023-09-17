@@ -1,6 +1,7 @@
 # nvPY: cross-platform note-taking app with simplenote syncing
 # copyright 2012 by Charl P. Botha <cpbotha@vxlabs.com>
 # new BSD license
+""" View classes """
 
 import logging
 import os
@@ -123,6 +124,7 @@ class RedirectedText(tk.Text):
 
 
 class HelpBindings(tk.Toplevel):
+    """ Show help window. """
 
     def __init__(self, parent=None):
         tk.Toplevel.__init__(self, parent)

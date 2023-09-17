@@ -1,3 +1,5 @@
+""" Wrapper functions for debug """
+
 import sys
 import functools
 import pdb
@@ -23,7 +25,11 @@ def format_all_tracebacks():
 
 
 def wrap_buggy_function(fn):
-    """ wrap_buggy_function handles any exception and start pdb in interactive mode. """
+    """ wrap_buggy_function handles Exception and writes verbose information to log.
+    After logging, try to start the pdb in interactive mode.
+
+    Note that pdb interactive mode is unstable because it called on UI thread or background thread.
+    """
 
     @functools.wraps(fn)
     def wrapper(*args, **kwargs):

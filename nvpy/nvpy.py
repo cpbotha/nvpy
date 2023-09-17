@@ -29,6 +29,8 @@
 #   b) syncing with simplenote
 
 # to check if we're online
+""" Controller and Config classes """
+
 import sys
 import codecs
 from configparser import ConfigParser

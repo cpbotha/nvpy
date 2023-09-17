@@ -1,3 +1,5 @@
+""" Event classes used for event delivery with SubjectMixin """
+
 import typing
 
 
