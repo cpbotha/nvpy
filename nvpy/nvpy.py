@@ -198,6 +198,7 @@ class Config:
         else:
             self.ok = True
 
+        self.app_version = VERSION
         # for the username and password, we don't want interpolation,
         # hence the raw parameter. Fixes
         # https://github.com/cpbotha/nvpy/issues/9
@@ -402,7 +403,6 @@ class Controller:
         SubjectMixin.MAIN_THREAD = threading.current_thread()
 
         self.config = config
-        self.config.app_version = VERSION
 
         # configure logging module
         #############################
