@@ -25,6 +25,7 @@ import base64
 import simplenote  # type:ignore
 from . import events
 from . import utils
+from . import nvpy
 from .debug import wrap_buggy_function
 
 FilterResult = typing.Tuple[typing.List['NoteInfo'], str, int]
@@ -309,7 +310,7 @@ class NotesDB(utils.SubjectMixin):
     """NotesDB will take care of the local notes database and syncing with SN.
     """
 
-    def __init__(self, config):
+    def __init__(self, config: 'nvpy.Config'):
         utils.SubjectMixin.__init__(self)
 
         self.config = config
@@ -414,8 +415,8 @@ class NotesDB(utils.SubjectMixin):
                     os.unlink(tfn)
 
         # save and sync queue
-        self.q_save = Queue()
-        self.q_save_res = Queue()
+        self.q_save: 'Queue[_BackgroundTask]' = Queue()
+        self.q_save_res: 'Queue[_BackgroundTask]' = Queue()
 
         thread_save = Thread(target=wrap_buggy_function(self.worker_save))
         thread_save.setDaemon(True)
@@ -435,8 +436,8 @@ class NotesDB(utils.SubjectMixin):
 
             self.syncing_lock = Lock()
 
-            self.q_sync = Queue()
-            self.q_sync_res = Queue()
+            self.q_sync: 'Queue[_BackgroundTask]' = Queue()
+            self.q_sync_res: 'Queue[_BackgroundTaskReslt]' = Queue()
 
             thread_sync = Thread(target=wrap_buggy_function(self.worker_sync))
             thread_sync.setDaemon(True)
