@@ -401,7 +401,6 @@ class Controller:
     def __init__(self, config):
         SubjectMixin.MAIN_THREAD = threading.current_thread()
 
-        # should probably also look in $HOME
         self.config = config
         self.config.app_version = VERSION
 
