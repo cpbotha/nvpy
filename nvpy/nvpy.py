@@ -778,7 +778,7 @@ class Controller:
             self.config.case_sensitive = evt.value
             self.view.refresh_notes_list()
 
-    def observer_view_change_search_mode(self, view, evt_type, evt: events.CheckboxChangedEvent):
+    def observer_view_change_search_mode(self, view, evt_type, evt: events.TextBoxChangedEvent):
         if evt.value != self.config.search_mode:
             self.config.search_mode = evt.value
             self.view.refresh_notes_list()

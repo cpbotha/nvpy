@@ -1767,7 +1767,7 @@ class View(utils.SubjectMixin):
         @param args:
         @return:
         """
-        self.notify_observers('change:search_mode', events.CheckboxChangedEvent(value=self.search_mode_var.get()))
+        self.notify_observers('change:search_mode', events.TextBoxChangedEvent(value=self.search_mode_var.get()))
 
     def handler_add_tags_to_selected_note(self, evt=None):
         self.notify_observers('add:tag', events.TagsAddedEvent(tags=self.tags_entry_var.get()))
