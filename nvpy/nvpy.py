@@ -374,7 +374,7 @@ class NotesListModel(SubjectMixin):
         SubjectMixin.__init__(self)
 
         self.list = []
-        self.match_regexps = []
+        self.match_regexp = ''
 
     def set_list(self, alist):
         self.list = alist
