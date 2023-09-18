@@ -117,6 +117,7 @@ class _BackgroundTaskReslt(typing.NamedTuple):
     error: int
 
 
+@enum.unique
 class SortMode(enum.Enum):
     """ Enum variables for note sorting order """
 
