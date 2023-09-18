@@ -398,7 +398,7 @@ class Controller:
         'creation date': SortMode.CREATION_DATE,
     }
 
-    def __init__(self, config):
+    def __init__(self, config: Config):
         SubjectMixin.MAIN_THREAD = threading.current_thread()
 
         self.config = config
