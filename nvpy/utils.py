@@ -153,10 +153,7 @@ class SubjectMixin:
     """
 
     # main thread object
-    #
-    # Workaround for missing the threading.main_thread() function on Python 2.7.
-    # This variable was updated by the Controller.__init__().
-    MAIN_THREAD = None
+    MAIN_THREAD = threading.main_thread()
 
     def __init__(self):
         self.observers = {}

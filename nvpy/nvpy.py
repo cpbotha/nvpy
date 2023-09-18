@@ -409,8 +409,6 @@ class Controller:
     }
 
     def __init__(self, config: Config):
-        SubjectMixin.MAIN_THREAD = threading.current_thread()
-
         self.config = config
 
         # configure logging module
@@ -511,6 +509,9 @@ class Controller:
             raise
 
     def main_loop(self):
+        # SubjectMixin.handle_notifies() requires that main_loop must run on the main thread.
+        assert SubjectMixin.MAIN_THREAD == threading.current_thread()
+
         if not self.config.files_read:
             self.view.show_warning(
                 'No config file',
