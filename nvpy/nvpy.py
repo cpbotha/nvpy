@@ -30,9 +30,10 @@
 
 # to check if we're online
 """ Controller and Config classes """
-
+import contextlib
 import sys
 import codecs
+import time
 from configparser import ConfigParser
 import logging
 from logging.handlers import RotatingFileHandler
@@ -182,6 +183,7 @@ class Config:
             'escape_to_exit': 'false',
             'confirm_exit': 'false',
             'streamline_interface': 'false',
+            'use_profiler': 'false',
         }
 
         normalized_cfg_files = self._list_cfg_files(cfg_files)
@@ -259,6 +261,8 @@ class Config:
         if cp.has_option(cfg_sec, 'background_full_sync'):
             w = lambda: logging.warning('"background_full_sync" option is removed.')
             self.warnings.append(w)
+
+        self.use_profiler = cp.getboolean(cfg_sec, 'use_profiler')
 
     def _list_cfg_files(self, cfg_files: typing.Optional[PathList]) -> PathList:
         """ List up nvPY configuration files. """
@@ -996,6 +1000,34 @@ def parse_cmd_line_args(args: typing.Optional[typing.List] = None) -> argparse.N
     return parser.parse_args(args)
 
 
+@contextlib.contextmanager
+def profiler_context(fname_prefix: str):
+    """ Enable profiler insider context.
+    When leave the context, writes result to file as two formats (binary and text).
+    """
+    try:
+        import cProfile as profile
+    except:
+        import profile  # type:ignore
+    import pstats
+
+    p = profile.Profile()
+    p.enable()
+    yield
+    p.disable()
+
+    # Write result to files.
+    prefix = f'{fname_prefix}.{time.time_ns()}.{os.getpid()}'
+    text_file = f'{prefix}.txt'
+    bin_file = f'{prefix}.bin'
+    with open(text_file, 'w') as f:
+        s = pstats.Stats(p, stream=f)
+        s.dump_stats(bin_file)
+        s.sort_stats(pstats.SortKey.TIME, pstats.SortKey.CUMULATIVE, pstats.SortKey.CALLS)
+        # The stream=f argument specified to constructor. print_* functions writes to f instead of stdout.
+        s.print_stats()
+
+
 def main(args: typing.Optional[typing.List] = None):
     ns = parse_cmd_line_args(args)
     cfg_files = None
@@ -1003,9 +1035,16 @@ def main(args: typing.Optional[typing.List] = None):
         cfg_files = [ns.cfg]
     config = Config(get_appdir(), cfg_files)
 
+    # Setup profiler.
+    profiler: typing.ContextManager = contextlib.nullcontext()
+    if config.use_profiler:
+        prefix = str(pathlib.Path(config.db_path) / 'nvpy-profile')
+        profiler = profiler_context(prefix)
+
     try:
-        controller = Controller(config)
-        controller.main_loop()
+        with profiler:
+            controller = Controller(config)
+            controller.main_loop()
     except tk.Ucs4NotSupportedError as e:
         logging.error(str(e))
         import tkMessageBox  # type:ignore
