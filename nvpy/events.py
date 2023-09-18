@@ -21,7 +21,9 @@ class TextBoxChangedEvent(typing.NamedTuple):
 
 
 class TagsAddedEvent(typing.NamedTuple):
-    tags: typing.List[str]
+    # This string is entered from UI. It may be one or more comma-separated tags.
+    # We should parse it and clean up before use it.
+    tags: str
 
 
 class TagRemovedEvent(typing.NamedTuple):
