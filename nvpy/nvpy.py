@@ -247,8 +247,8 @@ class Config:
             highlight_background=cp.get(cfg_sec, 'highlight_background_color'),
         )
 
-        self.rest_css_path = cp.get(cfg_sec, 'rest_css_path')
-        self.md_css_path = cp.get(cfg_sec, 'md_css_path')
+        self.rest_css_path = self._normalize_path(cp.get(cfg_sec, 'rest_css_path'))
+        self.md_css_path = self._normalize_path(cp.get(cfg_sec, 'md_css_path'))
         self.md_extensions = cp.get(cfg_sec, 'md_extensions')
         self.debug = cp.getint(cfg_sec, 'debug')
         self.keep_search_keyword = cp.getboolean(cfg_sec, 'keep_search_keyword')
@@ -299,6 +299,15 @@ class Config:
         """
         cp = ConfigParser(defaults)
         return cp.read(cfg_files), cp
+
+    @staticmethod
+    def _normalize_path(path: str) -> str:
+        """ Normalize path for configuration option.
+        If path is '', this function always returns ''. Otherwise, it returns absolute path.
+        """
+        if path == '':
+            return ''
+        return str(pathlib.Path(path).expanduser().absolute())
 
     @property
     def sorter(self):
@@ -429,26 +438,6 @@ class Controller:
 
         if self.config.sn_username == '':
             self.config.simplenote_sync = 0
-
-        rst_css = self.config.rest_css_path
-        if rst_css:
-            if rst_css.startswith("~/"):
-                # On Mac, paths that start with '~/' aren't found by path.exists
-                rst_css = rst_css.replace("~", os.path.abspath(os.path.expanduser('~')), 1)
-                self.config.rest_css_path = rst_css
-            if not os.path.exists(rst_css):
-                # Couldn't find the user-defined css file. Use docutils css instead.
-                self.config.rest_css_path = None
-        md_css = self.config.md_css_path
-        if md_css:
-            if md_css.startswith("~/"):
-                # On Mac, paths that start with '~/' aren't found by path.exists
-                md_css = md_css.replace("~", os.path.abspath(os.path.expanduser('~')), 1)
-                self.config.md_css_path = md_css
-            if not os.path.exists(md_css):
-                # Couldn't find the user-defined css file.
-                # Do not use css styling for markdown.
-                self.config.md_css_path = None
 
         self.notes_list_model = NotesListModel()
         # create the interface
