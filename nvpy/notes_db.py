@@ -419,7 +419,7 @@ class NotesDB(utils.SubjectMixin):
         self.q_save_res: 'Queue[_BackgroundTask]' = Queue()
 
         thread_save = Thread(target=wrap_buggy_function(self.worker_save))
-        thread_save.setDaemon(True)
+        thread_save.daemon = True
         thread_save.start()
 
         self.full_syncing = False
@@ -440,7 +440,7 @@ class NotesDB(utils.SubjectMixin):
             self.q_sync_res: 'Queue[_BackgroundTaskReslt]' = Queue()
 
             thread_sync = Thread(target=wrap_buggy_function(self.worker_sync))
-            thread_sync.setDaemon(True)
+            thread_sync.daemon = True
             thread_sync.start()
 
     def create_note(self, title):
@@ -892,7 +892,7 @@ class NotesDB(utils.SubjectMixin):
 
     def sync_full_threaded(self):
         thread_sync_full = Thread(target=self.sync_full_unthreaded)
-        thread_sync_full.setDaemon(True)
+        thread_sync_full.daemon = True
         thread_sync_full.start()
 
     def sync_full_unthreaded(self):
