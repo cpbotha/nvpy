@@ -957,7 +957,7 @@ def get_appdir():
             # See https://github.com/pyinstaller/pyinstaller/pull/3952
             import ssl
             if ssl.get_default_verify_paths().cafile is None:
-                import certifi
+                import certifi.core
                 os.environ['SSL_CERT_FILE'] = certifi.core.where()
         else:
             # py2exe
