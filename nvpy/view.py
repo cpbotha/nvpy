@@ -1625,7 +1625,7 @@ class View(utils.SubjectMixin):
 
         # ascii art created with: http://patorjk.com/software/taag/
 
-        msg = """
+        msg = r"""
         No note currently selected.
 
         Either select a note, or press Ctrl-N to create
