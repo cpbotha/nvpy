@@ -1,5 +1,6 @@
 import unittest
-import nvpy.notes_db as notes_db
+from nvpy import notes_db
+from nvpy import nvpy
 
 Nullable = notes_db.AlphaNumSorter.Nullable
 
@@ -121,7 +122,7 @@ class AlphaNumSorter(unittest.TestCase):
 class DateSorter(unittest.TestCase):
 
     def test_sort_by_modification_date(self):
-        sorter = notes_db.DateSorter(notes_db.SortMode.MODIFICATION_DATE)
+        sorter = notes_db.DateSorter(nvpy.SortMode.MODIFICATION_DATE)
         notes = [
             create_note('zzz', createdate=99, modifydate=1),
             create_note('yyy', createdate=96, modifydate=2),
@@ -139,7 +140,7 @@ class DateSorter(unittest.TestCase):
         )
 
     def test_sort_by_creation_date(self):
-        sorter = notes_db.DateSorter(notes_db.SortMode.CREATION_DATE)
+        sorter = notes_db.DateSorter(nvpy.SortMode.CREATION_DATE)
         notes = [
             create_note('zzz', createdate=1, modifydate=99),
             create_note('yyy', createdate=2, modifydate=96),
@@ -158,7 +159,7 @@ class DateSorter(unittest.TestCase):
 
     def test_fail_if_unexpected_mode_specified(self):
         with self.assertRaises(ValueError):
-            notes_db.DateSorter(notes_db.SortMode.ALPHA)
+            notes_db.DateSorter(nvpy.SortMode.ALPHA)
         with self.assertRaises(ValueError):
             notes_db.DateSorter(2)
         with self.assertRaises(ValueError):

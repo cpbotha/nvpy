@@ -1,7 +1,7 @@
 import functools
 import unittest
 
-import nvpy.notes_db as notes_db
+from nvpy import nvpy, notes_db
 from benchmarks import Benchmark
 
 notes_10k = [
@@ -36,7 +36,7 @@ class BenchmarkSorters(unittest.TestCase):
 
     def test_date_10k_10times(self):
         for i in range(10):
-            sorted(notes_10k, key=notes_db.DateSorter(notes_db.SortMode.MODIFICATION_DATE))
+            sorted(notes_10k, key=notes_db.DateSorter(nvpy.SortMode.MODIFICATION_DATE))
 
 
 def bench_sorter(notes, sorter):
@@ -53,7 +53,7 @@ def main():
         notes_db.PinnedSorter(),
         notes_db.AlphaSorter(),
         notes_db.AlphaNumSorter(),
-        notes_db.DateSorter(notes_db.SortMode.MODIFICATION_DATE),
+        notes_db.DateSorter(nvpy.SortMode.MODIFICATION_DATE),
     ]
     for sorter in sorters:
         Benchmark(

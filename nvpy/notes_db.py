@@ -10,7 +10,6 @@ import glob
 import os
 import json
 import logging
-import enum
 import abc
 import unicodedata
 import pathlib
@@ -116,20 +115,6 @@ class _BackgroundTaskReslt(typing.NamedTuple):
     key: str
     note: typing.Any
     error: int
-
-
-@enum.unique
-class SortMode(enum.Enum):
-    """ Enum variables for note sorting order """
-
-    # Sort in alphabetic order.
-    ALPHA = 0
-    # Sort by modification date.
-    MODIFICATION_DATE = 1
-    # Sort by creation date.
-    CREATION_DATE = 2
-    # Sort in alphanumeric order.
-    ALPHA_NUM = 3
 
 
 class Sorter(abc.ABC):
@@ -285,10 +270,10 @@ class AlphaNumSorter(Sorter):
 class DateSorter(Sorter):
     """ Sort in creation/modification date. """
 
-    def __init__(self, mode: SortMode):
-        if mode == SortMode.MODIFICATION_DATE:
+    def __init__(self, mode: 'nvpy.SortMode'):
+        if mode == nvpy.SortMode.MODIFICATION_DATE:
             self._sort_key = self._sort_key_modification_date
-        elif mode == SortMode.CREATION_DATE:
+        elif mode == nvpy.SortMode.CREATION_DATE:
             self._sort_key = self._sort_key_creation_date
         else:
             raise ValueError(f'invalid sort mode: {mode}')

@@ -31,13 +31,14 @@
 # to check if we're online
 """ Controller and Config classes """
 import contextlib
+import enum
 import sys
 import codecs
 import time
 from configparser import ConfigParser
 import logging
 from logging.handlers import RotatingFileHandler
-from .notes_db import NotesDB, SyncError, ReadError, WriteError, SortMode, MergedSorter, PinnedSorter, AlphaSorter, DateSorter, AlphaNumSorter
+from .notes_db import NotesDB, SyncError, ReadError, WriteError, MergedSorter, PinnedSorter, AlphaSorter, DateSorter, AlphaNumSorter
 import argparse
 import os
 import traceback
@@ -98,6 +99,20 @@ class ColorConfig(typing.NamedTuple):
     background: str
     # Background color of highlighted area.
     highlight_background: str
+
+
+@enum.unique
+class SortMode(enum.Enum):
+    """ Enum variables for note sorting order """
+
+    # Sort in alphabetic order.
+    ALPHA = 0
+    # Sort by modification date.
+    MODIFICATION_DATE = 1
+    # Sort by creation date.
+    CREATION_DATE = 2
+    # Sort in alphanumeric order.
+    ALPHA_NUM = 3
 
 
 class Config:
@@ -214,7 +229,7 @@ class Config:
         self.search_mode = cp.get(cfg_sec, 'search_mode')
         self.case_sensitive = cp.getint(cfg_sec, 'case_sensitive')
         self.search_tags = cp.getint(cfg_sec, 'search_tags')
-        # See notes_db.SortMode.
+        # See nvpy.SortMode.
         self.sort_mode = cp.getint(cfg_sec, 'sort_mode')
         self.pinned_ontop = cp.getint(cfg_sec, 'pinned_ontop')
         self.housekeeping_interval = cp.getint(cfg_sec, 'housekeeping_interval')
