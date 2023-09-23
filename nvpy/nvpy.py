@@ -50,7 +50,7 @@ import pathlib
 import platform
 
 from .notes_db import NotesDB, SyncError, ReadError, WriteError, MergedSorter, PinnedSorter, AlphaSorter, DateSorter, \
-    AlphaNumSorter
+    AlphaNumSorter, Sorter
 from . import tk
 from .utils import SubjectMixin
 from . import view
@@ -339,7 +339,7 @@ class Config:
     def sorter(self):
         mode = SortMode(self.sort_mode)
 
-        sorters = []
+        sorters: typing.List[Sorter] = []
         if self.pinned_ontop:
             sorters.append(PinnedSorter())
 

@@ -996,7 +996,7 @@ class View(utils.SubjectMixin):
     """Main user interface class.
     """
 
-    def __init__(self, config, notes_list_model):
+    def __init__(self, config: 'nvpy.Config', notes_list_model: 'nvpy.NotesListModel'):
         utils.SubjectMixin.__init__(self)
 
         self.config = config
@@ -1703,7 +1703,7 @@ class View(utils.SubjectMixin):
             f.configure(size=f['size'] + inc_size)
 
     def handler_cs_checkbutton(self, *args):
-        self.notify_observers('change:cs', events.CheckboxChangedEvent(value=self.cs_checkbutton_var.get()))
+        self.notify_observers('change:cs', events.CheckboxChangedEvent(value=bool(self.cs_checkbutton_var.get())))
 
     def handler_housekeeper(self):
         try:
@@ -1719,7 +1719,8 @@ class View(utils.SubjectMixin):
         self.handler_pinned_checkbutton()
 
     def handler_pinned_checkbutton(self, *args):
-        self.notify_observers('change:pinned', events.CheckboxChangedEvent(value=self.pinned_checkbutton_var.get()))
+        self.notify_observers('change:pinned',
+                              events.CheckboxChangedEvent(value=bool(self.pinned_checkbutton_var.get())))
 
     def handler_search_enter(self, evt):
         # user has pressed enter whilst searching
