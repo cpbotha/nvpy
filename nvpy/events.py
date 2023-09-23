@@ -2,6 +2,8 @@
 
 import typing
 
+from . import nvpy
+
 
 class NoteCreatedEvent(typing.NamedTuple):
     title: str
@@ -57,7 +59,7 @@ class SyncProgressEvent(typing.NamedTuple):
 
 
 class SortModeChangedEvent(typing.NamedTuple):
-    mode: str
+    mode: 'nvpy.SortMode'
 
 
 class PinnedOnTopChangedEvent(typing.NamedTuple):

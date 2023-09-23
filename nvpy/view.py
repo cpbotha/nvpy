@@ -17,6 +17,7 @@ from . import search_entry
 from . import tk
 from . import utils
 from . import events
+from . import nvpy
 
 
 class WidgetRedirector:
@@ -995,12 +996,11 @@ class View(utils.SubjectMixin):
     """Main user interface class.
     """
 
-    def __init__(self, config, notes_list_model, sort_modes: typing.Tuple[str, ...] = ('random', )):
+    def __init__(self, config, notes_list_model):
         utils.SubjectMixin.__init__(self)
 
         self.config = config
         self.taglist = None
-        self.sort_modes = sort_modes
 
         notes_list_model.add_observer('set:list', self.observer_notes_list)
         self.notes_list_model = notes_list_model
@@ -1334,9 +1334,9 @@ class View(utils.SubjectMixin):
         notes_menu = tk.Menu(menu, tearoff=False)
         menu.add_cascade(label='Notes', underline=1, menu=notes_menu)
 
-        self.sort_mode_var = tk.StringVar()
-        for mode in self.sort_modes:
-            notes_menu.add_radiobutton(label=f'Sort by {mode}', value=mode, variable=self.sort_mode_var)
+        self.sort_mode_var = tk.IntVar(value=self.config.sort_mode.value)
+        for name, mode in nvpy.SortMode.human_friendly_names().items():
+            notes_menu.add_radiobutton(label=f'Sort by {name}', value=mode.value, variable=self.sort_mode_var)
         notes_menu.add_separator()
         self.pinned_on_top_var = tk.BooleanVar()
         self.pinned_on_top_var.set(self.config.pinned_ontop)
@@ -1968,7 +1968,8 @@ class View(utils.SubjectMixin):
         return 'break'
 
     def handler_sort_mode_change(self, *args):
-        self.notify_observers('change:sort_mode', events.SortModeChangedEvent(self.sort_mode_var.get()))
+        mode = nvpy.SortMode(self.sort_mode_var.get())
+        self.notify_observers('change:sort_mode', events.SortModeChangedEvent(mode))
 
     def handler_pinned_on_top_change(self, *args):
         self.notify_observers('change:pinned_on_top', events.PinnedOnTopChangedEvent(self.pinned_on_top_var.get()))

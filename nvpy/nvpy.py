@@ -116,6 +116,15 @@ class SortMode(enum.Enum):
     # Sort in alphanumeric order.
     ALPHA_NUM = 3
 
+    @classmethod
+    def human_friendly_names(cls) -> typing.Dict[str, 'SortMode']:
+        return {
+            'title (alphabetical order)': cls.ALPHA,
+            'title (alphanumerical order)': cls.ALPHA_NUM,
+            'modification date': cls.MODIFICATION_DATE,
+            'creation date': cls.CREATION_DATE,
+        }
+
 
 class Config:
     """
@@ -232,7 +241,7 @@ class Config:
         self.case_sensitive = cp.getint(cfg_sec, 'case_sensitive')
         self.search_tags = cp.getint(cfg_sec, 'search_tags')
         # See nvpy.SortMode.
-        self.sort_mode = cp.getint(cfg_sec, 'sort_mode')
+        self.sort_mode = SortMode(cp.getint(cfg_sec, 'sort_mode'))
         self.pinned_ontop = cp.getint(cfg_sec, 'pinned_ontop')
         self.housekeeping_interval = cp.getint(cfg_sec, 'housekeeping_interval')
         self.housekeeping_interval_ms = self.housekeeping_interval * 1000
@@ -418,12 +427,6 @@ class NotesListModel(SubjectMixin):
 class Controller:
     """Main application class.
     """
-    SORT_MODES = {
-        'title (alphabetical order)': SortMode.ALPHA,
-        'title (alphanumerical order)': SortMode.ALPHA_NUM,
-        'modification date': SortMode.MODIFICATION_DATE,
-        'creation date': SortMode.CREATION_DATE,
-    }
 
     def __init__(self, config: Config):
         self.config = config
@@ -456,7 +459,7 @@ class Controller:
 
         self.notes_list_model = NotesListModel()
         # create the interface
-        self.view = view.View(self.config, self.notes_list_model, sort_modes=tuple(self.SORT_MODES.keys()))
+        self.view = view.View(self.config, self.notes_list_model)
 
         try:
             # read our database of notes into memory
@@ -866,7 +869,7 @@ class Controller:
             self.notes_db.set_note_pinned(self.selected_note_key, evt.value)
 
     def observer_view_change_sort_mode(self, view, evt_type, evt: events.SortModeChangedEvent):
-        self.config.sort_mode = self.SORT_MODES[evt.mode].value
+        self.config.sort_mode = evt.mode
         # Refresh notes list.
         self.view.refresh_notes_list()
 
