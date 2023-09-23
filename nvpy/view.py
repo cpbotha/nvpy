@@ -1485,15 +1485,6 @@ class View(utils.SubjectMixin):
                                         notes_list_config)
             self.notes_list.pack(fill=tk.BOTH, expand=1)
 
-            sort_mode_frame = tk.Frame(list_frame)
-            if not self.config.streamline_interface:
-                sort_mode_frame.pack(side=tk.TOP, fill=tk.X)
-            sort_mode_label = tk.Label(sort_mode_frame, text='Sort by')
-            sort_mode_label.pack(side=tk.LEFT)
-            sort_mode_selector = tk.OptionMenu(sort_mode_frame, self.sort_mode_var, self.sort_modes[0],
-                                               *self.sort_modes)
-            sort_mode_selector.pack(side=tk.LEFT, fill=tk.X, expand=1)
-
             note_frame = tk.Frame(paned_window, width=400)
 
         else:
