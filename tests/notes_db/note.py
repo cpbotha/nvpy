@@ -2,6 +2,7 @@ import unittest
 import itertools
 import copy
 from unittest.mock import patch
+
 from nvpy.notes_db import Note, NoteStatus
 from ._mixin import DBMixin
 

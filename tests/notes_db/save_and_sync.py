@@ -6,6 +6,7 @@ import time
 import unittest
 from unittest.mock import patch, MagicMock
 from pathlib import Path
+
 from nvpy.notes_db import WriteError, UpdateResult, Note, NotesDB
 from ._mixin import DBMixin
 

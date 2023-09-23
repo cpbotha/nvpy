@@ -1,4 +1,5 @@
 import unittest
+
 from ._mixin import DBMixin
 
 

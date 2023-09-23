@@ -1,6 +1,7 @@
 import os
 import shutil
 from pathlib import Path
+
 from nvpy.nvpy import Config
 from nvpy.notes_db import NotesDB
 

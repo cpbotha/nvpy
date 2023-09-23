@@ -21,8 +21,9 @@ import pathlib
 import argparse
 import typing
 
-from nvpy import nvpy
 import simplenote  # type:ignore
+
+from nvpy import nvpy
 
 
 class APIError(Exception):

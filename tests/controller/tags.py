@@ -1,9 +1,10 @@
 import unittest
+import os
+import shutil
+
 from nvpy.nvpy import Controller
 from nvpy.nvpy import Config
-import os
 from nvpy import events
-import shutil
 
 
 class Tags(unittest.TestCase):

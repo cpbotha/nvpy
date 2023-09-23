@@ -1,4 +1,5 @@
 import unittest
+
 from nvpy import notes_db
 from nvpy import nvpy
 

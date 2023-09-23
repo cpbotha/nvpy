@@ -7,7 +7,6 @@ import re
 from urllib.error import URLError
 from urllib.request import urlopen
 from queue import Queue, Empty as QueueEmpty
-
 import threading
 
 from . import tk

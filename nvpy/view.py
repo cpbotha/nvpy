@@ -6,16 +6,17 @@
 import logging
 import os
 import re
-from . import search_entry
-from . import tk
 from tkinter import messagebox as tkMessageBox
 import tkinter.font as tkFont  # type:ignore
-from . import utils
 import threading
-from . import events
 import typing
 import subprocess
 import platform
+
+from . import search_entry
+from . import tk
+from . import utils
+from . import events
 
 
 class WidgetRedirector:

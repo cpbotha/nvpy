@@ -21,7 +21,9 @@ import time
 import typing
 import re
 import base64
+
 import simplenote  # type:ignore
+
 from . import events
 from . import utils
 from . import nvpy

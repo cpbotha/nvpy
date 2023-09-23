@@ -38,22 +38,24 @@ import time
 from configparser import ConfigParser
 import logging
 from logging.handlers import RotatingFileHandler
-from .notes_db import NotesDB, SyncError, ReadError, WriteError, MergedSorter, PinnedSorter, AlphaSorter, DateSorter, AlphaNumSorter
 import argparse
 import os
 import traceback
 import threading
 import re
 import typing
-from . import tk
-from .utils import SubjectMixin
-from . import view
 import webbrowser
-from .version import VERSION
-from . import events
 from http.client import HTTPException
 import pathlib
 import platform
+
+from .notes_db import NotesDB, SyncError, ReadError, WriteError, MergedSorter, PinnedSorter, AlphaSorter, DateSorter, \
+    AlphaNumSorter
+from . import tk
+from .utils import SubjectMixin
+from . import view
+from .version import VERSION
+from . import events
 
 try:
     import markdown  # type:ignore

@@ -3,6 +3,7 @@ import shutil
 import unittest
 import pathlib
 import json
+
 from nvpy.nvpy import Config
 from nvpy.notes_db import NotesDB
 

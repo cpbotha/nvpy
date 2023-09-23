@@ -1,7 +1,6 @@
 import unittest
 import copy
-from nvpy.nvpy import Config
-from nvpy.notes_db import NotesDB
+
 from ._mixin import DBMixin
 
 notes = {

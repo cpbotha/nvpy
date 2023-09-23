@@ -1,10 +1,12 @@
 import unittest
+import os
+import shutil
+
 from mock import Mock
+
 from nvpy.view import View
 from nvpy.nvpy import NotesListModel
 from nvpy.nvpy import Config
-import os
-import shutil
 
 
 class Tags(unittest.TestCase):
