@@ -1,9 +1,11 @@
 import functools
 import os
 import shutil
+import typing
 
 from nvpy.nvpy import Config, NotesListModel
 from nvpy.view import View, NoteConfig
+from nvpy.notes_db import NoteInfo
 from benchmarks import Benchmark
 
 
@@ -19,7 +21,8 @@ def __mock_config():
     return mockConfig
 
 
-view = None
+notes_list: typing.Optional[NotesListModel] = None
+view: typing.Optional[View] = None
 
 
 def setup(notes_count):
@@ -29,9 +32,9 @@ def setup(notes_count):
     global notes_list
     notes_list = NotesListModel()
     notes_list.set_list([
-        (
-            f'key{i}',
-            {
+        NoteInfo(
+            key=f'key{i}',
+            note={
                 'content': "title",
                 'modifydate': "12345",
                 'createdate': "12333",
@@ -39,6 +42,7 @@ def setup(notes_count):
                 'syncdate': 0,  # never been synced with server
                 'tags': ['atag', 'anotherTag']
             },
+            tagfound=False,
         ) for i in range(notes_count)
     ])
 
@@ -49,8 +53,8 @@ def setup(notes_count):
 
 def bench_refresh_notes_list_view():
     view.notes_list.clear()
-    for key, note in notes_list.list:
-        view.notes_list.append(note, NoteConfig(tagfound=0, match_regexp=None))
+    for ni in notes_list.list:
+        view.notes_list.append(ni.note, NoteConfig(tagfound=ni.tagfound, match_regexp=None))
 
 
 def main():
