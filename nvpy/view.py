@@ -1796,18 +1796,8 @@ class View(utils.SubjectMixin):
 
         del self.text_tags_search[:]
 
-        st = self.notes_list_model.match_regexp
-        if not st:
-            return
-
-        # take care of invalid regular expressions...
-        try:
-            if self.config.case_sensitive == 0:
-                pat = re.compile(st, re.I)
-            else:
-                pat = re.compile(st)
-
-        except re.error:
+        pat = self.notes_list_model.match_regexp
+        if pat is None:
             return
 
         for mo in pat.finditer(t.get('1.0', 'end')):

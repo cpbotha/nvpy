@@ -29,7 +29,7 @@ from . import utils
 from . import nvpy
 from .debug import wrap_buggy_function
 
-FilterResult = typing.Tuple[typing.List['NoteInfo'], str, int]
+FilterResult = typing.Tuple[typing.List['NoteInfo'], typing.Optional[re.Pattern], int]
 
 # API key provided for nvPY.
 # Please do not use for other software!
@@ -548,7 +548,7 @@ class NotesDB(utils.SubjectMixin):
                         active_notes += 1
                         filtered_notes.append(NoteInfo(key=k, note=n, tagfound=0))
 
-            return filtered_notes, '', active_notes
+            return filtered_notes, None, active_notes
 
         # group0: ag - not used
         # group1: t(ag)?:([^\s]+)
@@ -592,8 +592,15 @@ class NotesDB(utils.SubjectMixin):
                         # we have to store our local key also
                         filtered_notes.append(NoteInfo(key=k, note=n, tagfound=tagfound))
 
-        match_regexp = '|'.join(re.escape(p) for p in tms_pats[1] + tms_pats[2])
-        return filtered_notes, match_regexp, active_notes
+        regexp = None
+        if tms_pats[1] + tms_pats[2]:
+            regexp_pattern = '|'.join(re.escape(p) for p in tms_pats[1] + tms_pats[2])
+            regexp_flag = re.I if self.config.case_sensitive else re.NOFLAG
+            try:
+                regexp = re.compile(regexp_pattern, regexp_flag)
+            except re.error:
+                logging.error('Failed to compile regular expression: %r', regexp_pattern)
+        return filtered_notes, regexp, active_notes
 
     def filter_notes_regexp(self, search_string=None) -> FilterResult:
         """Return list of notes filtered with search_string,
@@ -645,9 +652,7 @@ class NotesDB(utils.SubjectMixin):
                         # we have to store our local key also
                         filtered_notes.append(NoteInfo(key=k, note=n, tagfound=0))
 
-        match_regexp = search_string if sspat else ''
-
-        return filtered_notes, match_regexp, active_notes
+        return filtered_notes, sspat, active_notes
 
     def get_note(self, key):
         return self.notes[key]

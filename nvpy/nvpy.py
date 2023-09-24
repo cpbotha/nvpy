@@ -400,7 +400,7 @@ class NotesListModel(SubjectMixin):
         SubjectMixin.__init__(self)
 
         self.list: typing.List[NoteInfo] = []
-        self.match_regexp = ''
+        self.match_regexp: typing.Optional[re.Pattern] = None
 
     def set_list(self, alist: typing.List[NoteInfo]):
         self.list = alist
