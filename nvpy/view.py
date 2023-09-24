@@ -18,6 +18,7 @@ from . import tk
 from . import utils
 from . import events
 from . import nvpy
+from . import notes_db
 
 
 class WidgetRedirector:
@@ -419,7 +420,7 @@ class StatusBar(tk.Frame):
 
 
 class NotesListConfig(typing.NamedTuple):
-    colors: typing.Any  # This type should ColorConfig, but specify any to solve circular import error.
+    colors: 'nvpy.ColorConfig'
     layout: str
     print_columns: int
     hide_time: int
@@ -1995,7 +1996,7 @@ class View(utils.SubjectMixin):
         if bool(self.pinned_checkbutton_var.get()) != bool(utils.note_pinned(note)):
             return True
 
-    def observer_notes_list(self, notes_list_model, evt_type, evt):
+    def observer_notes_list(self, notes_list_model: 'nvpy.NotesListModel', evt_type, evt):
         if evt_type == 'set:list':
             # re-render!
             self.set_notes(notes_list_model.list)
@@ -2088,7 +2089,7 @@ class View(utils.SubjectMixin):
             # selected note.
             self.text_note.edit_reset()
 
-    def set_notes(self, notes):
+    def set_notes(self, notes: typing.List['notes_db.NoteInfo']):
         # this method is called by View.observer_notes_list()
 
         # clear the notes list

@@ -50,7 +50,7 @@ import pathlib
 import platform
 
 from .notes_db import NotesDB, SyncError, ReadError, WriteError, MergedSorter, PinnedSorter, AlphaSorter, DateSorter, \
-    AlphaNumSorter, Sorter
+    AlphaNumSorter, Sorter, NoteInfo
 from . import tk
 from .utils import SubjectMixin
 from . import view
@@ -399,10 +399,10 @@ class NotesListModel(SubjectMixin):
         # call mixin ctor
         SubjectMixin.__init__(self)
 
-        self.list = []
+        self.list: typing.List[NoteInfo] = []
         self.match_regexp = ''
 
-    def set_list(self, alist):
+    def set_list(self, alist: typing.List[NoteInfo]):
         self.list = alist
         self.notify_observers('set:list', None)
 
