@@ -1,3 +1,10 @@
+v2.3.0, 2023-09-25 -- UI: Added underline_urls option.
+                      UI: Fixed title rendering issue on the notes list.
+                      UI: Added support for unicode characters in hyperlinks.
+                      UI: Added feature of highlighting note titles.
+                      Other: Added basic support for XDG dirs.
+                      Other: Added use_profiler option.
+                      Other: Clean up codes to improve reliability and maintainability.
 v2.2.0, 2022-07-04 -- Option: Added replace_filename_spaces and escape_to_exit options.
                       UI: Remember window position and size.
                       UI: Added alphanumeric sort mode.
