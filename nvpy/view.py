@@ -536,10 +536,14 @@ class NotesList(tk.Frame):
             else:
                 cellwidth = int(nrchars) / 2
 
+            title_length = cellwidth
             if pinned:
-                title += ' *'
+                title_length -= 2
 
-            self.text.insert(tk.END, u'{0:<{w}}'.format(title[:cellwidth - 1], w=cellwidth), ("title", ))
+            self.text.insert(tk.END, u'{0:<{w}}'.format(title[:title_length - 1], w=title_length), ("title", ))
+
+            if pinned:
+                self.text.insert(tk.END, ' *', ("pinned", ))
 
             if tags and not self.hide_tags:
                 if config.tagfound:
