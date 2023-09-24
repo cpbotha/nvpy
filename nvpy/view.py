@@ -429,6 +429,7 @@ class NotesListConfig(typing.NamedTuple):
 
 class NoteConfig(typing.NamedTuple):
     tagfound: int
+    match_regexp: typing.Optional[re.Pattern]
 
 
 class NotesList(tk.Frame):
@@ -481,6 +482,7 @@ class NotesList(tk.Frame):
         bold_font = tkFont.Font(self.text, self.text.cget("font"))
         bold_font.configure(weight="bold")
         self.text.tag_config("title", font=bold_font)
+        self.text.tag_config("title-highlight", font=bold_font, background=config.colors.highlight_note_info)
 
         italic_font = tkFont.Font(self.text, self.text.cget("font"))
         italic_font.configure(slant="italic")
@@ -521,6 +523,7 @@ class NotesList(tk.Frame):
         pinned = utils.note_pinned(note)
         createdate = float(note.get('createdate'))
         self.note_headers.append((title, tags, modifydate, pinned, createdate))
+        line_number = len(self.note_headers)
 
         self.enable_text()
 
@@ -541,6 +544,11 @@ class NotesList(tk.Frame):
                 title_length -= 2
 
             self.text.insert(tk.END, u'{0:<{w}}'.format(title[:title_length - 1], w=title_length), ("title", ))
+            if config.match_regexp:
+                for mo in config.match_regexp.finditer(title):
+                    start = '{}.{}'.format(line_number, min(mo.start(), title_length - 1))
+                    end = '{}.{}'.format(line_number, min(mo.end(), title_length - 1))
+                    self.text.tag_add('title-highlight', start, end)
 
             if pinned:
                 self.text.insert(tk.END, ' *', ("pinned", ))
@@ -559,6 +567,11 @@ class NotesList(tk.Frame):
             # tags can be None (newly created note) or [] or ['tag1', 'tag2']
         else:
             self.text.insert(tk.END, title, ("title", ))
+            if config.match_regexp:
+                for mo in config.match_regexp.finditer(title):
+                    start = '{}.{}'.format(line_number, mo.start())
+                    end = '{}.{}'.format(line_number, mo.end())
+                    self.text.tag_add('title-highlight', start, end)
 
             if pinned:
                 self.text.insert(tk.END, ' *', ("pinned", ))
@@ -2096,7 +2109,8 @@ class View(utils.SubjectMixin):
             if tags:
                 taglist += tags
 
-            self.notes_list.append(o.note, NoteConfig(tagfound=o.tagfound))
+            nc = NoteConfig(tagfound=o.tagfound, match_regexp=self.notes_list_model.match_regexp)
+            self.notes_list.append(o.note, nc)
             # find first non-empty line, and append to titlelist.
             for title in o.note["content"].splitlines():
                 slim_title = title.strip()

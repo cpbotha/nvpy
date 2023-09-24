@@ -50,7 +50,7 @@ def setup(notes_count):
 def bench_refresh_notes_list_view():
     view.notes_list.clear()
     for key, note in notes_list.list:
-        view.notes_list.append(note, NoteConfig(tagfound=0))
+        view.notes_list.append(note, NoteConfig(tagfound=0, match_regexp=None))
 
 
 def main():

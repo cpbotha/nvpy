@@ -809,8 +809,8 @@ class Controller:
         # for each new evt.value coming in, get a new list from the notes_db
         # and set it in the notes_list_model
         nn, match_regexp, active_notes = self.notes_db.filter_notes(evt.value)
-        self.notes_list_model.set_list(nn)
         self.notes_list_model.match_regexp = match_regexp
+        self.notes_list_model.set_list(nn)
         self.view.set_note_tally(len(nn), active_notes, len(self.notes_db.notes))
 
         idx = self.notes_list_model.get_idx(k)
