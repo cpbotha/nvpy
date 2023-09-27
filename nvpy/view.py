@@ -537,7 +537,7 @@ class NotesList(tk.Frame):
             if self.hide_tags:
                 cellwidth = int(nrchars)
             else:
-                cellwidth = int(nrchars) / 2
+                cellwidth = int(nrchars) // 2
 
             title_length = cellwidth
             if pinned:
