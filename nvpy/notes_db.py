@@ -595,7 +595,7 @@ class NotesDB(utils.SubjectMixin):
         regexp = None
         if tms_pats[1] + tms_pats[2]:
             regexp_pattern = '|'.join(re.escape(p) for p in tms_pats[1] + tms_pats[2])
-            regexp_flag = re.I if self.config.case_sensitive else re.NOFLAG
+            regexp_flag = 0 if self.config.case_sensitive else re.I
             try:
                 regexp = re.compile(regexp_pattern, regexp_flag)
             except re.error:
