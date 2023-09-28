@@ -1,3 +1,7 @@
+v2.3.1, 2023-09-29 -- UI: Fixed keyword highlighting issue.
+                      other: Fixed crash when rendering reST to HTML.
+                      Other: Fixed crash when using Python <3.10.
+                      Other: Fixed crash when using the vertical layout.
 v2.3.0, 2023-09-25 -- UI: Added underline_urls option.
                       UI: Fixed title rendering issue on the notes list.
                       UI: Added support for unicode characters in hyperlinks.
