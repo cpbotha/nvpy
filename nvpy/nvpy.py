@@ -711,17 +711,17 @@ class Controller:
                 if self.config.rest_css_path:
                     settings['stylesheet_path'] = self.config.rest_css_path
                 # this gives the whole document
-                html = docutils.core.publish_string(c, writer_name='html', settings_overrides=settings)
+                html: bytes = docutils.core.publish_string(c, writer_name='html', settings_overrides=settings)
                 # publish_parts("*anurag*",writer_name='html')['body']
                 # gives just the desired part of the tree
 
             else:
-                html = "<p>python docutils not installed, required for rendering reST to HTML.</p>"
-                html += "<p>Please install with \"pip install docutils\".</p>"
+                html = b"<p>python docutils not installed, required for rendering reST to HTML.</p>"
+                html += b"<p>Please install with \"pip install docutils\".</p>"
 
             # create filename based on key
             fn = os.path.join(self.config.db_path, key + '_rest.html')
-            with open(fn, mode='w', encoding='utf-8') as f:
+            with open(fn, mode='wb') as f:
                 f.write(html)
             return fn
 
