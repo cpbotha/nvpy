@@ -429,7 +429,7 @@ class NotesListConfig(typing.NamedTuple):
 
 class NoteConfig(typing.NamedTuple):
     tagfound: int
-    match_regexp: typing.Optional[re.Pattern]
+    match_regexp: typing.Optional[typing.Pattern]
 
 
 class NotesList(tk.Frame):

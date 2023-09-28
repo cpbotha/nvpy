@@ -29,7 +29,7 @@ from . import utils
 from . import nvpy
 from .debug import wrap_buggy_function
 
-FilterResult = typing.Tuple[typing.List['NoteInfo'], typing.Optional[re.Pattern], int]
+FilterResult = typing.Tuple[typing.List['NoteInfo'], typing.Optional[typing.Pattern], int]
 
 # API key provided for nvPY.
 # Please do not use for other software!
