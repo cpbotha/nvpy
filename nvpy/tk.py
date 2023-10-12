@@ -20,8 +20,9 @@ class Ucs4NotSupportedError(BaseException):
         self.char = char
 
     def __str__(self):
-        return ('non-BMP character {} is not supported.  '
-                'Please rebuild python interpreter and libraries with UCS-4 support.  '
+        return ('non-BMP character {} is not supported in the current Tk version. '
+                'The latest Tk will fix this issue. Please consider upgrading to latest OS, Python, and libraries. '
+                'Another option is rebuild Python interpreter and libraries with UCS-4 support. '
                 'See https://github.com/cpbotha/nvpy/blob/master/docs/ucs-4.rst').format(self.char)
 
 
