@@ -210,7 +210,7 @@ def parse_cmd_line_args():
 def main():
     args = parse_cmd_line_args()
     cfg_files = None
-    if args.ns:
+    if args.cfg:
         cfg_files = [args.cfg]
     config = nvpy.Config(nvpy.get_appdir(), cfg_files)
     return args.clazz().run(args, config)
