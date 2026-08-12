@@ -57,7 +57,7 @@ To upgrade an existing installation of nvpy, just replace the :code:`nvpy` folde
 Windows step-by-step for experts
 ================================
 
-1. Download and install the Python 3.7 or later.  Don't forget to install `the Python launcher <https://docs.python.org/3.7/using/windows.html#python-launcher-for-windows>`_.
+1. Download and install Python 3.10 or later.  Don't forget to install `the Python launcher <https://docs.python.org/3/using/windows.html#python-launcher-for-windows>`_.
 2. Install `pipx <https://pypa.github.io/pipx/>`_ that the package manager for end-user applications. ::
 
     py -3 -m pip install -U pipx
@@ -77,7 +77,7 @@ To upgrade an existing installation of nvPY, do the following::
 Ubuntu / Mint / Debian step-by-step
 ===================================
 
-On Debian-flavoured systems with apt, current releases of nypy require Python 3.7 or later. If you are running Debian 10, Ubuntu 20.04, or later, which have a compatible release of Python as the default for `python3`, this generally works::
+On Debian-flavoured systems with apt, current releases of nvpy require Python 3.10 or later. If you are running Ubuntu 22.04 or later, which ships Python 3.10+ as the default for `python3`, this generally works::
 
     # Install dependencies and pipx (end-user application manager developed by the Python Packaging Authority).
     sudo apt-get install python3 python3-tk python3-pip
@@ -85,7 +85,19 @@ On Debian-flavoured systems with apt, current releases of nypy require Python 3.
     # Install nvpy using pipx.
     python3 -m pipx install nvpy
 
-Older releases may require manual installation of python 3.7 or later.
+Older releases may require manual installation of Python 3.10 or later.
+
+macOS step-by-step (Homebrew Python)
+====================================
+
+Recent Homebrew Python releases (3.12 and later) do not bundle tkinter. Install Tk support for your Python version before installing nvPY::
+
+    brew install python-tk@3.14
+    python3.14 -m venv ~/venv-nvpy
+    source ~/venv-nvpy/bin/activate
+    pip install nvpy
+
+Replace ``3.14`` with your Python version if needed (for example ``python-tk@3.12``).
 
 Create a file in your home directory called :code:`.nvpy.cfg` with just the following contents::
 

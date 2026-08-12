@@ -155,11 +155,7 @@ class Config:
             old_file = self.settings_file
             self.settings_file = cache_dir / "nvpy_settings"
             # Try deleting the nvpy_settings file in old location.
-            # Use try-except instead of the missing_ok=True because Python 3.6 and 3.7 are not supported it.
-            try:
-                pathlib.Path(old_file).unlink()
-            except FileNotFoundError:
-                pass
+            pathlib.Path(old_file).unlink(missing_ok=True)
 
         defaults = {
             'app_dir': app_dir,
@@ -1037,13 +1033,6 @@ def profiler_context(fname_prefix: str):
         s.print_stats()
 
 
-@contextlib.contextmanager
-def nullcontext():
-    #  WORKAROUND: Python 3.6 does not have the contextlib.nullcontext.
-    #  If the minimum requirement is Python >3.7, we can remove it.
-    yield
-
-
 def main(args: typing.Optional[typing.List] = None):
     ns = parse_cmd_line_args(args)
     cfg_files = None
@@ -1052,7 +1041,7 @@ def main(args: typing.Optional[typing.List] = None):
     config = Config(get_appdir(), cfg_files)
 
     # Setup profiler.
-    profiler: typing.ContextManager = nullcontext()
+    profiler: typing.ContextManager = contextlib.nullcontext()
     if config.use_profiler:
         prefix = str(pathlib.Path(config.db_path) / 'nvpy-profile')
         profiler = profiler_context(prefix)

@@ -10,39 +10,32 @@ tk, then can use tk.whatever in main module.
 This module also applies a monkey patch for UCS4 error handling.
 """
 
-from tkinter import *
-from tkinter.ttk import *  # type:ignore
+import platform
+import sys
+
+from .tk_support import Ucs4NotSupportedError, with_ucs4_error_handling
 
 
-class Ucs4NotSupportedError(BaseException):
+def _tkinter_missing_error(exc: ImportError) -> ImportError:
+    ver = f'{sys.version_info.major}.{sys.version_info.minor}'
+    hints = [
+        'nvPY requires tkinter, but it is not available in this Python installation.',
+    ]
+    if platform.system() == 'Darwin':
+        hints.append(f'On macOS with Homebrew Python: brew install python-tk@{ver}')
+    elif platform.system() == 'Linux':
+        hints.append('On Debian/Ubuntu: sudo apt-get install python3-tk')
+        hints.append(f'On Fedora/RHEL: sudo dnf install python{ver}-tkinter')
+    else:
+        hints.append('Reinstall Python with Tcl/Tk support enabled.')
+    return ImportError('\n'.join(hints))
 
-    def __init__(self, char):
-        self.char = char
 
-    def __str__(self):
-        return ('non-BMP character {} is not supported in the current Tk version. '
-                'The latest Tk will fix this issue. Please consider upgrading to latest OS, Python, and libraries. '
-                'Another option is rebuild Python interpreter and libraries with UCS-4 support. '
-                'See https://github.com/cpbotha/nvpy/blob/master/docs/ucs-4.rst').format(self.char)
-
-
-def with_ucs4_error_handling(fn):
-    """ Catch the non-BMP character error and reraise the Ucs4NotSupportedError. """
-    import functools
-
-    @functools.wraps(fn)
-    def wrapper(*args, **kwargs):
-        try:
-            return fn(*args, **kwargs)
-        except TclError as e:
-            import re
-            result = re.match(r'character (U\+[0-9a-f]+) is above the range \(U\+0000-U\+FFFF\) allowed by Tcl', str(e))
-            if result:
-                char = result.group(1)
-                raise Ucs4NotSupportedError(char)
-            raise
-
-    return wrapper
+try:
+    from tkinter import *
+    from tkinter.ttk import *  # type:ignore
+except ImportError as exc:
+    raise _tkinter_missing_error(exc) from exc
 
 
 ########################################################################

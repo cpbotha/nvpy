@@ -9,7 +9,7 @@ from urllib.request import urlopen
 from queue import Queue, Empty as QueueEmpty
 import threading
 
-from . import tk
+from .tk_support import with_ucs4_error_handling
 
 # first line with non-whitespace should be the title
 note_title_re = re.compile('\s*(.*)\n?')
@@ -161,7 +161,7 @@ class SubjectMixin:
 
     def add_observer(self, evt_type, o):
         from .debug import wrap_buggy_function
-        o = tk.with_ucs4_error_handling(o)
+        o = with_ucs4_error_handling(o)
         o = wrap_buggy_function(o)
 
         if evt_type not in self.observers:

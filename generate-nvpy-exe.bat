@@ -2,7 +2,7 @@ rem This batch generates an executable file for Windows.
 rem
 rem Requirements:
 rem   Windows 10
-rem   Python 3.7 and Python launcher
+rem   Python 3.10 and Python launcher
 rem   PyInstaller
 rem
 rem Output:

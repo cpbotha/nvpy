@@ -34,6 +34,7 @@ setup(
         # This is hard requirements of nvpy.
         'simplenote>=2.1.4',
     ],
+    python_requires='>=3.10',
     extras_require={
         # development and test requirements.
         'dev': [
@@ -61,12 +62,11 @@ setup(
         "Environment :: MacOS X",
         "Environment :: Win32 (MS Windows)",
         "Programming Language :: Python :: 3",
-        "Programming Language :: Python :: 3.6",
-        "Programming Language :: Python :: 3.7",
-        "Programming Language :: Python :: 3.8",
-        'Programming Language :: Python :: 3.9',
         'Programming Language :: Python :: 3.10',
         'Programming Language :: Python :: 3.11',
+        'Programming Language :: Python :: 3.12',
+        'Programming Language :: Python :: 3.13',
+        'Programming Language :: Python :: 3.14',
         "Topic :: Utilities",
         "License :: OSI Approved :: BSD License",
     ],
