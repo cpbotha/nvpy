@@ -49,9 +49,13 @@ from http.client import HTTPException
 import pathlib
 import platform
 
+# First, import the tkinter module with monkey patches and helper functions.
+# If tkinter is not available, nvpy crashes with an ImportError.
+from . import tk
+
+# Import other modules here:
 from .notes_db import NotesDB, SyncError, ReadError, WriteError, MergedSorter, PinnedSorter, AlphaSorter, DateSorter, \
     AlphaNumSorter, Sorter, NoteInfo
-from . import tk
 from .utils import SubjectMixin
 from . import view
 from .version import VERSION

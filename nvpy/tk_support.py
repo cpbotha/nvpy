@@ -1,7 +1,12 @@
 # nvPY: cross-platform note-taking app with simplenote syncing
 # copyright 2012 by Charl P. Botha <cpbotha@vxlabs.com>
 # new BSD license
-"""Tk-related helpers that do not import tkinter at module load time."""
+"""Tk-related helpers."""
+
+import functools
+import re
+
+import tkinter
 
 
 class Ucs4NotSupportedError(BaseException):
@@ -18,17 +23,12 @@ class Ucs4NotSupportedError(BaseException):
 
 def with_ucs4_error_handling(fn):
     """Catch the non-BMP character error and reraise the Ucs4NotSupportedError."""
-    import functools
-    import re
 
     @functools.wraps(fn)
     def wrapper(*args, **kwargs):
         try:
             return fn(*args, **kwargs)
-        except Exception as e:
-            from tkinter import TclError
-            if not isinstance(e, TclError):
-                raise
+        except tkinter.TclError as e:
             result = re.match(
                 r'character (U\+[0-9a-f]+) is above the range \(U\+0000-U\+FFFF\) allowed by Tcl',
                 str(e),

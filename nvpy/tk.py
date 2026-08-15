@@ -13,8 +13,6 @@ This module also applies a monkey patch for UCS4 error handling.
 import platform
 import sys
 
-from .tk_support import Ucs4NotSupportedError, with_ucs4_error_handling
-
 
 def _tkinter_missing_error(exc: ImportError) -> ImportError:
     ver = f'{sys.version_info.major}.{sys.version_info.minor}'
@@ -37,6 +35,7 @@ try:
 except ImportError as exc:
     raise _tkinter_missing_error(exc) from exc
 
+from .tk_support import with_ucs4_error_handling
 
 ########################################################################
 # Apply the monkey patches for convert TclError to Ucs4NotSupportedError
