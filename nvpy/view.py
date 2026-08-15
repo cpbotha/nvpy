@@ -19,6 +19,7 @@ from . import utils
 from . import events
 from . import nvpy
 from . import notes_db
+from .tk_support import trace_variable_write
 
 
 class WidgetRedirector:
@@ -175,7 +176,7 @@ class SuggestionEntry(tk.Entry):
         # apply a monkey patch.
         self.orig_bind, self.bind = self.bind, self.new_bind
 
-        self.var.trace('w', self.changed)
+        trace_variable_write(self.var, self.changed)
         self.orig_bind("<Right>", self.selection)
         self.orig_bind("<Return>", self.selection)
         self.orig_bind("<Up>", self.moveUp)
@@ -1246,12 +1247,12 @@ class View(utils.SubjectMixin):
         self.tags_entry.bind("<Return>", self.handler_add_tags_to_selected_note)
         self.tags_entry.bind("<Escape>", lambda e: self.text_note.focus())
 
-        self.search_entry_var.trace('w', self.handler_search_entry)
-        self.cs_checkbutton_var.trace('w', self.handler_cs_checkbutton)
-        self.search_mode_var.trace('w', self.handler_search_mode)
-        self.pinned_checkbutton_var.trace('w', self.handler_pinned_checkbutton)
-        self.sort_mode_var.trace('w', self.handler_sort_mode_change)
-        self.pinned_on_top_var.trace('w', self.handler_pinned_on_top_change)
+        trace_variable_write(self.search_entry_var, self.handler_search_entry)
+        trace_variable_write(self.cs_checkbutton_var, self.handler_cs_checkbutton)
+        trace_variable_write(self.search_mode_var, self.handler_search_mode)
+        trace_variable_write(self.pinned_checkbutton_var, self.handler_pinned_checkbutton)
+        trace_variable_write(self.sort_mode_var, self.handler_sort_mode_change)
+        trace_variable_write(self.pinned_on_top_var, self.handler_pinned_on_top_change)
 
         self.after(self.config.housekeeping_interval_ms, self.handler_housekeeper)
 
